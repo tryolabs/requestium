@@ -22,7 +22,7 @@ class Session(requests.Session):
     _driver = None
     _last_requests_url = None
 
-    def __init__(self, webdriver_path='./local_phantomjs', default_wait_timeout=5):
+    def __init__(self, webdriver_path='./phantomjs_driver', default_wait_timeout=5):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_wait_timeout = default_wait_timeout
@@ -84,7 +84,7 @@ class Session(requests.Session):
 
         self.driver.get(url)
 
-    def switch_to_requests(self):
+    def update_session_cookies(self):
         for cookie in self.driver.get_cookies():
                 self.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
 
@@ -177,3 +177,6 @@ class RequestiumResponse(object):
 
     def re(self, *args, **kwargs):
         return self.selector.re(*args, **kwargs)
+
+    def re_first(self, *args, **kwargs):
+        return self.selector.re_first(*args, **kwargs)
