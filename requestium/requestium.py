@@ -22,41 +22,58 @@ class Session(requests.Session):
     _driver = None
     _last_requests_url = None
 
-    def __init__(self, webdriver_path='./phantomjs_driver', default_wait_timeout=5):
+    def __init__(self, webdriver_path='./phantomjs_driver', default_timeout=5, browser='phantomjs'):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
-        self.default_wait_timeout = default_wait_timeout
+        self.default_timeout = default_timeout
+        self.browser = browser
 
     @property
     def driver(self):
         if self._driver is None:
-            # Add headers to driver
-            for key, value in self.headers.items():
-                # Manually setting the encoding to anything breaks it
-                if key == 'Accept-Encoding': continue
+            if self.browser == 'phantomjs':
+                self._start_phantomjs_browser()
+            elif self.browser == 'chrome':
+                self._start_chrome_browser()
+            else:
+                raise AttributeError(
+                    'Browser must be chrome or phantomjs, not: "{}"'.format(self.browser)
+                )
 
-                webdriver.DesiredCapabilities.PHANTOMJS[
-                    'phantomjs.page.customHeaders.{}'.format(key)] = value
-
-            # Set browser options
-            service_args = ['--load-images=no', '--disk-cache=true']
-
-            # Add proxies to driver
-            if self.proxies:
-                session_proxy = self.proxies['https'] or self.proxies['http']
-                proxy_user_and_pass = session_proxy.split('@')[0][7:]
-                proxy_ip_address = session_proxy.split('@')[1]
-                service_args.append('--proxy=' + proxy_ip_address)
-                service_args.append('--proxy-auth=' + proxy_user_and_pass)
-
-            # Create driver process
-            self._driver = webdriver.PhantomJS(executable_path=self.webdriver_path,
-                                               service_log_path="/tmp/ghostdriver.log",
-                                               service_args=service_args)
-
-            # Add extra method to driver
+            # Add useful method to driver
             self.driver.wait_for_xpath = self.__wait_for_xpath
         return self._driver
+
+    def _start_phantomjs_browser(self, webdriver_path):
+        # Add headers to driver
+        for key, value in self.headers.items():
+            # Manually setting Accept-Encoding to anything breaks it for some reason
+            if key == 'Accept-Encoding': continue
+
+            webdriver.DesiredCapabilities.PHANTOMJS[
+                'phantomjs.page.customHeaders.{}'.format(key)] = value
+
+        # Set browser options
+        service_args = ['--load-images=no', '--disk-cache=true']
+
+        # Add proxies to driver
+        if self.proxies:
+            session_proxy = self.proxies['https'] or self.proxies['http']
+            proxy_user_and_pass = session_proxy.split('@')[0][7:]
+            proxy_ip_address = session_proxy.split('@')[1]
+            service_args.append('--proxy=' + proxy_ip_address)
+            service_args.append('--proxy-auth=' + proxy_user_and_pass)
+
+        # Create driver process
+        self._driver = webdriver.PhantomJS(executable_path=self.webdriver_path,
+                                           service_log_path="/tmp/ghostdriver.log",
+                                           service_args=service_args)
+
+    def _start_chrome_browser(self):
+        # TODO transfer headers, and authenticated proxyes: not sure how to do it in chrome
+
+        # Create driver process
+        self._driver = webdriver.Chrome(self.webdriver_path)
 
     def update_driver_cookies(self, url=None):
         """Copies the Session's cookies into the webdriver
@@ -125,7 +142,7 @@ class Session(requests.Session):
         found here: http://selenium-python.readthedocs.io/waits.html
         """
         type = By.XPATH
-        if not timeout: timeout = self.default_wait_timeout
+        if not timeout: timeout = self.default_timeout
 
         if criterium == 'visibility':
             return WebDriverWait(self._driver, timeout).until(
