@@ -82,6 +82,9 @@ celerybeat-schedule
 # dotenv
 .env
 
+# ctags
+tags
+
 # virtualenv
 .venv
 venv/
