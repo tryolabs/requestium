@@ -4,27 +4,27 @@ The objective of this project is to help in the development of bots that automat
 
 ## Usage
 ```python
-from requestium import Session
+from requestium import Session, Keys
 # from requests import Session  # We replace this statement
 
 s = Session()
 
 # We don't need to parse the response, it is done automatically
-title = s.get('http://samplesite.com').xpath('//title/text()').extract_first()
-print title  # >>> Sample Site
+title = s.get('http://samplesite.com').xpath('//title/text()').extract_first(default='Sample Title')
 
 # Regex require much less boilerplate
 response = s.get('http://samplesite.com/sample_path')
 list_of_two_digit_numbers = response.re(r'\d\d')  # Extracts all matches as a list
-if response.re_first(r'ID_\s\w\s'):  # Extracts only the first match
-    print "Site contains valid identifier"
+print "Site ID: {}".format(response.re_first(r'ID_\d\w\d'), default='1A1')  # Extracts the first match
 
 # We can use all the normal Session methods
 s.post('http://www.samplesite.com/sample', data={'field1': 'data1'})
 
 # And we can switch to using the Selenium webdriver to run any js code
-s.update_driver_cookies()
-s.driver.find_element_by_xpath(//div[@uniqueattribute='ContinueButton']).click()
+s.update_driver_cookies()  # We can mantain the session if needed
+s.driver.get('http://www.samplesite.com/sample/process')
+s.driver.find_element_by_xpath("//input[@class='user_name']").send_keys('James Bond', Keys.ENTER)
+s.driver.find_element_by_xpath("//div[@uniqueattribute='important_button']").click()
 
 # And then switch back to using requests
 s.update_session_cookies()

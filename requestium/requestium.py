@@ -35,22 +35,20 @@ class Session(requests.Session):
     def driver(self):
         if self._driver is None:
             if self.browser == 'phantomjs':
-                self._start_phantomjs_browser()
+                self._driver = self._start_phantomjs_browser()
             elif self.browser == 'chrome':
-                self._start_chrome_browser()
+                self._driver = self._start_chrome_browser()
             else:
                 raise AttributeError(
                     'Browser must be chrome or phantomjs, not: "{}"'.format(self.browser)
                 )
 
-            # Add useful method to driver
-            self.driver.ensure_element_by_xpath = self.__ensure_element_by_xpath
         return self._driver
 
-    def _start_phantomjs_browser(self, webdriver_path):
+    def _start_phantomjs_browser(self):
         # Add headers to driver
         for key, value in self.headers.items():
-            # Manually setting Accept-Encoding to anything breaks it for some reason
+            # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
             if key == 'Accept-Encoding': continue
 
             webdriver.DesiredCapabilities.PHANTOMJS[
@@ -68,28 +66,33 @@ class Session(requests.Session):
             service_args.append('--proxy-auth=' + proxy_user_and_pass)
 
         # Create driver process
-        self._driver = webdriver.PhantomJS(executable_path=self.webdriver_path,
-                                           service_log_path="/tmp/ghostdriver.log",
-                                           service_args=service_args)
+        return RequestiumPhantomJS(executable_path=self.webdriver_path,
+                                   service_log_path="/tmp/ghostdriver.log",
+                                   service_args=service_args,
+                                   default_timeout=self.default_timeout)
 
     def _start_chrome_browser(self):
         # TODO transfer headers, and authenticated proxyes: not sure how to do it in chrome
 
         chrome_options = webdriver.chrome.options.Options()
 
-        # The infobar at the top saying 'Chrome is being controlled by an automated software'
-        # sometimes hide elements from being clickable! So we disable it.
+        # I suspect the infobar at the top of the browser saying "Chrome is being controlled by an
+        # automated software" sometimes hides elements from being clickable. So I disable it.
         chrome_options.add_argument('disable-infobars')
 
-
         # Create driver process
-        self._driver = webdriver.Chrome(self.webdriver_path, chrome_options=chrome_options)
+        return RequestiumChrome(self.webdriver_path,
+                                chrome_options=chrome_options,
+                                default_timeout=self.default_timeout)
 
     def update_driver_cookies(self, url=None):
         """Copies the Session's cookies into the webdriver
 
         You can only transfer cookies to the driver if its current url is the same
         as the cookie's domain. This is a limitation that selenium imposes.
+
+        Using the 'url' parameter we can choose the domain whose cookies we want to update, it
+        defaults to our last visited site if not provided.
         """
 
         if url is None:
@@ -100,16 +103,19 @@ class Session(requests.Session):
         driver_tld = self.get_tld(self.driver.current_url)
         new_request_tld = self.get_tld(url)
         if '.' + new_request_tld in self.cookies.list_domains() and driver_tld != new_request_tld:
+            # TODO Check if harcoding 'http' causes trouble
+            # TODO Consider using a new proxy for this next request to not cause an anomalous
+            #      request. This way their server sees our ip address as continously having the same
+            #      cookies and not have a request mid-session with no cookies
             self.driver.get('http://' + self.get_tld(url))
+            # TODO delete these next two lines?
             driver_tld = self.get_tld(self.driver.current_url)
-            # assert driver_tld == new_request_tld, "{} != {}".format(driver_tld, new_request_tld)
+            assert driver_tld == new_request_tld, "{} != {}".format(driver_tld, new_request_tld)
 
         # Transfer cookies
         for c in self.cookies:
             self.driver.add_cookie({'name': c.name, 'value': c.value, 'path': c.path,
                                     'expiry': c.expires, 'domain': c.domain})
-
-        self.driver.get(url)
 
     def update_session_cookies(self):
         for cookie in self.driver.get_cookies():
@@ -132,11 +138,75 @@ class Session(requests.Session):
                 return url
         return components.registered_domain
 
-    def __ensure_element_by_xpath(self, selector, criterium="presence", timeout=None):
+    def get(self, *args, **kwargs):
+        resp = super(Session, self).get(*args, **kwargs)
+        self._last_requests_url = resp.url
+        return RequestiumResponse(resp)
+
+    def post(self, *args, **kwargs):
+        resp = super(Session, self).post(*args, **kwargs)
+        self._last_requests_url = resp.url
+        return RequestiumResponse(resp)
+
+    def put(self, *args, **kwargs):
+        resp = super(Session, self).put(*args, **kwargs)
+        self._last_requests_url = resp.url
+        return RequestiumResponse(resp)
+
+
+class RequestiumResponse(object):
+    """Adds xpath, css, and regex methods to a normal requests response object"""
+
+    def __init__(self, response):
+        self.__class__ = type(response.__class__.__name__,
+                              (self.__class__, response.__class__),
+                              response.__dict__)
+        self._response = response
+        self._selector = None
+
+    @property
+    def selector(self):
+        if self._selector is None:
+            self._selector = Selector(text=self._response.text)
+        return self._selector
+
+    def xpath(self, *args, **kwargs):
+        return self.selector.xpath(*args, **kwargs)
+
+    def css(self, *args, **kwargs):
+        return self.selector.css(*args, **kwargs)
+
+    def re(self, *args, **kwargs):
+        return self.selector.re(*args, **kwargs)
+
+    def re_first(self, *args, **kwargs):
+        return self.selector.re_first(*args, **kwargs)
+
+
+class DriverMixin(object):
+    """Provides helper methods to our driver classes
+
+    This is a temporary solution.
+
+    When Chrome headless is finally stable, and we therefore stop using Phantomjs,
+    it will make sense to stop having this as a mixin and just add these methods to
+    the RequestiumChrome class, as it will be our only driver class.
+
+    (We plan to stop supporting Phantomjs because the developer stated he wont be
+    mantaining the project any longer)
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.default_timeout = kwargs['default_timeout']
+        del kwargs['default_timeout']
+        super(DriverMixin, self).__init__(*args, **kwargs)
+        self._selector = None
+
+    def ensure_element_by_xpath(self, selector, criterium="presence", timeout=None):
         """This method allows us to wait till an element is loaded in selenium
 
         This method is added to the driver object. And its more robust than any of Selenium's
-        default options for waiting.
+        default options for waiting for elements.
 
         Selenium runs in parallel with our scripts, so we must wait for it everytime it
         runs javascript. Selenium automatically makes our python scripts when its GETing
@@ -165,15 +235,15 @@ class Session(requests.Session):
         if not timeout: timeout = self.default_timeout
 
         if criterium == 'visibility':
-            element = WebDriverWait(self._driver, timeout).until(
+            element = WebDriverWait(self, timeout).until(
                 EC.visibility_of_element_located((type, selector))
             )
         elif criterium == 'clickable':
-            element = WebDriverWait(self._driver, timeout).until(
+            element = WebDriverWait(self, timeout).until(
                 EC.element_to_be_clickable((type, selector))
             )
         elif criterium == 'presence':
-            element = WebDriverWait(self._driver, timeout).until(
+            element = WebDriverWait(self, timeout).until(
                 EC.presence_of_element_located((type, selector))
             )
         else:
@@ -182,48 +252,16 @@ class Session(requests.Session):
                 "or 'presence', not '{}'".format(criterium)
             )
 
-        # This next method returns the location of an element once its scrolled into view.
-        # It scrolls the element into view first though, so its an effective way to ensure
-        # the element is viewable when we return it in case we want to click it.
-        element.location_once_scrolled_into_view
-
         # We add this method to our element to provide a more robust click. Chromedriver
         # sometimes needs some time before it can click an item, specially if it needs to
         # scroll into it first. This method ensures clicks don't fail because of this.
         element.ensure_click = partial(_ensure_click, element)
         return element
 
-    def get(self, *args, **kwargs):
-        resp = super(Session, self).get(*args, **kwargs)
-        self._last_requests_url = resp.url
-        return RequestiumResponse(resp)
-
-    def post(self, *args, **kwargs):
-        resp = super(Session, self).post(*args, **kwargs)
-        self._last_requests_url = resp.url
-        return RequestiumResponse(resp)
-
-    def put(self, *args, **kwargs):
-        resp = super(Session, self).put(*args, **kwargs)
-        self._last_requests_url = resp.url
-        return RequestiumResponse(resp)
-
-
-class RequestiumResponse(object):
-    """Adds xpath, css, and regex methods to a normal requests response object"""
-
-    def __init__(self, response):
-        self.__class__ = type(response.__class__.__name__,
-                              (self.__class__, response.__class__),
-                              response.__dict__)
-        # self.__dict__ = response.__dict__  # TODO delete?
-        self.response = response
-        self._selector = None
-
     @property
     def selector(self):
         if self._selector is None:
-            self._selector = Selector(text=self.response.text)
+            self._selector = Selector(text=self.page_source)
         return self._selector
 
     def xpath(self, *args, **kwargs):
@@ -240,23 +278,44 @@ class RequestiumResponse(object):
 
 
 def _ensure_click(self):
-    """Ensures a click gets made even when using the buggy chromedriver
+    """Ensures a click gets made, cause Selenium can be a bit buggy about clicks
 
     This method gets added to the selenium elemenent returned in '__ensure_element_by_xpath'.
+    We should probably add it to more selenium methods, such as all the 'find**' methods though.
 
     I wrote this method out of frustration with chromedriver and its problems with clicking
     items that need to be scrolled to in order to be clickable. In '__ensure_element_by_xpath' we
     scroll to the item before returning it, but chrome has some problems if it doesn't get some
     time to scroll to the item. This method ensures chromes gets enough time to scroll to the item
     before clicking it. I tried SEVERAL more 'correct' methods to get around this, but none of them
-    worked 100% of the time. Checking if the item is 'clickable' does not work.
+    worked 100% of the time (waiting for the element to be 'clickable' does not work).
     """
-    for _ in range(5):
+
+    # We ensure the element is scrolled into the middle of the viewport to ensure that
+    # it is clickable. There are two main ways an element may not be clickable:
+    #   - It is outside of the viewport
+    #   - It is under a banner or toolbar
+    # This script solves both cases
+    script = ("var viewPortHeight = Math.max("
+              "document.documentElement.clientHeight, window.innerHeight || 0);"
+              "var elementTop = arguments[0].getBoundingClientRect().top;"
+              "window.scrollBy(0, elementTop-(viewPortHeight/2));")
+    self.parent.execute_script(script, self)  # parent = the webdriber
+
+    for _ in range(10):
         try:
             self.click()
             return
         except WebDriverException as e:
             time.sleep(0.2)
     raise WebDriverException(
-        "Couldn't click item after trying 5 times, got error message: \n{}".format(e.message)
+        "Couldn't click item after trying 10 times, got error message: \n{}".format(e.message)
     )
+
+
+class RequestiumPhantomJS(DriverMixin, webdriver.PhantomJS):
+    pass
+
+
+class RequestiumChrome(DriverMixin, webdriver.Chrome):
+    pass
