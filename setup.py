@@ -27,10 +27,10 @@ setup(
     url='https://github.com/tryolabs/requestium',
     packages=('requestium',),
     install_requires=(
-        'requests',
-        'selenium',
-        'parsel',
-        'tldextract'
+        'requests>=2.18.1',
+        'selenium>=3.4.3',
+        'parsel>=1.2.0',
+        'tldextract>=2.1.0'
     ),
     license='MIT',
     zip_safe=False,
