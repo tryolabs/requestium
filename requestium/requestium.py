@@ -73,7 +73,6 @@ class Session(requests.Session):
 
     def _start_chrome_browser(self):
         # TODO transfer headers, and authenticated proxyes: not sure how to do it in chrome
-
         chrome_options = webdriver.chrome.options.Options()
 
         # I suspect the infobar at the top of the browser saying "Chrome is being controlled by an
@@ -85,58 +84,27 @@ class Session(requests.Session):
                                 chrome_options=chrome_options,
                                 default_timeout=self.default_timeout)
 
-    def update_driver_cookies(self, url=None):
+    def transfer_session_cookies_to_driver(self, domain=None):
         """Copies the Session's cookies into the webdriver
 
-        You can only transfer cookies to the driver if its current url is the same
-        as the cookie's domain. This is a limitation that selenium imposes.
-
-        Using the 'url' parameter we can choose the domain whose cookies we want to update, it
-        defaults to our last visited site if not provided.
+        Using the 'domain' parameter we choose the cookies we wish to transfer, we only
+        transfer the cookies which belong to that domain. The domain defaults to our last visited
+        site if not provided.
         """
-
-        if url is None:
-            url = self._last_requests_url
-
-        # Check if the driver should go to a certain domain before transferring cookies
-        # (Selenium and Requests prepend domains with an '.')
-        driver_tld = self.get_tld(self.driver.current_url)
-        new_request_tld = self.get_tld(url)
-        if '.' + new_request_tld in self.cookies.list_domains() and driver_tld != new_request_tld:
-            # TODO Check if harcoding 'http' causes trouble
-            # TODO Consider using a new proxy for this next request to not cause an anomalous
-            #      request. This way their server sees our ip address as continously having the same
-            #      cookies and not have a request mid-session with no cookies
-            self.driver.get('http://' + self.get_tld(url))
-            # TODO delete these next two lines?
-            driver_tld = self.get_tld(self.driver.current_url)
-            assert driver_tld == new_request_tld, "{} != {}".format(driver_tld, new_request_tld)
+        if not domain and self._last_requests_url:
+            domain = self.get_tld(self._last_requests_url)
+        elif not domain and not self._last_requests_url:
+            raise Exception('Trying to transfer cookies to selenium without specifying a domain '
+                            'and without having visited any page in the current session')
 
         # Transfer cookies
-        for c in self.cookies:
-            self.driver.add_cookie({'name': c.name, 'value': c.value, 'path': c.path,
-                                    'expiry': c.expires, 'domain': c.domain})
+        for c in [c for c in self.cookies if c.domain == domain]:
+            self.driver.ensure_add_cookie({'name': c.name, 'value': c.value, 'path': c.path,
+                                           'expiry': c.expires, 'domain': c.domain})
 
-    def update_session_cookies(self):
+    def transfer_driver_cookies_to_session(self):
         for cookie in self.driver.get_cookies():
                 self.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
-
-    def get_tld(self, url):
-        """Return the top level domain
-
-        If the registered domain could not be extracted, assume that it's simply an IP and
-        strip away the protocol prefix and potentially trailing rest after "/" away.
-        If it isn't, this fails gracefully for unknown domains, e.g.:
-           "http://domain.onion/" -> "domain.onion". If it doesn't look like a valid address
-        at all, return the URL unchanged.
-        """
-        components = tldextract.extract(url)
-        if not components.registered_domain:
-            try:
-                return url.split('://', 1)[1].split(':', 1)[0].split('/', 1)[0]
-            except IndexError:
-                return url
-        return components.registered_domain
 
     def get(self, *args, **kwargs):
         resp = super(Session, self).get(*args, **kwargs)
@@ -202,6 +170,58 @@ class DriverMixin(object):
         super(DriverMixin, self).__init__(*args, **kwargs)
         self._selector = None
 
+    def ensure_add_cookie(self, cookie, force_url=None, override_domain=None):
+        """Ensures a cookie gets added to the driver
+
+        Selenium needs the driver to be currently at the domain of the cookie
+        before allowing you to add it, so we need to get through this limitation.
+
+        The cookie parameter is a dict which must contain the keys (name, value, domain) and
+        may contain the keys (path, expiry).
+
+        If the user doesn't provide a 'force_url' parameter, we first check that we aren't
+        currently in the cookie's domain, if we aren't, we GET the cookie's domain and
+        then add the cookies to the driver.
+
+        If the user provides a 'force_url' parameter, we GET that url and we add the cookie to
+        the driver. The use for this parameter is that sometimes GETting the domain redirects you to
+        a different sub domain, and therefore adding the cookie fails. So sometimes the user may
+        need to ensure the driver is in the correct url, by setting an url manually that he knows
+        wont trigger a redirect.
+
+        We can also override the cookie's domain using 'override_domain', this intends to solve the
+        same issue as force_url, but in a different way. Instead of forcing our driver to go to a
+        particular address, we override the cookie's domain to a less strict one, Eg.: 'site.com'
+        instead of 'home.site.com', in this way even if the site redirects us, the cookie will
+        stick.
+
+        It also retries adding the cookie with a more permissive domain if it fails in the first try
+        and raises an exception if that fails. The standard selenium behaviour in this case was to
+        not do anything, which was very hard to debug.
+        """
+        if force_url:
+            self.get(force_url)
+        elif cookie['domain'] not in self.get_tld(self.current_url):
+            # TODO Check if harcoding 'http' causes trouble
+            # TODO Consider using a new proxy for this next request to not cause an anomalous
+            #      request. This way their server sees our ip address as continously having the
+            #      same cookies and not have a request mid-session with no cookies
+            url = cookie['domain'] if cookie['domain'][0] != '.' else cookie['domain'][1:]
+            self.get('http://' + url)
+
+        if override_domain:  # TODO delete?
+            cookie['domain'] = override_domain
+        self.add_cookie(cookie)
+
+        # If we fail adding the cookie, retry with a more permissive domain
+        if cookie not in self.get_cookies():
+            cookie['domain'] = self.get_tld(cookie['domain'])
+            self.add_cookie(cookie)
+            if cookie in self.get_cookies():
+                raise WebDriverException(
+                    "Couldn't add the cookie \n{}\n to the webdriver".format(cookie)
+                )
+
     def ensure_element_by_xpath(self, selector, criterium="presence", timeout=None):
         """This method allows us to wait till an element is loaded in selenium
 
@@ -257,6 +277,23 @@ class DriverMixin(object):
         # scroll into it first. This method ensures clicks don't fail because of this.
         element.ensure_click = partial(_ensure_click, element)
         return element
+
+    def get_tld(self, url):
+        """Return the top level domain
+
+        If the registered domain could not be extracted, assume that it's simply an IP and
+        strip away the protocol prefix and potentially trailing rest after "/" away.
+        If it isn't, this fails gracefully for unknown domains, e.g.:
+           "http://domain.onion/" -> "domain.onion". If it doesn't look like a valid address
+        at all, return the URL unchanged.
+        """
+        components = tldextract.extract(url)
+        if not components.registered_domain:
+            try:
+                return url.split('://', 1)[1].split(':', 1)[0].split('/', 1)[0]
+            except IndexError:
+                return url
+        return components.registered_domain
 
     @property
     def selector(self):
