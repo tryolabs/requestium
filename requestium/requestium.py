@@ -290,6 +290,7 @@ class DriverMixin(object):
         components = tldextract.extract(url)
         if not components.registered_domain:
             try:
+                # Got this line from Selenium-Requests repo, havent tried it:
                 return url.split('://', 1)[1].split(':', 1)[0].split('/', 1)[0]
             except IndexError:
                 return url
