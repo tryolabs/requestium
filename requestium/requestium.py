@@ -92,13 +92,13 @@ class Session(requests.Session):
         site if not provided.
         """
         if not domain and self._last_requests_url:
-            domain = self.get_tld(self._last_requests_url)
+            domain = tldextract.extract(self._last_requests_url).registered_domain
         elif not domain and not self._last_requests_url:
             raise Exception('Trying to transfer cookies to selenium without specifying a domain '
                             'and without having visited any page in the current session')
 
         # Transfer cookies
-        for c in [c for c in self.cookies if c.domain == domain]:
+        for c in [c for c in self.cookies if domain in c.domain]:
             self.driver.ensure_add_cookie({'name': c.name, 'value': c.value, 'path': c.path,
                                            'expiry': c.expires, 'domain': c.domain})
 
@@ -168,9 +168,8 @@ class DriverMixin(object):
         self.default_timeout = kwargs['default_timeout']
         del kwargs['default_timeout']
         super(DriverMixin, self).__init__(*args, **kwargs)
-        self._selector = None
 
-    def ensure_add_cookie(self, cookie, force_url=None, override_domain=None):
+    def ensure_add_cookie(self, cookie, override_domain=None):
         """Ensures a cookie gets added to the driver
 
         Selenium needs the driver to be currently at the domain of the cookie
@@ -179,48 +178,60 @@ class DriverMixin(object):
         The cookie parameter is a dict which must contain the keys (name, value, domain) and
         may contain the keys (path, expiry).
 
-        If the user doesn't provide a 'force_url' parameter, we first check that we aren't
-        currently in the cookie's domain, if we aren't, we GET the cookie's domain and
-        then add the cookies to the driver.
+        We first check that we aren't currently in the cookie's domain, if we aren't, we GET
+        the cookie's domain and then add the cookies to the driver.
 
-        If the user provides a 'force_url' parameter, we GET that url and we add the cookie to
-        the driver. The use for this parameter is that sometimes GETting the domain redirects you to
-        a different sub domain, and therefore adding the cookie fails. So sometimes the user may
-        need to ensure the driver is in the correct url, by setting an url manually that he knows
-        wont trigger a redirect.
-
-        We can also override the cookie's domain using 'override_domain', this intends to solve the
-        same issue as force_url, but in a different way. Instead of forcing our driver to go to a
-        particular address, we override the cookie's domain to a less strict one, Eg.: 'site.com'
-        instead of 'home.site.com', in this way even if the site redirects us, the cookie will
-        stick.
+        We can override the cookie's domain using 'override_domain'. The use for this
+        parameter is that sometimes GETting the cookie's domain redirects you to a different
+        sub domain, and therefore adding the cookie fails. So sometimes the user may
+        need to override the cookie's domain to a less strict one, Eg.: 'site.com' instead of
+        'home.site.com', in this way even if the site redirects us to a subdomain, the cookie will
+        stick. If you set the domain to '', the cookie gets added with whatever domain the browser
+        is currently at (at least in chrome it does), so this ensures the cookie gets added.
 
         It also retries adding the cookie with a more permissive domain if it fails in the first try
         and raises an exception if that fails. The standard selenium behaviour in this case was to
         not do anything, which was very hard to debug.
         """
-        if force_url:
-            self.get(force_url)
-        elif cookie['domain'] not in self.get_tld(self.current_url):
+        if override_domain:
+            cookie['domain'] = override_domain
+
+        cookie_domain = cookie['domain'] if cookie['domain'][0] != '.' else cookie['domain'][1:]
+        try:
+            browser_domain = tldextract.extract(self.current_url).fqdn
+        except AttributeError:
+            browser_domain = ''
+        if cookie_domain not in browser_domain:
             # TODO Check if harcoding 'http' causes trouble
             # TODO Consider using a new proxy for this next request to not cause an anomalous
             #      request. This way their server sees our ip address as continously having the
             #      same cookies and not have a request mid-session with no cookies
-            url = cookie['domain'] if cookie['domain'][0] != '.' else cookie['domain'][1:]
-            self.get('http://' + url)
+            self.get('http://' + cookie_domain)
 
-        if override_domain:  # TODO delete?
-            cookie['domain'] = override_domain
         self.add_cookie(cookie)
 
         # If we fail adding the cookie, retry with a more permissive domain
-        if cookie not in self.get_cookies():
-            cookie['domain'] = self.get_tld(cookie['domain'])
+        if not self.is_cookie_in_driver(cookie):
+            cookie['domain'] = tldextract.extract(cookie['domain']).registered_domain
             self.add_cookie(cookie)
-            if cookie in self.get_cookies():
+            if not self.is_cookie_in_driver(cookie):
                 raise WebDriverException(
-                    "Couldn't add the cookie \n{}\n to the webdriver".format(cookie)
+                    "Couldn't add the following cookie to the webdriver\n{}\n".format(cookie)
                 )
+
+    def is_cookie_in_driver(self, cookie):
+        """We check that the cookie is correctly added to the driver
+
+        We only compare name, value and domain, as the rest can produce false negatives.
+        We are a bit lenient when comparing domains.
+        """
+        for driver_cookie in self.get_cookies():
+            if (cookie['name'] == driver_cookie['name'] and
+                cookie['value'] == driver_cookie['value'] and
+                (cookie['domain'] == driver_cookie['domain'] or
+                 '.' + cookie['domain'] == driver_cookie['domain'])):
+                return True
+        return False
 
     def ensure_element_by_xpath(self, selector, criterium="presence", timeout=None):
         """This method allows us to wait till an element is loaded in selenium
@@ -278,29 +289,13 @@ class DriverMixin(object):
         element.ensure_click = partial(_ensure_click, element)
         return element
 
-    def get_tld(self, url):
-        """Return the top level domain
-
-        If the registered domain could not be extracted, assume that it's simply an IP and
-        strip away the protocol prefix and potentially trailing rest after "/" away.
-        If it isn't, this fails gracefully for unknown domains, e.g.:
-           "http://domain.onion/" -> "domain.onion". If it doesn't look like a valid address
-        at all, return the URL unchanged.
-        """
-        components = tldextract.extract(url)
-        if not components.registered_domain:
-            try:
-                # Got this line from Selenium-Requests repo, havent tried it:
-                return url.split('://', 1)[1].split(':', 1)[0].split('/', 1)[0]
-            except IndexError:
-                return url
-        return components.registered_domain
-
     @property
     def selector(self):
-        if self._selector is None:
-            self._selector = Selector(text=self.page_source)
-        return self._selector
+        """Returns the current state of the browser in a Selector
+
+        We re-parse the site on each xpath, css, re call because we are running a web browser
+        and the site may change between calls"""
+        return Selector(text=self.page_source)
 
     def xpath(self, *args, **kwargs):
         return self.selector.xpath(*args, **kwargs)
