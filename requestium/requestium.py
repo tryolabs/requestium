@@ -208,6 +208,8 @@ class DriverMixin(object):
             #      same cookies and not have a request mid-session with no cookies
             self.get('http://' + cookie_domain)
 
+        # Fixes phantomjs bug, all domains must start with point
+        if self.name == "phantomjs": cookie['domain'] = '.' + cookie['domain']
         self.add_cookie(cookie)
 
         # If we fail adding the cookie, retry with a more permissive domain
