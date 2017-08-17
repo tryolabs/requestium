@@ -102,3 +102,7 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# webdrivers
+chromedriver
+phantomjs

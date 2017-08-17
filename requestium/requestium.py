@@ -11,7 +11,7 @@ from functools import partial
 
 
 class Session(requests.Session):
-    """Class that mixes Requests' Sessions, Selenium Webdriver, plus helper methods
+    """Class that adds a Selenium Webdriver and helper methods to a  Requests Session
 
     This session class is a normal Requests Session that has the ability to switch back
     and forth between this session and a webdriver, allowing us to run js when needed.
@@ -22,14 +22,14 @@ class Session(requests.Session):
 
     Some usefull helper methods and object wrappings have been added.
     """
-    _driver = None
-    _last_requests_url = None
 
     def __init__(self, webdriver_path='./phantomjs', default_timeout=5, browser='phantomjs'):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
         self.browser = browser
+        self._driver = None
+        self._last_requests_url = None
 
     @property
     def driver(self):
@@ -60,7 +60,7 @@ class Session(requests.Session):
         # Add proxies to driver
         if self.proxies:
             session_proxy = self.proxies['https'] or self.proxies['http']
-            proxy_user_and_pass = session_proxy.split('@')[0][7:]
+            proxy_user_and_pass = session_proxy.split('@')[0].split('://')[1]
             proxy_ip_address = session_proxy.split('@')[1]
             service_args.append('--proxy=' + proxy_ip_address)
             service_args.append('--proxy-auth=' + proxy_user_and_pass)

@@ -9,6 +9,7 @@ We also integrate [parsel](https://github.com/scrapy/parsel)'s parser into the l
 from requestium import Session, Keys
 # from requests import Session  # The new Session object is backwards compatible with the old one.
 
+# Currently supports phantomjs and chrome as the webdriver
 s = Session(webdriver_path='./chromedriver', default_timeout=15, browser='chrome')
 
 # We don't need to parse the response, it is done automatically when calling xpath, css or re
@@ -45,6 +46,8 @@ Most things are lazily evaluated, meaning:
 We can use our custom Session class just for development, maybe to dynamically watch the last step of the session in a chrome browser running without the `--headless` flag, and remove this last step after development is done. After this we could just remove import the Session class as `from requests import Session` and just deploy to production without using requestium.
 
 This project intends to be a drop in replacement of requests' Session object, with added functionality. If your use case is a drop in replacement for a Selenium webdriver, but that also has some of requests' functionality, [Selenium-Requests](https://github.com/cryzed/Selenium-Requests) does just that.
+
+The chrome driver doesn't support automatic transfer of headers and proxies from the Session to the Webdriver at the moment. The phantomjs driver does though.
 
 ## Selenium workarounds
 We add several 'ensure' methods to the driver object, as Selenium is known to be very finicky about cookie handling and selecting elements.
