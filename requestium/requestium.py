@@ -1,13 +1,14 @@
 import requests
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import WebDriverException
-from parsel.selector import Selector
 import time
 import tldextract
+
 from functools import partial
+from parsel.selector import Selector
+from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 class Session(requests.Session):
@@ -72,7 +73,7 @@ class Session(requests.Session):
                                    default_timeout=self.default_timeout)
 
     def _start_chrome_browser(self):
-        # TODO transfer headers, and authenticated proxyes: not sure how to do it in chrome
+        # TODO transfer headers, and authenticated proxies: not sure how to do it in chrome yet
         chrome_options = webdriver.chrome.options.Options()
 
         # I suspect the infobar at the top of the browser saying "Chrome is being controlled by an
