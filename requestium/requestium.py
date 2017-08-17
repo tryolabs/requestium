@@ -189,9 +189,9 @@ class DriverMixin(object):
         stick. If you set the domain to '', the cookie gets added with whatever domain the browser
         is currently at (at least in chrome it does), so this ensures the cookie gets added.
 
-        It also retries adding the cookie with a more permissive domain if it fails in the first try
-        and raises an exception if that fails. The standard selenium behaviour in this case was to
-        not do anything, which was very hard to debug.
+        It also retries adding the cookie with a more permissive domain if it fails in the first
+        try, and raises an exception if that fails. The standard selenium behaviour in this case
+        was to not do anything, which was very hard to debug.
         """
         if override_domain:
             cookie['domain'] = override_domain
@@ -202,13 +202,13 @@ class DriverMixin(object):
         except AttributeError:
             browser_domain = ''
         if cookie_domain not in browser_domain:
-            # TODO Check if harcoding 'http' causes trouble
+            # TODO Check if hardcoding 'http' causes trouble
             # TODO Consider using a new proxy for this next request to not cause an anomalous
             #      request. This way their server sees our ip address as continously having the
             #      same cookies and not have a request mid-session with no cookies
             self.get('http://' + cookie_domain)
 
-        # Fixes phantomjs bug, all domains must start with point
+        # Fixes phantomjs bug, all domains must start with a period
         if self.name == "phantomjs": cookie['domain'] = '.' + cookie['domain']
         self.add_cookie(cookie)
 

@@ -1,15 +1,17 @@
 # Requestium
 
-The objective of this project is to help in the development of bots that automatize actions in websites, and who need to dynamically switch between plain http requests and a js-enabled browser in a single session. We do this by adding a [Selenium webdriver](https://github.com/SeleniumHQ/selenium) and [parsel](https://github.com/scrapy/parsel)'s parser to a [request](https://github.com/requests/requests)'s Session object. This new session object is a drop in replacement of the standard requests session object.
+The objective of this project is to help in the development of bots that automatize actions in websites, and who need to dynamically switch between plain http requests and a js-enabled browser in a single session. We do this by adding a [Selenium webdriver](https://github.com/SeleniumHQ/selenium) webdriver to a [request](https://github.com/requests/requests)'s Session object. This new Session object is a drop in replacement of the standard requests Session object.
+
+We also integrate [parsel](https://github.com/scrapy/parsel)'s parser into the library as its very useful and concise.
 
 ## Usage
 ```python
 from requestium import Session, Keys
-# from requests import Session  # We replace this statement
+# from requests import Session  # The new Session object is backwards compatible with the old one.
 
-s = Session()
+s = Session(webdriver_path='./chromedriver', default_timeout=15, browser='chrome')
 
-# We don't need to parse the response, it is done automatically
+# We don't need to parse the response, it is done automatically when calling xpath, css or re
 title = s.get('http://samplesite.com').xpath('//title/text()').extract_first(default='Sample Title')
 
 # Regex require much less boilerplate
@@ -26,16 +28,40 @@ s.driver.get('http://www.samplesite.com/sample/process')
 s.driver.find_element_by_xpath("//input[@class='user_name']").send_keys('James Bond', Keys.ENTER)
 s.driver.find_element_by_xpath("//div[@uniqueattribute='important_button']").click()
 
-# And then switch back to using requests
+# We also add parsel's xpath, css, and re to the driver object
+if s.driver.re(r'ID_\d\w\d some_pattern'):
+    print 'Found it!'
+
+# And finally we can switch back to using requests
 s.update_session_cookies()
-s.post('http://www.samplesite.com/sample2', data={'field2': 'data2'})
+s.post('http://www.samplesite.com/sample2', data={'key1': 'value1'})
 ```
 
 ## Considerations
 Most things are lazily evaluated, meaning:
-- The webdriver process is only started if we call the driver object. So if we dont need to use the webdriver, we could use the library with no overhead.
-- Parsing of the responses is only done if we call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if we dont need to use this features.
+- The webdriver process is only started if we call the driver object. So if we don't need to use the webdriver, we could use the library with no overhead.
+- Parsing of the responses is only done if we call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if we dont need to use this feature.
 
 We can use our custom Session class just for development, maybe to dynamically watch the last step of the session in a chrome browser running without the `--headless` flag, and remove this last step after development is done. After this we could just remove import the Session class as `from requests import Session` and just deploy to production without using requestium.
 
-This project intends to be a drop in replacement of requests session object, with added functionality. If your use case is a drop in replacement for a Selenium webdriver, but that also has some of requests' functionality, [Selenium-Requests](https://github.com/cryzed/Selenium-Requests) does just that.
+This project intends to be a drop in replacement of requests' Session object, with added functionality. If your use case is a drop in replacement for a Selenium webdriver, but that also has some of requests' functionality, [Selenium-Requests](https://github.com/cryzed/Selenium-Requests) does just that.
+
+## Selenium workarounds
+We add several 'ensure' methods to the driver object, as Selenium is known to be very finicky about cookie handling and selecting elements.
+
+The `ensure_element_by_xpath` method waits for the element to be loaded before looking for it. We can wait for it to be visible, clickable, present, etc. Very useful for single page web apps. Also, elements we get using this method can use the `ensure_click` method which scrolls the element into the viewport, and other workarounds to make the click less prone to failure. These workarounds help us get through lots of the problems with Selenium. `timeout` defaults to the `default_timeout` set when creating the Session object.
+```python
+s.driver.ensure_element_by_xpath("//li[@class='b1']", criterium='clickable', timeout=5).ensure_click()
+```
+
+The `ensure_add_cookie` method makes adding cookies much more robust. Selenium needs the browser to be in the cookie's domain before being able to add the cookie, this method offers several workarounds for this. If the browser is not in the cookies domain, it GETs the domain before adding the cookie. It also allows you to override the domain before adding it, and avoid making this GET. The domain can be overridden to '' to give the cookie whatever domain the driver is currently in. If it can't add the cookie it tries to add it with a less restrictive domain (Eg.: home.site.com -> site.com) before failing.
+```python
+cookie = {"domain": "www.site.com",
+          "secure": false,
+          "value": "sd2451dgd13",
+          "expiry": 1516824855.759154,
+          "path": "/",
+          "httpOnly": true,
+          "name": "sessionid"}
+s.driver.ensure_add_cookie(cookie, override_domain='')
+```
