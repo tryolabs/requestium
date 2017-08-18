@@ -237,48 +237,73 @@ class DriverMixin(object):
         return False
 
     def ensure_element_by_xpath(self, selector, criterium="presence", timeout=None):
-        """This method allows us to wait till an element is loaded in selenium
+        return self.ensure_element('xpath', selector, criterium, timeout)
 
-        This method is added to the driver object. And its more robust than any of Selenium's
-        default options for waiting for elements.
+    def ensure_element_by_css(self, selector, criterium="presence", timeout=None):
+        return self.ensure_element('css', selector, criterium, timeout)
 
-        Selenium runs in parallel with our scripts, so we must wait for it everytime it
-        runs javascript. Selenium automatically makes our python scripts when its GETing
-        a new webpage, but it doesnt do this when it runs javascript and makes AJAX requests.
-        So we must explicitly wait in this case.
+    def ensure_element_by_id(self, selector, criterium="presence", timeout=None):
+        return self.ensure_element('id', selector, criterium, timeout)
 
-        The 'criterium' parameter allows us to chose between the visibility and presence of
+    def ensure_element_by_class(self, selector, criterium="presence", timeout=None):
+        return self.ensure_element('class', selector, criterium, timeout)
+
+    def ensure_element_by_link_text(self, selector, criterium="presence", timeout=None):
+        return self.ensure_element('link_text', selector, criterium, timeout)
+
+    def ensure_element_by_partial_link_text(self, selector, criterium="presence", timeout=None):
+        return self.ensure_element('partial_link_text', selector, criterium, timeout)
+
+    def ensure_element_by_name(self, selector, criterium="presence", timeout=None):
+        return self.ensure_element('name', selector, criterium, timeout)
+
+    def ensure_element_by_tag_name(self, selector, criterium="presence", timeout=None):
+        return self.ensure_element('tag', selector, criterium, timeout)
+
+    def ensure_element(self, locator, selector, criterium="presence", timeout=None):
+        """This method allows us to wait till an element is loaded in the browser
+
+        The webdriver runs in parallel with our scripts, so we must wait for it everytime it
+        runs javascript. Selenium automatically waits till a page loads when GETing it,
+        but it doesn't do this when it runs javascript and makes AJAX requests.
+        So we must explicitly wait in that case.
+
+        The 'locator' argument defines what strategy we use to search for the element.
+
+        The 'criterium' argument allows us to chose between the visibility and presence of
         the item in the webpage. Presence is more inclusive, but sometimes we want to know if
         the element is visible. Careful, its not always intuitive what Selenium considers to be
-        a visible element.
-
-        This is a barebones implementation, which only supports xpath. It could be usefull to
-        add more filters in the future, a comprehensive list of the possible filters can be
-        found here: http://selenium-python.readthedocs.io/waits.html
-
-        This function returns the element its waiting for, so it could actually replace
-        the default selenium method 'find_element_by_xpath'. I am not doing it for the time being
-        as it could cause confusion and have some adverse effects I may not not be aware of,
-        but its worth considering doing it when this whole library is more stable and we have a
-        better defined api.
+        a visible element. We can also wait for it to be clickable, although this method is a 
+        bit buggy in selenium, an element can be 'clickable' according to selenium and still 
+        fail when we try to click it.
 
         This function also scrolls the element into view before returning it, so we can ensure that
         the element is clickable before returning it.
+
+        More info at: http://selenium-python.readthedocs.io/waits.html
         """
-        type = By.XPATH
+        locators = {'xpath': By.XPATH,
+                    'id': By.ID,
+                    'link_text': By.LINK_TEXT,
+                    'partial_link_text': By.PARTIAL_LINK_TEXT,
+                    'name': By.NAME,
+                    'tag': By.TAG_NAME,
+                    'class': By.CLASS_NAME,
+                    'css': By.CSS_SELECTOR}
+        locator = locators[locator]
         if not timeout: timeout = self.default_timeout
 
         if criterium == 'visibility':
             element = WebDriverWait(self, timeout).until(
-                EC.visibility_of_element_located((type, selector))
+                EC.visibility_of_element_located((locator, selector))
             )
         elif criterium == 'clickable':
             element = WebDriverWait(self, timeout).until(
-                EC.element_to_be_clickable((type, selector))
+                EC.element_to_be_clickable((locator, selector))
             )
         elif criterium == 'presence':
             element = WebDriverWait(self, timeout).until(
-                EC.presence_of_element_located((type, selector))
+                EC.presence_of_element_located((locator, selector))
             )
         else:
             raise ValueError(
