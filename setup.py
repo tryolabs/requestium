@@ -15,7 +15,7 @@ else:
 
 setup(
     name='requestium',
-    version='0.1',
+    version='0.1.1.1',
     description=(
         "Adds a Selenium webdriver and parsel's parser to a request's Session "
         "object, and makes switching between them seamless. Handles cookie, "
