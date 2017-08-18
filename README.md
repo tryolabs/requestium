@@ -6,8 +6,8 @@ We also integrate [parsel](https://github.com/scrapy/parsel)'s parser into the l
 
 ## Usage
 ```python
-from requestium import Session, Keys
 # from requests import Session  # The new Session object is backwards compatible with the old one.
+from requestium import Session, Keys
 
 # Currently supports phantomjs and chrome as the webdriver
 s = Session(webdriver_path='./chromedriver', default_timeout=15, browser='chrome')
@@ -20,11 +20,11 @@ response = s.get('http://samplesite.com/sample_path')
 list_of_two_digit_numbers = response.re(r'\d\d')  # Extracts all matches as a list
 print "Site ID: {}".format(response.re_first(r'ID_\d\w\d'), default='1A1')  # Extracts the first match
 
-# We can use all the normal Session methods
+# We can use all the regular requests' Session methods
 s.post('http://www.samplesite.com/sample', data={'field1': 'data1'})
 
 # And we can switch to using the Selenium webdriver to run any js code
-s.update_driver_cookies()  # We can mantain the session if needed
+s.transfer_session_cookies_to_driver()  # We can mantain the session if needed
 s.driver.get('http://www.samplesite.com/sample/process')
 s.driver.find_element_by_xpath("//input[@class='user_name']").send_keys('James Bond', Keys.ENTER)
 s.driver.find_element_by_xpath("//div[@uniqueattribute='important_button']").click()
@@ -34,7 +34,7 @@ if s.driver.re(r'ID_\d\w\d some_pattern'):
     print 'Found it!'
 
 # And finally we can switch back to using requests
-s.update_session_cookies()
+s.transfer_driver_cookies_to_session()
 s.post('http://www.samplesite.com/sample2', data={'key1': 'value1'})
 ```
 
@@ -43,9 +43,7 @@ Most things are lazily evaluated, meaning:
 - The webdriver process is only started if we call the driver object. So if we don't need to use the webdriver, we could use the library with no overhead.
 - Parsing of the responses is only done if we call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if we dont need to use this feature.
 
-We can use our custom Session class just for development, maybe to dynamically watch the last step of the session in a chrome browser running without the `--headless` flag, and remove this last step after development is done. After this we could just remove import the Session class as `from requests import Session` and just deploy to production without using requestium.
-
-This project intends to be a drop in replacement of requests' Session object, with added functionality. If your use case is a drop in replacement for a Selenium webdriver, but that also has some of requests' functionality, [Selenium-Requests](https://github.com/cryzed/Selenium-Requests) does just that.
+The selenium webdriver could be used just to ease in development: You can start writing your script using just the regular requests' session, and on the last step of the script (the one you are currently working on) transfer the session to a chrome webdriver. This way, the chrome webdriver acts as a 'visor' for the last step of your code. You can see in what state your session is currently in, inspect it with Chrome's excellent inspect tools, and decide what's the next step your session object should make.
 
 The chrome driver doesn't support automatic transfer of headers and proxies from the Session to the Webdriver at the moment. The phantomjs driver does though.
 
@@ -90,3 +88,6 @@ cookie = {"domain": "www.site.com",
           "name": "sessionid"}
 s.driver.ensure_add_cookie(cookie, override_domain='')
 ```
+
+## Selenium-Requests
+This project intends to be a drop in replacement of requests' Session object, with added functionality. If your use case is a drop in replacement for a Selenium webdriver, but that also has some of requests' functionality, [Selenium-Requests](https://github.com/cryzed/Selenium-Requests) does just that.
