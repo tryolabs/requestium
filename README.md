@@ -52,12 +52,34 @@ The chrome driver doesn't support automatic transfer of headers and proxies from
 ## Selenium workarounds
 We add several 'ensure' methods to the driver object, as Selenium is known to be very finicky about cookie handling and selecting elements.
 
-The `ensure_element_by_xpath` method waits for the element to be loaded before looking for it. We can wait for it to be visible, clickable, present, etc. Very useful for single page web apps. Also, elements we get using this method can use the `ensure_click` method which scrolls the element into the viewport, and other workarounds to make the click less prone to failure. These workarounds help us get through lots of the problems with Selenium. `timeout` defaults to the `default_timeout` set when creating the Session object.
+### Wait for element
+The `ensure_element_by_` methods waits for the element to be loaded in the browser and returns it as soon as it is. Named after Selenium's `find_element_by_` methods. By default we can wait for the element to be present, but we can also wait for it to be clickable or visible. Very useful for single page web apps.
+
+Elements we get using this method have the `ensure_click` method which makes the click less prone to failure. This helps us get through a lot of the problems with Selenium clicking.
+
+`timeout` defaults to the `default_timeout` set when creating the Session object.
+
 ```python
 s.driver.ensure_element_by_xpath("//li[@class='b1']", criterium='clickable', timeout=5).ensure_click()
+
+# === Also supported ===
+# ensure_element_by_css
+# ensure_element_by_id
+# ensure_element_by_class
+# ensure_element_by_link_text
+# ensure_element_by_partial_link_text
+# ensure_element_by_name
+# ensure_element_by_tag_name
+
+# === You can also call ensure_element directly ===
+s.driver.ensure_element("xpath", "//li[@class='b1']", criterium='clickable', timeout=5)
 ```
 
-The `ensure_add_cookie` method makes adding cookies much more robust. Selenium needs the browser to be in the cookie's domain before being able to add the cookie, this method offers several workarounds for this. If the browser is not in the cookies domain, it GETs the domain before adding the cookie. It also allows you to override the domain before adding it, and avoid making this GET. The domain can be overridden to '' to give the cookie whatever domain the driver is currently in. If it can't add the cookie it tries to add it with a less restrictive domain (Eg.: home.site.com -> site.com) before failing.
+### Add cookie
+The `ensure_add_cookie` method makes adding cookies much more robust. Selenium needs the browser to be at the cookie's domain before being able to add the cookie, this method offers several workarounds for this. If the browser is not in the cookies domain, it GETs the domain before adding the cookie. It also allows you to override the domain before adding it, and avoid making this GET. The domain can be overridden to `''` to give the cookie whatever domain the driver is currently in.
+
+If it can't add the cookie it tries to add it with a less restrictive domain (Eg.: home.site.com -> site.com) before failing.
+
 ```python
 cookie = {"domain": "www.site.com",
           "secure": false,
