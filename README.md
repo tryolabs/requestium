@@ -46,6 +46,48 @@ We can use our custom Session class just for development, maybe to dynamically w
 
 This project intends to be a drop in replacement of requests' Session object, with added functionality. If your use case is a drop in replacement for a Selenium webdriver, but that also has some of requests' functionality, [Selenium-Requests](https://github.com/cryzed/Selenium-Requests) does just that.
 
+## Using Chrome Driver with Selenium's authenticated proxies and custom headers workarounds
+Right now there is no way to add headers or authenticated proxies with `Chrome Driver`, but we implemented a workaround using two Chrome extensions, [ModHeader](https://chrome.google.com/webstore/detail/modheader/idgpnmonknjnojddfkpgkljpfnnfcklj) to transfer the headers from the [requests](https://github.com/requests/requests) session to [Selenium webdriver](https://github.com/SeleniumHQ/selenium), and [Proxy Auto Auth](https://chrome.google.com/webstore/detail/proxy-auto-auth/ggmdpepbjljkkkdaklfihhngmmgmpggp) to autenticate the proxy session if this is necessary. To obtain the binary files neccesary to use this functionalities can be obtained with:
+- [CRX Extractor](http://crxextractor.com/)
+- [Get CRX](https://chrome.google.com/webstore/detail/get-crx/dijpllakibenlejkbajahncialkbdkjc)
+
+The way of setting the path to the `.crx` files is:
+
+```python
+# Import requestium Session object as before
+from requestium import Session, Keys
+
+# Set the args  mod_header_path, proxy_auto_auth_path or both depending on the functionallity you need.
+# Their default values are './ModHeader.crx' and './ProxyAutoAuth.crx' respectively, so naming the binaries that way and 
+# locating them in the root directory of your project will get them automatically.
+
+s = Session(
+	webdriver_path='./chromedriver', browser='chrome'
+	mod_header_path=<ModHeader.crx path>, proxy_auto_auth_path=<ProxyAutoAuth.crx path>)
+```
+
+When this is done, requestium will automatically transfer request's session headers and proxy to Selenium's driver when Session.driver is called.
+
+Example:
+
+```pyhton
+s.get(<some url>)
+
+# Set custom header
+s.headers.update({'header_key': 'value'})
+s.driver.get(<some other url>) # Request is made from Chrome Driver with `{'header_key': 'value'}` header
+
+# Set proxy in requests
+s.proxies.update({"http": 'http://username:password@proxy_url:proxy_port'}) # or
+s.proxies.update({"https": 'https://username:password@proxy_url:proxy_port'}) 
+
+s.driver.get(<some url>) # Request is made from Chrome Driver using authenticated proxy
+
+```
+
+Also we included the arg `headless` whose default value is True, but can be passed as False when creating the Session oject to be able to see the driver state and use the 
+Chrome tools to inspect the components.
+
 ## Selenium workarounds
 We add several 'ensure' methods to the driver object, as Selenium is known to be very finicky about cookie handling and selecting elements.
 
