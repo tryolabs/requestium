@@ -54,7 +54,8 @@ class Session(requests.Session):
         # Add headers to driver
         for key, value in self.headers.items():
             # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
-            if key == 'Accept-Encoding': continue
+            if key == 'Accept-Encoding':
+                continue
 
             webdriver.DesiredCapabilities.PHANTOMJS[
                 'phantomjs.page.customHeaders.{}'.format(key)] = value
