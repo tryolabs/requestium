@@ -81,14 +81,22 @@ class Session(requests.Session):
 
     def _start_chrome_browser(self):
         chrome_options = webdriver.ChromeOptions()
-
+        mod_header_ext = True
+        proxy_auto_auth_ext = True
         # I suspect the infobar at the top of the browser saying "Chrome is being controlled by an
         # automated software" sometimes hides elements from being clickable. So I disable it.
         chrome_options.add_argument('disable-infobars')
         if self.headless:
             chrome_options.add_argument('headless')
         # Add ModHeader extension
-        chrome_options.add_extension(self.mod_header_path)
+        try:
+            chrome_options.add_extension(self.mod_header_path)
+        except Exception as e:
+            mod_header_ext = False
+            print (
+                "Warning: Headers couldn't been transfered "
+                "to driver due to the lack of ModHeader extension file."
+                "Error: {}".format(e.message))
         # Don't download images
         prefs = {"profile.managed_default_content_settings.images": 2}
         chrome_options.add_experimental_option("prefs", prefs)
@@ -113,14 +121,22 @@ class Session(requests.Session):
             }
             capabilities['proxy']['socksUsername'] = proxy['username']
             capabilities['proxy']['socksPassword'] = proxy['password']
-            chrome_options.add_extension(self.proxy_auto_auth_path)
+            try:
+                chrome_options.add_extension(self.proxy_auto_auth_path)
+            except Exception as e:
+                proxy_auto_auth_ext = False
+                print (
+                    "Warning: Proxy can't be transfered "
+                    "to driver due to the lack of ProxyAutoAuth extension file."
+                    "Error: {}".format(e.message))
+
             chrome_driver = RequestiumChrome(
                 self.webdriver_path,
                 chrome_options=chrome_options,
                 default_timeout=self.default_timeout,
                 desired_capabilities=capabilities)
-
-            self.set_proxy_to_chrome_driver(chrome_driver)
+            if proxy_auto_auth_ext:
+                self.set_proxy_to_chrome_driver(chrome_driver)
         else:
             # Create driver process
             chrome_driver = RequestiumChrome(
@@ -128,8 +144,11 @@ class Session(requests.Session):
                 chrome_options=chrome_options,
                 default_timeout=self.default_timeout)
 
-        # Add headers to driver
-        return self.tranfer_headers_to_chrome_driver(chrome_driver, self.headers)
+        if mod_header_ext:
+            # Add headers to driver
+            return self.tranfer_headers_to_chrome_driver(chrome_driver, self.headers)
+        else:
+            return chrome_driver
 
     def transfer_session_cookies_to_driver(self, domain=None):
         """Copies the Session's cookies into the webdriver
