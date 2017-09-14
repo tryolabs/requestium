@@ -168,6 +168,36 @@ class Session(requests.Session):
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
 
+    def tranfer_headers_to_chrome_driver(self, driver, headers):
+        driver.get("chrome-extension://idgpnmonknjnojddfkpgkljpfnnfcklj/settings.tmpl.html")
+        headers_str = []
+        header_format = "{enabled: true, name: '{}', value: '{}', comment: ''}"
+
+        for key, value in self.headers.items():
+            # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
+            if key == 'Accept-Encoding':
+                continue
+            headers_str.append(header_format.format(key, value))
+
+        driver.execute_script('''
+            localStorage.setItem('profiles', JSON.stringify([{
+              title: 'Selenium', hideComment: true, appendMode: '',
+              headers: [{}],
+              respHeaders: [],
+              filters: []
+            }]));'''.format(','.join(headers_str)))
+
+        return driver
+
+    def set_proxy_to_chrome_driver(self, driver):
+        driver.get('chrome-extension://ggmdpepbjljkkkdaklfihhngmmgmpggp/options.html')
+        session_proxy = self.proxies['https'] or self.proxies['http']
+        proxy_user_and_pass = session_proxy.split('@')[0][7:].split(':')
+        driver.find_elements_by_xpath('//input[@id="login"]')[0].send_keys(proxy_user_and_pass[0])
+        driver.find_elements_by_xpath(
+            '//input[@id="password"]')[0].send_keys(proxy_user_and_pass[1])
+        driver.find_element_by_xpath('//button[@id="save"]').click()
+
 
 class RequestiumResponse(object):
     """Adds xpath, css, and regex methods to a normal requests response object"""
