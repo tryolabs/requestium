@@ -25,11 +25,16 @@ class Session(requests.Session):
     _driver = None
     _last_requests_url = None
 
-    def __init__(self, webdriver_path='./phantomjs', default_timeout=5, browser='phantomjs'):
+    def __init__(
+            self, webdriver_path='./phantomjs', default_timeout=5,
+            browser='phantomjs', mod_header_path='./ModHeader.crx',
+            proxy_auto_auth_path='./ProxyAutoAuth.crx'):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
         self.browser = browser
+        self.mod_header_path = mod_header_path
+        self.proxy_auto_auth_path = proxy_auto_auth_path
 
     @property
     def driver(self):
