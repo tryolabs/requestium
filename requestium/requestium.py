@@ -38,6 +38,7 @@ class Session(requests.Session):
         self.proxy_auto_auth_path = proxy_auto_auth_path
         self.headless = headless
 
+
     @property
     def driver(self):
         if self._driver is None:
@@ -172,7 +173,7 @@ class Session(requests.Session):
     def tranfer_headers_to_chrome_driver(self, driver, headers):
         driver.get("chrome-extension://idgpnmonknjnojddfkpgkljpfnnfcklj/settings.tmpl.html")
         headers_str = []
-        header_format = "{enabled: true, name: '{}', value: '{}', comment: ''}"
+        header_format = '{{enabled: true, name: \'{}\', value: \'{}\', comment: \'\'}}'
 
         for key, value in self.headers.items():
             # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
