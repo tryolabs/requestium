@@ -98,7 +98,7 @@ class Session(requests.Session):
             session_proxy = self.proxies['https'] or self.proxies['http']
             proxy = {
                 'address': session_proxy.split('@')[1],
-                'usernmae': session_proxy.split('@')[0][7:].split(':')[0],
+                'username': session_proxy.split('@')[0][7:].split(':')[0],
                 'password': session_proxy.split('@')[0][7:].split(':')[1]
             }
             capabilities = dict(webdriver.common.desired_capabilities.DesiredCapabilities.CHROME)
@@ -173,7 +173,6 @@ class Session(requests.Session):
         driver.get("chrome-extension://idgpnmonknjnojddfkpgkljpfnnfcklj/settings.tmpl.html")
         headers_str = []
         header_format = '{{enabled: true, name: \'{}\', value: \'{}\', comment: \'\'}}'
-
         for key, value in self.headers.items():
             # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
             if key == 'Accept-Encoding':
