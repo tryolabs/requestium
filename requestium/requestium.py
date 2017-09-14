@@ -25,11 +25,18 @@ class Session(requests.Session):
     _driver = None
     _last_requests_url = None
 
-    def __init__(self, webdriver_path='./phantomjs', default_timeout=5, browser='phantomjs'):
+    def __init__(
+            self, webdriver_path='./phantomjs', default_timeout=5,
+            browser='phantomjs', mod_header_path='./ModHeader.crx',
+            proxy_auto_auth_path='./ProxyAutoAuth.crx', headless=True):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
         self.browser = browser
+        self.mod_header_path = mod_header_path
+        self.proxy_auto_auth_path = proxy_auto_auth_path
+        self.headless = headless
+
 
     @property
     def driver(self):
@@ -49,7 +56,8 @@ class Session(requests.Session):
         # Add headers to driver
         for key, value in self.headers.items():
             # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
-            if key == 'Accept-Encoding': continue
+            if key == 'Accept-Encoding':
+                continue
 
             webdriver.DesiredCapabilities.PHANTOMJS[
                 'phantomjs.page.customHeaders.{}'.format(key)] = value
@@ -72,17 +80,75 @@ class Session(requests.Session):
                                    default_timeout=self.default_timeout)
 
     def _start_chrome_browser(self):
-        # TODO transfer headers, and authenticated proxyes: not sure how to do it in chrome
-        chrome_options = webdriver.chrome.options.Options()
-
+        chrome_options = webdriver.ChromeOptions()
+        mod_header_ext = True
+        proxy_auto_auth_ext = True
         # I suspect the infobar at the top of the browser saying "Chrome is being controlled by an
         # automated software" sometimes hides elements from being clickable. So I disable it.
         chrome_options.add_argument('disable-infobars')
+        if self.headless:
+            chrome_options.add_argument('headless')
+        # Add ModHeader extension
+        try:
+            chrome_options.add_extension(self.mod_header_path)
+        except Exception as e:
+            mod_header_ext = False
+            print (
+                "Warning: Headers couldn't been transfered "
+                "to driver due to the lack of ModHeader extension file."
+                "Error: {}".format(e.message))
+        # Don't download images
+        prefs = {"profile.managed_default_content_settings.images": 2}
+        chrome_options.add_experimental_option("prefs", prefs)
+        # If there is a proxy set on requests load ProxyAutoAuth extension
+        if self.proxies:
+            session_proxy = self.proxies['https'] or self.proxies['http']
+            proxy = {
+                'address': session_proxy.split('@')[1],
+                'username': session_proxy.split('@')[0][7:].split(':')[0],
+                'password': session_proxy.split('@')[0][7:].split(':')[1]
+            }
+            capabilities = dict(webdriver.common.desired_capabilities.DesiredCapabilities.CHROME)
 
-        # Create driver process
-        return RequestiumChrome(self.webdriver_path,
-                                chrome_options=chrome_options,
-                                default_timeout=self.default_timeout)
+            capabilities['proxy'] = {
+                'proxyType': 'MANUAL',
+                'httpProxy': proxy['address'],
+                'ftpProxy': proxy['address'],
+                'sslProxy': proxy['address'],
+                'noProxy': '',
+                'class': "org.openqa.selenium.Proxy",
+                'autodetect': False
+            }
+            capabilities['proxy']['socksUsername'] = proxy['username']
+            capabilities['proxy']['socksPassword'] = proxy['password']
+            try:
+                chrome_options.add_extension(self.proxy_auto_auth_path)
+            except Exception as e:
+                proxy_auto_auth_ext = False
+                print (
+                    "Warning: Proxy can't be transfered "
+                    "to driver due to the lack of ProxyAutoAuth extension file."
+                    "Error: {}".format(e.message))
+
+            chrome_driver = RequestiumChrome(
+                self.webdriver_path,
+                chrome_options=chrome_options,
+                default_timeout=self.default_timeout,
+                desired_capabilities=capabilities)
+            if proxy_auto_auth_ext:
+                self.set_proxy_to_chrome_driver(chrome_driver)
+        else:
+            # Create driver process
+            chrome_driver = RequestiumChrome(
+                self.webdriver_path,
+                chrome_options=chrome_options,
+                default_timeout=self.default_timeout)
+
+        if mod_header_ext:
+            # Add headers to driver
+            return self.tranfer_headers_to_chrome_driver(chrome_driver, self.headers)
+        else:
+            return chrome_driver
 
     def transfer_session_cookies_to_driver(self, domain=None):
         """Copies the Session's cookies into the webdriver
@@ -120,6 +186,35 @@ class Session(requests.Session):
         resp = super(Session, self).put(*args, **kwargs)
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
+
+    def tranfer_headers_to_chrome_driver(self, driver, headers):
+        driver.get("chrome-extension://idgpnmonknjnojddfkpgkljpfnnfcklj/settings.tmpl.html")
+        headers_str = []
+        header_format = '{{enabled: true, name: \'{}\', value: \'{}\', comment: \'\'}}'
+        for key, value in self.headers.items():
+            # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
+            if key == 'Accept-Encoding':
+                continue
+            headers_str.append(header_format.format(key, value))
+
+        driver.execute_script('''
+            localStorage.setItem('profiles', JSON.stringify([{{
+              title: 'Selenium', hideComment: true, appendMode: '',
+              headers: [{}],
+              respHeaders: [],
+              filters: []
+            }}]));'''.format(','.join(headers_str)).replace('\n', ''))
+
+        return driver
+
+    def set_proxy_to_chrome_driver(self, driver):
+        driver.get('chrome-extension://ggmdpepbjljkkkdaklfihhngmmgmpggp/options.html')
+        session_proxy = self.proxies['https'] or self.proxies['http']
+        proxy_user_and_pass = session_proxy.split('@')[0][7:].split(':')
+        driver.find_elements_by_xpath('//input[@id="login"]')[0].send_keys(proxy_user_and_pass[0])
+        driver.find_elements_by_xpath(
+            '//input[@id="password"]')[0].send_keys(proxy_user_and_pass[1])
+        driver.find_element_by_xpath('//button[@id="save"]').click()
 
 
 class RequestiumResponse(object):
