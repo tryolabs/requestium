@@ -80,7 +80,6 @@ class Session(requests.Session):
                                    default_timeout=self.default_timeout)
 
     def _start_chrome_browser(self):
-        # TODO transfer headers, and authenticated proxyes: not sure how to do it in chrome
         chrome_options = webdriver.ChromeOptions()
 
         # I suspect the infobar at the top of the browser saying "Chrome is being controlled by an
@@ -180,12 +179,12 @@ class Session(requests.Session):
             headers_str.append(header_format.format(key, value))
 
         driver.execute_script('''
-            localStorage.setItem('profiles', JSON.stringify([{
+            localStorage.setItem('profiles', JSON.stringify([{{
               title: 'Selenium', hideComment: true, appendMode: '',
               headers: [{}],
               respHeaders: [],
               filters: []
-            }]));'''.format(','.join(headers_str)))
+            }}]));'''.format(','.join(headers_str)).replace('\n', ''))
 
         return driver
 
