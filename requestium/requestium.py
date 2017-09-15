@@ -89,6 +89,11 @@ class Session(requests.Session):
         chrome_options.add_argument('disable-infobars')
         if self.headless:
             chrome_options.add_argument('headless')
+        else:
+            # Don't download images
+            prefs = {"profile.managed_default_content_settings.images": 2}
+            chrome_options.add_experimental_option("prefs", prefs)
+
         # Add ModHeader extension
         try:
             chrome_options.add_extension(self.mod_header_path)
@@ -98,9 +103,6 @@ class Session(requests.Session):
                 "Warning: Headers couldn't been transfered "
                 "to driver due to the lack of ModHeader extension file."
                 "Error: {}".format(e.message))
-        # Don't download images
-        prefs = {"profile.managed_default_content_settings.images": 2}
-        chrome_options.add_experimental_option("prefs", prefs)
         # If there is a proxy set on requests load ProxyAutoAuth extension
         if self.proxies:
             session_proxy = self.proxies['https'] or self.proxies['http']
