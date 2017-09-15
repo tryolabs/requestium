@@ -1,4 +1,4 @@
-wait_element_disappearsimport requests
+import requests
 import time
 import tldextract
 
@@ -318,47 +318,47 @@ class DriverMixin(object):
         return element
 
     def wait_element_disappears_by_xpath(self, selector, criterium="presence",
-                                           appear_timeout=None, disappear_timeout=None):
+                                         appear_timeout=None, disappear_timeout=None):
         return self.wait_element_disappears('xpath', selector, criterium, appear_timeout,
-                                              disappear_timeout)
+                                            disappear_timeout)
 
     def wait_element_disappears_by_css(self, selector, criterium="presence",
-                                         appear_timeout=None, disappear_timeout=None):
+                                       appear_timeout=None, disappear_timeout=None):
         return self.wait_element_disappears('css', selector, criterium, appear_timeout,
-                                              disappear_timeout)
+                                            disappear_timeout)
 
     def wait_element_disappears_by_id(self, selector, criterium="presence",
-                                        appear_timeout=None, disappear_timeout=None):
+                                      appear_timeout=None, disappear_timeout=None):
         return self.wait_element_disappears('id', selector, criterium, appear_timeout,
-                                              disappear_timeout)
+                                            disappear_timeout)
 
     def wait_element_disappears_by_class(self, selector, criterium="presence",
-                                           appear_timeout=None, disappear_timeout=None):
+                                         appear_timeout=None, disappear_timeout=None):
         return self.wait_element_disappears('class', selector, criterium, appear_timeout,
-                                              disappear_timeout)
+                                            disappear_timeout)
 
     def wait_element_disappears_by_link_text(self, selector, criterium="presence",
-                                               appear_timeout=None, disappear_timeout=None):
+                                             appear_timeout=None, disappear_timeout=None):
         return self.wait_element_disappears('link_text', selector, criterium, appear_timeout,
-                                              disappear_timeout)
+                                            disappear_timeout)
 
     def wait_element_disappears_by_partial_link_text(self, selector, criterium="presence",
-                                                       appear_timeout=None, disappear_timeout=None):
+                                                     appear_timeout=None, disappear_timeout=None):
         return self.wait_element_disappears('partial_link_text', selector, criterium,
-                                              appear_timeout, disappear_timeout)
+                                            appear_timeout, disappear_timeout)
 
     def wait_element_disappears_by_name(self, selector, criterium="presence",
-                                          appear_timeout=None, disappear_timeout=None):
+                                        appear_timeout=None, disappear_timeout=None):
         return self.wait_element_disappears('name', selector, criterium, appear_timeout,
-                                              disappear_timeout)
+                                            disappear_timeout)
 
     def wait_element_disappears_by_tag_name(self, selector, criterium="presence",
-                                              appear_timeout=None, disappear_timeout=None):
+                                            appear_timeout=None, disappear_timeout=None):
         return self.wait_element_disappears('tag', selector, criterium, appear_timeout,
-                                              disappear_timeout)
+                                            disappear_timeout)
 
-    def ensure_element_disappears(self, locator, selector, criterium="presence",
-                                  appear_timeout=None, disappear_timeout=None):
+    def wait_element_disappears(self, locator, selector, criterium="presence",
+                                appear_timeout=None, disappear_timeout=None):
         """
         Wait for an element to disappear in the browser
 

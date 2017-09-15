@@ -74,26 +74,26 @@ s.driver.ensure_element("xpath", "//li[@class='b1']", criterium='clickable', tim
 ```
 
 ### Wait for element to disappear
-The `ensure_element_disappears_by_` methods waits for the element to be loaded in the browser and then waits until it disappears. It looks for an element in first place, using two timeouts: one for locating the element, and other one to wait until it disappears (often the former will be shorter than the latter). Very useful each time you have to wait for a loading gif to go away.
+The `wait_element_disappears_by_` methods waits for the element to be loaded in the browser and then waits until it disappears. It looks for an element in first place, using two timeouts: one for locating the element, and other one to wait until it disappears (often the former will be shorter than the latter). Very useful each time you have to wait for a loading gif to go away.
 
 Many times the element will disappear before being able to look for it, so that case is handled here. The criterium to check if item disappeared will be `visibility`. A `TimeoutException` will rise if the element is located and it does not disappear after waiting for `disappear_timeout`
 
 `appear_timeout` and `disappear_timeout` default to the `default_timeout` set when creating the Session object.
 
 ```python
-s.driver.ensure_element_disappear_by_xpath("//img[@class='loading']", criterium='visibility', appear_timeout=2, disappear_timeout=10)
+s.driver.wait_element_disappears_by_xpath("//img[@class='loading']", criterium='visibility', appear_timeout=2, disappear_timeout=10)
 
 # === Also supported ===
-# ensure_element_disappear_by_css
-# ensure_element_disappear_by_id
-# ensure_element_disappear_by_class
-# ensure_element_disappear_by_link_text
-# ensure_element_disappear_by_partial_link_text
-# ensure_element_disappear_by_name
-# ensure_element_disappear_by_tag_name
+# wait_element_disappears_by_css
+# wait_element_disappears_by_id
+# wait_element_disappears_by_class
+# wait_element_disappears_by_link_text
+# wait_element_disappears_by_partial_link_text
+# wait_element_disappears_by_name
+# wait_element_disappears_by_tag_name
 
-# === You can also call ensure_element_disappear directly ===
-s.driver.ensure_element_disappear("xpath", "//img[@class='loading']", criterium='visibility', appear_timeout=2, disappear_timeout=10)
+# === You can also call wait_element_disappears directly ===
+s.driver.wait_element_disappears("xpath", "//img[@class='loading']", criterium='visibility', appear_timeout=2, disappear_timeout=10)
 ```
 
 ### Add cookie
