@@ -34,6 +34,7 @@ setup(
     ),
     license='MIT',
     zip_safe=False,
+    python_requires='>=2.7, <3',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
