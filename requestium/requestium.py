@@ -5,7 +5,7 @@ import tldextract
 from functools import partial
 from parsel.selector import Selector
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -273,8 +273,8 @@ class DriverMixin(object):
         The 'criterium' argument allows us to chose between the visibility and presence of
         the item in the webpage. Presence is more inclusive, but sometimes we want to know if
         the element is visible. Careful, its not always intuitive what Selenium considers to be
-        a visible element. We can also wait for it to be clickable, although this method is a 
-        bit buggy in selenium, an element can be 'clickable' according to selenium and still 
+        a visible element. We can also wait for it to be clickable, although this method is a
+        bit buggy in selenium, an element can be 'clickable' according to selenium and still
         fail when we try to click it.
 
         This function also scrolls the element into view before returning it, so we can ensure that
@@ -316,6 +316,78 @@ class DriverMixin(object):
         # scroll into it first. This method ensures clicks don't fail because of this.
         element.ensure_click = partial(_ensure_click, element)
         return element
+
+    def wait_element_disappears_by_xpath(self, selector, criterium="presence",
+                                         appear_timeout=None, disappear_timeout=None):
+        return self.wait_element_disappears('xpath', selector, criterium, appear_timeout,
+                                            disappear_timeout)
+
+    def wait_element_disappears_by_css(self, selector, criterium="presence",
+                                       appear_timeout=None, disappear_timeout=None):
+        return self.wait_element_disappears('css', selector, criterium, appear_timeout,
+                                            disappear_timeout)
+
+    def wait_element_disappears_by_id(self, selector, criterium="presence",
+                                      appear_timeout=None, disappear_timeout=None):
+        return self.wait_element_disappears('id', selector, criterium, appear_timeout,
+                                            disappear_timeout)
+
+    def wait_element_disappears_by_class(self, selector, criterium="presence",
+                                         appear_timeout=None, disappear_timeout=None):
+        return self.wait_element_disappears('class', selector, criterium, appear_timeout,
+                                            disappear_timeout)
+
+    def wait_element_disappears_by_link_text(self, selector, criterium="presence",
+                                             appear_timeout=None, disappear_timeout=None):
+        return self.wait_element_disappears('link_text', selector, criterium, appear_timeout,
+                                            disappear_timeout)
+
+    def wait_element_disappears_by_partial_link_text(self, selector, criterium="presence",
+                                                     appear_timeout=None, disappear_timeout=None):
+        return self.wait_element_disappears('partial_link_text', selector, criterium,
+                                            appear_timeout, disappear_timeout)
+
+    def wait_element_disappears_by_name(self, selector, criterium="presence",
+                                        appear_timeout=None, disappear_timeout=None):
+        return self.wait_element_disappears('name', selector, criterium, appear_timeout,
+                                            disappear_timeout)
+
+    def wait_element_disappears_by_tag_name(self, selector, criterium="presence",
+                                            appear_timeout=None, disappear_timeout=None):
+        return self.wait_element_disappears('tag', selector, criterium, appear_timeout,
+                                            disappear_timeout)
+
+    def wait_element_disappears(self, locator, selector, criterium="presence",
+                                appear_timeout=None, disappear_timeout=None):
+        """
+        Wait for an element to disappear in the browser
+
+        Will assume the element already disappeared if it fails to find it in first place
+
+        This method follows the same logic behind ensure_element to locate the element
+        we want to wait until it disappears
+
+        """
+        try:
+            # Wait for element to appear. It can disappear before it had chance to appear
+            self.ensure_element(locator, selector, criterium, appear_timeout)
+        except TimeoutException:
+            # Assume element already disappeared
+            return
+
+        locators = {'xpath': By.XPATH,
+                    'id': By.ID,
+                    'link_text': By.LINK_TEXT,
+                    'partial_link_text': By.PARTIAL_LINK_TEXT,
+                    'name': By.NAME,
+                    'tag': By.TAG_NAME,
+                    'class': By.CLASS_NAME,
+                    'css': By.CSS_SELECTOR}
+        locator = locators[locator]
+        if not disappear_timeout: disappear_timeout = self.default_timeout
+        WebDriverWait(self, disappear_timeout).until(
+            EC.invisibility_of_element_located((locator, selector))
+        )
 
     @property
     def selector(self):
