@@ -74,7 +74,7 @@ s.driver.ensure_element("xpath", "//li[@class='b1']", criterium='clickable', tim
 ```
 
 ### Wait for element to disappear
-The `ensure_element_disappears_by_` methods waits for the element to be loaded in the browser and then waits until it disappears. It follows the same logic as `ensure_element` to find the element in first place, using two timeouts: one for locating the element, and other one to wait until it disappears (often the former will be shorter than the latter). Very useful each time you have to wait for a loading gif to go away.
+The `ensure_element_disappears_by_` methods waits for the element to be loaded in the browser and then waits until it disappears. It looks for an element in first place, using two timeouts: one for locating the element, and other one to wait until it disappears (often the former will be shorter than the latter). Very useful each time you have to wait for a loading gif to go away.
 
 Many times the element will disappear before being able to look for it, so that case is handled here. The criterium to check if item disappeared will be `visibility`. A `TimeoutException` will rise if the element is located and it does not disappear after waiting for `disappear_timeout`
 
