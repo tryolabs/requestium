@@ -27,7 +27,7 @@ class Session(requests.Session):
     def __init__(
             self, webdriver_path='./phantomjs', default_timeout=5,
             browser='phantomjs', mod_header_path='./ModHeader.crx',
-            proxy_auto_auth_path='./ProxyAutoAuth.crx', headless=True):
+            proxy_auto_auth_path='./ProxyAutoAuth.crx', debug=False):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
@@ -36,7 +36,7 @@ class Session(requests.Session):
         self._last_requests_url = None
         self.mod_header_path = mod_header_path
         self.proxy_auto_auth_path = proxy_auto_auth_path
-        self.headless = headless
+        self.debug = debug
 
 
     @property
@@ -84,15 +84,20 @@ class Session(requests.Session):
         chrome_options = webdriver.ChromeOptions()
         mod_header_ext = True
         proxy_auto_auth_ext = True
+        capabilities = dict(webdriver.common.desired_capabilities.DesiredCapabilities.CHROME)
         # I suspect the infobar at the top of the browser saying "Chrome is being controlled by an
         # automated software" sometimes hides elements from being clickable. So I disable it.
         chrome_options.add_argument('disable-infobars')
-        if self.headless:
-            chrome_options.add_argument('headless')
+        if self.debug:
+            capabilities['loggingPrefs'] = {
+                'browser': 'ALL',
+                'driver': 'ALL',
+                'performance': 'ALL'}
         else:
-            # Don't download images
-            prefs = {"profile.managed_default_content_settings.images": 2}
-            chrome_options.add_experimental_option("prefs", prefs)
+            chrome_options.add_argument('headless')
+        # Don't download images
+        prefs = {"profile.managed_default_content_settings.images": 2}
+        chrome_options.add_experimental_option("prefs", prefs)
 
         # Add ModHeader extension
         try:
@@ -104,6 +109,7 @@ class Session(requests.Session):
                 "to driver due to the lack of ModHeader extension file."
                 "Error: {}".format(e.message))
         # If there is a proxy set on requests load ProxyAutoAuth extension
+
         if self.proxies:
             session_proxy = self.proxies['https'] or self.proxies['http']
             proxy = {
@@ -111,7 +117,6 @@ class Session(requests.Session):
                 'username': session_proxy.split('@')[0][7:].split(':')[0],
                 'password': session_proxy.split('@')[0][7:].split(':')[1]
             }
-            capabilities = dict(webdriver.common.desired_capabilities.DesiredCapabilities.CHROME)
 
             capabilities['proxy'] = {
                 'proxyType': 'MANUAL',
@@ -145,7 +150,8 @@ class Session(requests.Session):
             chrome_driver = RequestiumChrome(
                 self.webdriver_path,
                 chrome_options=chrome_options,
-                default_timeout=self.default_timeout)
+                default_timeout=self.default_timeout,
+                desired_capabilities=capabilities)
 
         if mod_header_ext:
             # Add headers to driver
@@ -160,6 +166,7 @@ class Session(requests.Session):
         transfer the cookies which belong to that domain. The domain defaults to our last visited
         site if not provided.
         """
+        self.driver.delete_all_cookies()
         if not domain and self._last_requests_url:
             domain = tldextract.extract(self._last_requests_url).registered_domain
         elif not domain and not self._last_requests_url:
@@ -195,9 +202,6 @@ class Session(requests.Session):
         headers_str = []
         header_format = '{{enabled: true, name: \'{}\', value: \'{}\', comment: \'\'}}'
         for key, value in self.headers.items():
-            # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
-            if key == 'Accept-Encoding':
-                continue
             headers_str.append(header_format.format(key, value))
 
         driver.execute_script('''

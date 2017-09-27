@@ -156,3 +156,13 @@ s.driver.ensure_add_cookie(cookie, override_domain='')
 
 ## Selenium-Requests
 This project intends to be a drop in replacement of requests' Session object, with added functionality. If your use case is a drop in replacement for a Selenium webdriver, but that also has some of requests' functionality, [Selenium-Requests](https://github.com/cryzed/Selenium-Requests) does just that.
+
+
+## Limitations
+
+As chormedriver doesn't allow to set authenticated proxies or customize the request headers, the extensions ModHeader and Proxy Auto Auth were added in requestium. The problem is that extensions aren't supported (and there aren't going to be supported) in headless mode. After discovering this, the js code of the extensions was revised to see if it was possible to implement it's functions directly with the webdriver.Chrome driver. 
+As the extensions uses chrom.webRequest, that wasn't viable as that is't available on chromedriver, so the options are to use headless mode without authenticated proxy and unable to set custom headers, or use it with the browser (quite heavy for the lambdas).
+
+## Next steps
+
+If webRequest is added to the chromedriver it could be possible to implement the extensions functions excecuting their js script directly in the driver instance.
