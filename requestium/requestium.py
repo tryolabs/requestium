@@ -39,6 +39,8 @@ class Session(requests.Session):
                 self._driver = self._start_phantomjs_browser()
             elif self.browser == 'chrome':
                 self._driver = self._start_chrome_browser()
+            elif self.browser == 'chrome_headless':
+                self._driver = self._start_chrome_headless_browser()
             else:
                 raise AttributeError(
                     'Browser must be chrome or phantomjs, not: "{}"'.format(self.browser)
@@ -79,6 +81,20 @@ class Session(requests.Session):
         # I suspect the infobar at the top of the browser saying "Chrome is being controlled by an
         # automated software" sometimes hides elements from being clickable. So I disable it.
         chrome_options.add_argument('disable-infobars')
+
+        # Create driver process
+        return RequestiumChrome(self.webdriver_path,
+                                chrome_options=chrome_options,
+                                default_timeout=self.default_timeout)
+
+    def _start_chrome_headless_browser(self):
+        # TODO transfer headers, and authenticated proxies: not sure how to do it in chrome yet
+        chrome_options = webdriver.chrome.options.Options()
+
+        chrome_options.add_argument('headless')
+        chrome_options.add_argument('disable-infobars')
+        # With the disable-gpu flag, we don't need libosmesa.so in our deploy package
+        chrome_options.add_argument('disable-gpu')
 
         # Create driver process
         return RequestiumChrome(self.webdriver_path,
