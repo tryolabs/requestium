@@ -106,3 +106,9 @@ ENV/
 # webdrivers
 chromedriver
 phantomjs
+
+# Extensions
+*.crx
+
+# System
+.DS_Store
