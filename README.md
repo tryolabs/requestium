@@ -9,7 +9,7 @@ We also integrate [parsel](https://github.com/scrapy/parsel)'s parser into the l
 # from requests import Session  # The new Session object is backwards compatible with the old one.
 from requestium import Session, Keys
 
-# Currently supports phantomjs and chrome as the webdriver
+# Currently supports phantomjs, chrome and chrome headless as the webdriver
 s = Session(webdriver_path='./chromedriver', default_timeout=15, browser='chrome')
 
 # We don't need to parse the response, it is done automatically when calling xpath, css or re
