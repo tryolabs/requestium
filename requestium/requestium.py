@@ -95,6 +95,12 @@ class Session(requests.Session):
         chrome_options.add_argument('disable-infobars')
         # With the disable-gpu flag, we don't need libosmesa.so in our deploy package
         chrome_options.add_argument('disable-gpu')
+        # This is because /tmp is the only place we have write permissions in Lambda
+        chrome_options.add_argument('homedir=/tmp')
+        chrome_options.add_argument('data-path=/tmp/data-path')
+        chrome_options.add_argument('disk-cache-dir=/tmp/cache-dir')
+        chrome_options.add_argument('no-sandbox')
+        chrome_options.add_argument('single-process')
 
         # Create driver process
         return RequestiumChrome(self.webdriver_path,
