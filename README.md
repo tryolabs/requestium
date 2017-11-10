@@ -1,63 +1,87 @@
 # Requestium
 
-The objective of this project is to help in the development of bots that automatize actions in websites, and who need to dynamically switch between plain http requests and a js-enabled browser during a single session. We do this by adding a [Selenium](https://github.com/SeleniumHQ/selenium) webdriver to a [requests](https://github.com/requests/requests)' Session object.
+Requestium is a library that merges the power of Requests, Selenium and Parsel into a single integrated tool for automatizing web actions.
 
-This new Session object is a drop in replacement of the standard requests Session object, and every new feature is lazily evaluated, so there is no overhead in using this library over just plain requests.
+The objective of the project is to help in the development of bots that automatize actions in websites, and which need to dynamically switch between plain http Requests and a js-enabled browser during a single session. We do this by adding a [Selenium](https://github.com/SeleniumHQ/selenium) webdriver to a [Requests](https://github.com/requests/requests)' Session object.
 
-The library also adds several convenience features. The biggest one is integrating [parsel](https://github.com/scrapy/parsel)'s parser into the library. You can seamlessly run xpaths, css or regex anywhere in the library without having to manually parse anything, resulting in much cleaner code. Additionally, it improves the managing of cookies and proxies in Selenium, and has several workarounds for parts of Selenium which are buggy or not super stable.
+This new Session object is a drop in replacement of the standard Requests Session object, and every new feature is lazily evaluated, so there is no overhead in using this library over just plain Requests.
+
+The library also adds several convenience features. The biggest one is integrating [Parsel](https://github.com/scrapy/parsel)'s parser into the library. You can seamlessly run xpaths, css or regex anywhere in the library without having to manually parse anything, resulting in much cleaner code. Additionally, it improves the managing of cookies and proxies in Selenium, and has several workarounds for parts of Selenium which are buggy or not super stable.
+
+## Installation
+```bash
+pip install requestium
+```
+You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [phantomjs](http://phantomjs.org)
 
 ## Usage
+First start a session as you would do on Requests, and optionally add settings for the web-driver if you plan to use one. Requestium currently supports Phantomjs, Chrome and Chrome headless as the webdriver.
 ```python
 from requestium import Session, Keys
 
-# Currently supports phantomjs, chrome and chrome headless as the webdriver
 s = Session(webdriver_path='./chromedriver', default_timeout=15, browser='chrome')
+```
 
-# We don't need to parse the response, it is done automatically when calling xpath, css or re
-title = s.get('http://samplesite.com').xpath('//title/text()').extract_first(default='Sample Title')
+You don't need to parse the response, it is done automatically when calling xpath, css or re.
+```python
+title = s.get('http://samplesite.com').xpath('//title/text()').extract_first(default='Default Title')
+```
 
-# Regex require much less boilerplate
+Regex require much less boilerplate
+```python
 response = s.get('http://samplesite.com/sample_path')
 list_of_two_digit_numbers = response.re(r'\d\d')  # Extracts all matches as a list
 print "Site ID: {}".format(response.re_first(r'ID_\d\w\d'), default='1A1')  # Extracts the first match
+```
 
-# We can use all the regular requests' Session methods
+You can use all the regular Requests' Session methods
+```python
 s.post('http://www.samplesite.com/sample', data={'field1': 'data1'})
+```
 
-# And we can switch to using the Selenium webdriver to run any js code
-s.transfer_session_cookies_to_driver()  # We can mantain the session if needed
+And you can switch to using the Selenium webdriver to run any js code
+```python
+s.transfer_session_cookies_to_driver()  # You can mantain the session if needed
 s.driver.get('http://www.samplesite.com/sample/process')
+```
 
-# The driver object is a Selenium webdriver object, so we use any of the normal selenium
-# methods plus new ones we added.
+The driver object is a Selenium webdriver object, so you can use any of the normal selenium
+methods plus the new ones
+```python
 s.driver.find_element_by_xpath("//input[@class='user_name']").send_keys('James Bond', Keys.ENTER)
-s.driver.find_element_by_xpath("//div[@uniqueattribute='important_button']").click()
 
-# We also add parsel's xpath, css, and re to the Selenium driver object
+# New method which waits for element to load instead of failing, useful for single page web apps
+s.driver.ensure_element_by_xpath("//div[@attribute='button']").click()
+```
+
+Requestium also adds xpath, css, and re methods to the Selenium driver object
+```python
 if s.driver.re(r'ID_\d\w\d some_pattern'):
     print 'Found it!'
+```
 
-# And finally we can switch back to using requests
+And finally you can switch back to using Requests
+```python
 s.transfer_driver_cookies_to_session()
 s.post('http://www.samplesite.com/sample2', data={'key1': 'value1'})
 ```
 
 ## Considerations
 New features are lazily evaluated, meaning:
-- The Selenium webdriver process is only started if we call the driver object. So if we don't need to use the webdriver, we could use the library with no overhead. Very useful if you just want to use the library for its addition of parsel.
-- Parsing of the responses is only done if we call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if we don't need to use this feature.
+- The Selenium webdriver process is only started if you call the driver object. So if you don't need to use the webdriver, you could use the library with no overhead. Very useful if you just want to use the library for its integration of Parsel.
+- Parsing of the responses is only done if you call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if you don't need to use this feature.
 
-A byproduct of this feature is that The Selenium webdriver could be used just to ease in the development of regular requests code: You can start writing your script using just the requests' session, and at the last step of the script (the one you are currently working on) transfer the session to the Chrome webdriver. This way, a Chrome process starts in your machine, and acts as a real time "visor" for the last step of your code. You can see in what state your session is currently in, inspect it with Chrome's excellent inspect tools, and decide what's the next step your session object should take. Very useful to try code in an ipython interpreter and see how the site reacts in real time.
+A byproduct of this is that the Selenium webdriver could be used just as a tool to ease in the development of regular Requests code: You can start writing your script using just the Requests' session, and at the last step of the script (the one you are currently working on) transfer the session to the Chrome webdriver. This way, a Chrome process starts in your machine, and acts as a real time "visor" for the last step of your code. You can see in what state your session is currently in, inspect it with Chrome's excellent inspect tools, and decide what's the next step your session object should take. Very useful to try code in an ipython interpreter and see how the site reacts in real time.
 
 The Chrome driver doesn't support automatic transfer of headers and proxies from the Session to the Webdriver at the moment. The phantomjs driver does though.
 
 ## Selenium workarounds
-We add several 'ensure' methods to the driver object, as Selenium is known to be very finicky about selecting elements and cookie handling.
+Requestium adds several 'ensure' methods to the driver object, as Selenium is known to be very finicky about selecting elements and cookie handling.
 
 ### Wait for element
-The `ensure_element_by_` methods waits for the element to be loaded in the browser and returns it as soon as it loads. Named after Selenium's `find_element_by_` methods (which raise an exception if they can't find the element). By default we can wait for the element to be present, but we can also wait for it to be clickable or visible. Very useful for single page web apps. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
+The `ensure_element_by_` methods waits for the element to be loaded in the browser and returns it as soon as it loads. Named after Selenium's `find_element_by_` methods (which raise an exception if they can't find the element). By default Requestium waits for the element to be present, but it can also wait for it to be clickable or visible. Very useful for single page web apps. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
 
-Elements we get using this method have the `ensure_click` method which makes the click less prone to failure. This helps us get through a lot of the problems with Selenium clicking.
+Elements you get using this method have the `ensure_click` method which makes the click less prone to failure. This helps in getting through a lot of the problems with Selenium clicking.
 
 
 ```python
@@ -120,16 +144,10 @@ cookie = {"domain": "www.site.com",
 s.driver.ensure_add_cookie(cookie, override_domain='')
 ```
 
-## Installation and Hello world example
+## Comparison with Requests + Selenium + lxml
+Just a silly working example of a script that runs on Reddit. We'll then show how it compares to using Requests + Selenium + lxml instead of Requestium.
 
-### Installation
-```bash
-pip install requestium
-```
-Then download your preferred Selenium webdriver if you plan to use the Selenium part of requestium: [chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [phantomjs](http://phantomjs.org)
-
-### Hello world example
-Just a silly working example of a script that runs on reddit. We'll then show how it compares to using requests + Selenium + lxml instead of requestium.
+### Using Requestium
 ```python
 from requestium import Session, Keys
 
@@ -166,8 +184,7 @@ else:
     print "Couldn't get user name"
 ```
 
-### Comparison with requests + Selenium + lxml
-Same as the previous script but without using requestium. Most of requestium's robustness improvements such as the `ensure_click` method and the better adding of cookies to Selenium are not shown though.
+### Using Requests + Selenium + lxml
 ```python
 import re
 from lxml import etree
@@ -239,7 +256,6 @@ if reddit_user_name:
 else:
     print "Couldn't get user name"
 ```
-
 
 ## Selenium-Requests
 This project intends to be a drop in replacement of requests' Session object, with added functionality. If your use case is a drop in replacement for a Selenium webdriver, but that also has some of requests' functionality, [Selenium-Requests](https://github.com/cryzed/Selenium-Requests) does just that.
