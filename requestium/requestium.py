@@ -125,7 +125,10 @@ class Session(requests.Session):
             self.driver.ensure_add_cookie({'name': c.name, 'value': c.value, 'path': c.path,
                                            'expiry': c.expires, 'domain': c.domain})
 
-    def transfer_driver_cookies_to_session(self):
+    def transfer_driver_cookies_to_session(self, copy_user_agent=True):
+        if copy_user_agent:
+            self.copy_user_agent_from_driver()
+
         for cookie in self.driver.get_cookies():
                 self.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
 
@@ -143,6 +146,14 @@ class Session(requests.Session):
         resp = super(Session, self).put(*args, **kwargs)
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
+
+    def copy_user_agent_from_driver(self):
+        """ Updates requests' session user-agent with the driver's user agent
+
+        This method will start the browser process
+        """
+        selenium_user_agent = self.driver.execute_script("return navigator.userAgent;")
+        self.headers.update({"user-agent": selenium_user_agent})
 
 
 class RequestiumResponse(object):
