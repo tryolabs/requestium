@@ -24,7 +24,7 @@ class Session(requests.Session):
     Some usefull helper methods and object wrappings have been added.
     """
 
-    def __init__(self, webdriver_path='./phantomjs', default_timeout=5, browser='phantomjs'):
+    def __init__(self, webdriver_path, browser, default_timeout=5):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
