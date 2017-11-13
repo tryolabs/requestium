@@ -152,17 +152,18 @@ s = Session('./chromedriver', browser='chrome', default_timeout=15)
 s.driver.get('http://reddit.com')
 s.driver.find_element_by_xpath("//a[@href='https://www.reddit.com/login']").click()
 
-print 'Waiting for elements to load...'
-s.driver.ensure_element_by_class("desktop-onboarding-sign-up__form-toggler").click()
+print('Waiting for elements to load...')
+s.driver.ensure_element_by_class("desktop-onboarding-sign-up__form-toggler",
+				 criterium='visibility').click()
 
 if reddit_user_name:
     s.driver.ensure_element_by_id('user_login').send_keys(reddit_user_name)
     s.driver.ensure_element_by_id('passwd_login').send_keys(Keys.BACKSPACE)
-print 'Please log-in in the chrome browser'
+print('Please log-in in the chrome browser')
 
 s.driver.wait_element_disappears_by_class(
     "desktop-onboarding__title", appear_timeout=3, disappear_timeout=60)
-print 'Thanks!'
+print('Thanks!')
 
 if not reddit_user_name:
     reddit_user_name = s.driver.xpath("//span[@class='user']//text()").extract_first()
@@ -172,10 +173,10 @@ if reddit_user_name:
     response = s.get("https://www.reddit.com/user/{}/".format(reddit_user_name))
     cmnt_karma = response.xpath("//span[@class='karma comment-karma']//text()").extract_first()
     reddit_golds_given = response.re_first(r"(\d+) gildings given out")
-    print "Comment karma: {}".format(cmnt_karma)
-    print "Reddit golds given: {}".format(reddit_golds_given)
+    print("Comment karma: {}".format(cmnt_karma))
+    print("Reddit golds given: {}".format(reddit_golds_given))
 else:
-    print "Couldn't get user name"
+    print("Couldn't get user name")
 ```
 
 ### Using Requests + Selenium + lxml
@@ -197,9 +198,9 @@ driver = webdriver.Chrome('./chromedriver')
 driver.get('http://reddit.com')
 driver.find_element_by_xpath("//a[@href='https://www.reddit.com/login']").click()
 
-print 'Waiting for elements to load...'
+print('Waiting for elements to load...')
 WebDriverWait(driver, 15).until(
-    EC.presence_of_element_located((By.CLASS_NAME, "desktop-onboarding-sign-up__form-toggler"))
+    EC.visibility_of_element_located((By.CLASS_NAME, "desktop-onboarding-sign-up__form-toggler"))
 ).click()
 
 if reddit_user_name:
@@ -207,7 +208,7 @@ if reddit_user_name:
         EC.presence_of_element_located((By.ID, 'user_login'))
     ).send_keys(reddit_user_name)
     driver.find_element_by_id('passwd_login').send_keys(Keys.BACKSPACE)
-print 'Please log-in in the chrome browser'
+print('Please log-in in the chrome browser')
 
 try:
     WebDriverWait(driver, 3).until(
@@ -218,7 +219,7 @@ except TimeoutException:
 WebDriverWait(driver, 60).until(
     EC.invisibility_of_element_located((By.CLASS_NAME, "desktop-onboarding__title"))
 )
-print 'Thanks!'
+print('Thanks!')
 
 if not reddit_user_name:
     tree = etree.HTML(driver.page_source)
@@ -240,15 +241,15 @@ if reddit_user_name:
             "//span[@class='karma comment-karma']//text()")[0]
     except IndexError:
         cmnt_karma = None
-    match = re.search(r"(\d+) gildings given out", response.content)
+    match = re.search(r"(\d+) gildings given out", str(response.content))
     try:
         reddit_golds_given = match.group(1)
     except AttributeError:
         reddit_golds_given = None
-    print "Comment karma: {}".format(cmnt_karma)
-    print "Reddit golds given: {}".format(reddit_golds_given)
+    print("Comment karma: {}".format(cmnt_karma))
+    print("Reddit golds given: {}".format(reddit_golds_given))
 else:
-    print "Couldn't get user name"
+    print("Couldn't get user name")
 ```
 
 ## Selenium-Requests
