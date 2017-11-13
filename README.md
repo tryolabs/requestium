@@ -12,7 +12,9 @@ The library also adds several convenience features. The biggest one is integrati
 ```bash
 pip install requestium
 ```
-You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [phantomjs](http://phantomjs.org)
+You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [Phantomjs](http://phantomjs.org)
+
+Note: Requestium currently only supports python2
 
 ## Usage
 First start a session as you would do on Requests, and optionally add settings for the web-driver if you plan to use one. Requestium currently supports Phantomjs, Chrome and Chrome headless as the webdriver.
@@ -27,26 +29,26 @@ You don't need to parse the response, it is done automatically when calling xpat
 title = s.get('http://samplesite.com').xpath('//title/text()').extract_first(default='Default Title')
 ```
 
-Regex require much less boilerplate
+Regex require much less boilerplate.
 ```python
 response = s.get('http://samplesite.com/sample_path')
 list_of_two_digit_numbers = response.re(r'\d\d')  # Extracts all matches as a list
 print "Site ID: {}".format(response.re_first(r'ID_\d\w\d'), default='1A1')  # Extracts the first match
 ```
 
-You can use all the regular Requests' Session methods
+You can use all the regular Requests' Session methods.
 ```python
 s.post('http://www.samplesite.com/sample', data={'field1': 'data1'})
 ```
 
-And you can switch to using the Selenium webdriver to run any js code
+And you can switch to using the Selenium webdriver to run any js code.
 ```python
 s.transfer_session_cookies_to_driver()  # You can mantain the session if needed
 s.driver.get('http://www.samplesite.com/sample/process')
 ```
 
 The driver object is a Selenium webdriver object, so you can use any of the normal selenium
-methods plus the new ones
+methods plus new methods added by Requestium.
 ```python
 s.driver.find_element_by_xpath("//input[@class='user_name']").send_keys('James Bond', Keys.ENTER)
 
@@ -54,13 +56,13 @@ s.driver.find_element_by_xpath("//input[@class='user_name']").send_keys('James B
 s.driver.ensure_element_by_xpath("//div[@attribute='button']").click()
 ```
 
-Requestium also adds xpath, css, and re methods to the Selenium driver object
+Requestium also adds xpath, css, and re methods to the Selenium driver object.
 ```python
 if s.driver.re(r'ID_\d\w\d some_pattern'):
     print 'Found it!'
 ```
 
-And finally you can switch back to using Requests
+And finally you can switch back to using Requests.
 ```python
 s.transfer_driver_cookies_to_session()
 s.post('http://www.samplesite.com/sample2', data={'key1': 'value1'})
@@ -68,20 +70,22 @@ s.post('http://www.samplesite.com/sample2', data={'key1': 'value1'})
 
 ## Considerations
 New features are lazily evaluated, meaning:
-- The Selenium webdriver process is only started if you call the driver object. So if you don't need to use the webdriver, you could use the library with no overhead. Very useful if you just want to use the library for its integration of Parsel.
+- The Selenium webdriver process is only started if you call the driver object. So if you don't need to use the webdriver, you could use the library with no overhead. Very useful if you just want to use the library for its integration with Parsel.
 - Parsing of the responses is only done if you call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if you don't need to use this feature.
 
 A byproduct of this is that the Selenium webdriver could be used just as a tool to ease in the development of regular Requests code: You can start writing your script using just the Requests' session, and at the last step of the script (the one you are currently working on) transfer the session to the Chrome webdriver. This way, a Chrome process starts in your machine, and acts as a real time "visor" for the last step of your code. You can see in what state your session is currently in, inspect it with Chrome's excellent inspect tools, and decide what's the next step your session object should take. Very useful to try code in an ipython interpreter and see how the site reacts in real time.
 
-The Chrome driver doesn't support automatic transfer of headers and proxies from the Session to the Webdriver at the moment. The phantomjs driver does though.
+Note: The Selenium Chrome webdriver doesn't support automatic transfer of proxies from the Session to the Webdriver at the moment. The Phantomjs driver does though.
 
 ## Selenium workarounds
 Requestium adds several 'ensure' methods to the driver object, as Selenium is known to be very finicky about selecting elements and cookie handling.
 
 ### Wait for element
-The `ensure_element_by_` methods waits for the element to be loaded in the browser and returns it as soon as it loads. Named after Selenium's `find_element_by_` methods (which raise an exception if they can't find the element). By default Requestium waits for the element to be present, but it can also wait for it to be clickable or visible. Very useful for single page web apps. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
+The `ensure_element_by_` methods waits for the element to be loaded in the browser and returns it as soon as it loads. It's named after Selenium's `find_element_by_` methods (which immediately raise an exception if they can't find the element).
 
-Elements you get using this method have the `ensure_click` method which makes the click less prone to failure. This helps in getting through a lot of the problems with Selenium clicking.
+By default Requestium waits for the element to be present, but it can also wait for it to be clickable or visible. Very useful for single page web apps. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
+
+Elements you get using this method have the new `ensure_click` method which makes the click less prone to failure. This helps in getting through a lot of the problems with Selenium clicking.
 
 
 ```python
@@ -95,15 +99,12 @@ s.driver.ensure_element_by_xpath("//li[@class='b1']", criterium='clickable', tim
 # ensure_element_by_partial_link_text
 # ensure_element_by_name
 # ensure_element_by_tag_name
-
-# === Though you can also call ensure_element directly ===
-s.driver.ensure_element("xpath", "//li[@class='b1']", criterium='clickable', timeout=5)
 ```
 
 ### Wait for element to disappear
-The `wait_element_disappears_by_` methods waits for the element to be loaded in the browser and then waits until it disappears. It looks for an element in first place, using two timeouts: one for locating the element, and other one to wait until it disappears (often the former will be shorter than the latter). Very useful each time you have to wait for a loading gif to go away.
+The `wait_element_disappears_by_` methods waits for the element to be loaded in the browser and then waits until it disappears. It does this by, using two timeouts: one for waiting for the element to appear, and other one for waiting until it disappears (often the former will be shorter than the latter). Very useful when you have to wait for a 'loading...' gif to disappear.
 
-The criterium to check if item disappeared will be `visibility`. A `TimeoutException` will rise if the element is located and it does not disappear after waiting for `disappear_timeout`
+A `TimeoutException` will rise if the element is located and it does not disappear after waiting for `disappear_timeout`
 
 ```python
 s.driver.wait_element_disappears_by_xpath("//img[@class='loading']",
@@ -119,13 +120,6 @@ s.driver.wait_element_disappears_by_xpath("//img[@class='loading']",
 # wait_element_disappears_by_partial_link_text
 # wait_element_disappears_by_name
 # wait_element_disappears_by_tag_name
-
-# === You can also call wait_element_disappears directly ===
-s.driver.wait_element_disappears("xpath",
-                                 "//img[@class='loading']",
-                                 criterium='visibility',
-                                 appear_timeout=2,
-                                 disappear_timeout=10)
 ```
 
 ### Add cookie
@@ -145,20 +139,20 @@ s.driver.ensure_add_cookie(cookie, override_domain='')
 ```
 
 ## Comparison with Requests + Selenium + lxml
-Just a silly working example of a script that runs on Reddit. We'll then show how it compares to using Requests + Selenium + lxml instead of Requestium.
+A silly working example of a script that runs on Reddit. We'll then show how it compares to using Requests + Selenium + lxml instead of Requestium.
 
 ### Using Requestium
 ```python
 from requestium import Session, Keys
 
-# If you want requestium to type your username in the browser for you, write it in here
+# If you want requestium to type your username in the browser for you, write it in here:
 reddit_user_name = ''
 
 s = Session('./chromedriver', browser='chrome', default_timeout=15)
 s.driver.get('http://reddit.com')
 s.driver.find_element_by_xpath("//a[@href='https://www.reddit.com/login']").click()
 
-print('Waiting for elements to load...')
+print 'Waiting for elements to load...'
 s.driver.ensure_element_by_class("desktop-onboarding-sign-up__form-toggler").click()
 
 if reddit_user_name:
@@ -196,14 +190,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# If you want requestium to type your username in the browser for you, write it in here
+# If you want requestium to type your username in the browser for you, write it in here:
 reddit_user_name = ''
 
 driver = webdriver.Chrome('./chromedriver')
 driver.get('http://reddit.com')
 driver.find_element_by_xpath("//a[@href='https://www.reddit.com/login']").click()
 
-print('Waiting for elements to load...')
+print 'Waiting for elements to load...'
 WebDriverWait(driver, 15).until(
     EC.presence_of_element_located((By.CLASS_NAME, "desktop-onboarding-sign-up__form-toggler"))
 ).click()
