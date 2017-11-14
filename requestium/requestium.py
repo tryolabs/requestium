@@ -24,10 +24,11 @@ class Session(requests.Session):
     Some usefull helper methods and object wrappings have been added.
     """
 
-    def __init__(self, webdriver_path, browser, default_timeout=5):
+    def __init__(self, webdriver_path, browser, default_timeout=5, browser_path=None):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
+        self.browser_path = browser_path
         self.browser = browser
         self._driver = None
         self._last_requests_url = None
@@ -82,6 +83,10 @@ class Session(requests.Session):
         # automated software" sometimes hides elements from being clickable. So I disable it.
         chrome_options.add_argument('disable-infobars')
 
+        if self.browser_path:
+            # Specify the path to the browser binary
+            chrome_options.binary_location = self.browser_path
+
         # Create driver process
         return RequestiumChrome(self.webdriver_path,
                                 chrome_options=chrome_options,
@@ -91,16 +96,27 @@ class Session(requests.Session):
         # TODO transfer headers, and authenticated proxies: not sure how to do it in chrome yet
         chrome_options = webdriver.chrome.options.Options()
 
-        chrome_options.add_argument('headless')
-        chrome_options.add_argument('disable-infobars')
+        if self.browser_path:
+            # Specify the path to the browser binary
+            chrome_options.binary_location = self.browser_path
+
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-infobars')
         # With the disable-gpu flag, we don't need libosmesa.so in our deploy package
-        chrome_options.add_argument('disable-gpu')
+        chrome_options.add_argument('--disable-gpu')
         # This is because /tmp is the only place we have write permissions in Lambda
-        chrome_options.add_argument('homedir=/tmp')
-        chrome_options.add_argument('data-path=/tmp/data-path')
-        chrome_options.add_argument('disk-cache-dir=/tmp/cache-dir')
-        chrome_options.add_argument('no-sandbox')
-        chrome_options.add_argument('single-process')
+        chrome_options.add_argument('--homedir=/tmp')
+        chrome_options.add_argument('--data-path=/tmp/data-path')
+        chrome_options.add_argument('--disk-cache-dir=/tmp/cache-dir')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--single-process')
+        chrome_options.add_argument('--trace-startup=*')
+        chrome_options.add_argument('--window-size=1920x1080')
+        chrome_options.add_argument('--user-data-dir=/tmp/user-data')
+        chrome_options.add_argument('--hide-scrollbars')
+        chrome_options.add_argument('--enable-logging')
+        chrome_options.add_argument('--log-level=0')
+        chrome_options.add_argument('--v=99')
 
         # Create driver process
         return RequestiumChrome(self.webdriver_path,
