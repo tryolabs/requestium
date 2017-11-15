@@ -83,43 +83,24 @@ Requestium adds several 'ensure' methods to the driver object, as Selenium is kn
 ### Wait for element
 The `ensure_element_by_` methods waits for the element to be loaded in the browser and returns it as soon as it loads. It's named after Selenium's `find_element_by_` methods (which immediately raise an exception if they can't find the element).
 
-By default Requestium waits for the element to be present, but it can also wait for it to be clickable or visible. Very useful for single page web apps. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
+By default Requestium waits for the element to be present, but it can also wait for it to be clickable, visible or for it to disappear. Very useful for single page web apps. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
 
 Elements you get using this method have the new `ensure_click` method which makes the click less prone to failure. This helps in getting through a lot of the problems with Selenium clicking.
 
 
 ```python
-s.driver.ensure_element_by_xpath("//li[@class='b1']", criterium='clickable', timeout=5).ensure_click()
+s.driver.ensure_element_by_xpath("//li[@class='b1']", state='clickable', timeout=5).ensure_click()
+
+# The possible states to check for are: 'visible', 'clickable', 'present', and 'disappeared'
 
 # === We also added these methods named in accordance to Selenium's api design ===
-# ensure_element_by_css
 # ensure_element_by_id
-# ensure_element_by_class
+# ensure_element_by_name
 # ensure_element_by_link_text
 # ensure_element_by_partial_link_text
-# ensure_element_by_name
 # ensure_element_by_tag_name
-```
-
-### Wait for element to disappear
-The `wait_element_disappears_by_` methods waits for the element to be loaded in the browser and then waits until it disappears. It does this by, using two timeouts: one for waiting for the element to appear, and other one for waiting until it disappears (often the former will be shorter than the latter). Very useful when you have to wait for a 'loading...' gif to disappear.
-
-A `TimeoutException` will rise if the element is located and it does not disappear after waiting for `disappear_timeout`
-
-```python
-s.driver.wait_element_disappears_by_xpath("//img[@class='loading']",
-                                          criterium='visibility',
-                                          appear_timeout=2,
-                                          disappear_timeout=10)
-
-# === We also added these methods named in accordance to Selenium's api design ===
-# wait_element_disappears_by_css
-# wait_element_disappears_by_id
-# wait_element_disappears_by_class
-# wait_element_disappears_by_link_text
-# wait_element_disappears_by_partial_link_text
-# wait_element_disappears_by_name
-# wait_element_disappears_by_tag_name
+# ensure_element_by_class_name
+# ensure_element_by_css_selector
 ```
 
 ### Add cookie
@@ -153,16 +134,15 @@ s.driver.get('http://reddit.com')
 s.driver.find_element_by_xpath("//a[@href='https://www.reddit.com/login']").click()
 
 print('Waiting for elements to load...')
-s.driver.ensure_element_by_class("desktop-onboarding-sign-up__form-toggler",
-				 criterium='visibility').click()
+s.driver.ensure_element_by_class_name("desktop-onboarding-sign-up__form-toggler",
+				      state='visible').click()
 
 if reddit_user_name:
     s.driver.ensure_element_by_id('user_login').send_keys(reddit_user_name)
     s.driver.ensure_element_by_id('passwd_login').send_keys(Keys.BACKSPACE)
 print('Please log-in in the chrome browser')
 
-s.driver.wait_element_disappears_by_class(
-    "desktop-onboarding__title", appear_timeout=3, disappear_timeout=60)
+s.driver.ensure_element_by_class_name("desktop-onboarding__title", timeout=60, state='disappeared')
 print('Thanks!')
 
 if not reddit_user_name:
