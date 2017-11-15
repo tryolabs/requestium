@@ -28,24 +28,25 @@ class Session(requests.Session):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
-        self.browser = browser
         self._driver = None
         self._last_requests_url = None
+
+        if browser == 'phantomjs':
+            self._driver_initializer = self._start_phantomjs_browser
+        elif browser == 'chrome':
+            self._driver_initializer = self._start_chrome_browser
+        elif browser == 'chrome_headless':
+            self._driver_initializer = self._start_chrome_headless_browser
+        else:
+            raise ValueError(
+                'Invalid Argument: browser must be chrome, '
+                'chrome_headless or phantomjs, not: "{}"'.format(browser)
+            )
 
     @property
     def driver(self):
         if self._driver is None:
-            if self.browser == 'phantomjs':
-                self._driver = self._start_phantomjs_browser()
-            elif self.browser == 'chrome':
-                self._driver = self._start_chrome_browser()
-            elif self.browser == 'chrome_headless':
-                self._driver = self._start_chrome_headless_browser()
-            else:
-                raise AttributeError(
-                    'Browser must be chrome or phantomjs, not: "{}"'.format(self.browser)
-                )
-
+            self._driver = self._driver_initializer()
         return self._driver
 
     def _start_phantomjs_browser(self):
