@@ -8,8 +8,10 @@ This new Session object is a drop in replacement of the standard Requests Sessio
 
 The library also adds several convenience features. The biggest one is integrating [Parsel](https://github.com/scrapy/parsel)'s parser into the library. You can seamlessly run xpaths, css or regex anywhere in the library without having to manually parse anything, resulting in cleaner code. Additionally, it improves the managing of cookies and proxies in Selenium, and has several workarounds for some elements of Selenium which are buggy or not super stable.
 
+Requestium currently supports: Chrome, Chrome headless, and PhantomJS
+
 ## Usage
-First start a session as you would do on Requests, and optionally add settings for the web-driver if you plan to use one. Requestium currently supports Phantomjs, Chrome and Chrome headless as the webdriver.
+First start a session as you would do on Requests, and optionally add settings for the web-driver if you plan to use one. Requestium currently supports PhantomJS, Chrome and Chrome headless as the webdriver.
 ```python
 from requestium import Session, Keys
 
@@ -65,7 +67,7 @@ s.post('http://www.samplesite.com/sample2', data={'key1': 'value1'})
 pip install requestium
 ```
 
-You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [Phantomjs](http://phantomjs.org)
+You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [PhantomJS](http://phantomjs.org)
 
 ## Considerations
 New features are lazily evaluated, meaning:
@@ -76,7 +78,7 @@ A byproduct of this is that the Selenium webdriver could be used just as a tool 
 
 Switching from selenium automatically updates your requests session user-agent to match that of the browser used in selenium
 
-Note: The Selenium Chrome webdriver doesn't support automatic transfer of proxies from the Session to the Webdriver at the moment. The Phantomjs driver does though.
+Note: The Selenium Chrome webdriver doesn't support automatic transfer of proxies from the Session to the Webdriver at the moment. The PhantomJS driver does though.
 
 ## Selenium workarounds
 Requestium adds several 'ensure' methods to the driver object, as Selenium is known to be very finicky about selecting elements and cookie handling.
