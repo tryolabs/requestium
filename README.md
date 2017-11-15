@@ -6,15 +6,7 @@ The objective of the project is to help in the development of bots that automati
 
 This new Session object is a drop in replacement of the standard Requests Session object, and every new feature is lazily evaluated, so there is no overhead in using this library over just plain Requests.
 
-The library also adds several convenience features. The biggest one is integrating [Parsel](https://github.com/scrapy/parsel)'s parser into the library. You can seamlessly run xpaths, css or regex anywhere in the library without having to manually parse anything, resulting in much cleaner code. Additionally, it improves the managing of cookies and proxies in Selenium, and has several workarounds for parts of Selenium which are buggy or not super stable.
-
-## Installation
-```bash
-pip install requestium
-```
-You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [Phantomjs](http://phantomjs.org)
-
-Note: Requestium currently only supports python2
+The library also adds several convenience features. The biggest one is integrating [Parsel](https://github.com/scrapy/parsel)'s parser into the library. You can seamlessly run xpaths, css or regex anywhere in the library without having to manually parse anything, resulting in cleaner code. Additionally, it improves the managing of cookies and proxies in Selenium, and has several workarounds for some elements of Selenium which are buggy or not super stable.
 
 ## Usage
 First start a session as you would do on Requests, and optionally add settings for the web-driver if you plan to use one. Requestium currently supports Phantomjs, Chrome and Chrome headless as the webdriver.
@@ -29,7 +21,7 @@ You don't need to parse the response, it is done automatically when calling xpat
 title = s.get('http://samplesite.com').xpath('//title/text()').extract_first(default='Default Title')
 ```
 
-Regex require much less boilerplate.
+Regex require less boilerplate.
 ```python
 response = s.get('http://samplesite.com/sample_path')
 list_of_two_digit_numbers = response.re(r'\d\d')  # Extracts all matches as a list
@@ -68,12 +60,21 @@ s.transfer_driver_cookies_to_session()
 s.post('http://www.samplesite.com/sample2', data={'key1': 'value1'})
 ```
 
+## Installation
+```bash
+pip install requestium
+```
+
+You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [Phantomjs](http://phantomjs.org)
+
 ## Considerations
 New features are lazily evaluated, meaning:
 - The Selenium webdriver process is only started if you call the driver object. So if you don't need to use the webdriver, you could use the library with no overhead. Very useful if you just want to use the library for its integration with Parsel.
 - Parsing of the responses is only done if you call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if you don't need to use this feature.
 
 A byproduct of this is that the Selenium webdriver could be used just as a tool to ease in the development of regular Requests code: You can start writing your script using just the Requests' session, and at the last step of the script (the one you are currently working on) transfer the session to the Chrome webdriver. This way, a Chrome process starts in your machine, and acts as a real time "visor" for the last step of your code. You can see in what state your session is currently in, inspect it with Chrome's excellent inspect tools, and decide what's the next step your session object should take. Very useful to try code in an ipython interpreter and see how the site reacts in real time.
+
+Switching from selenium automatically updates your requests session user-agent to match that of the browser used in selenium
 
 Note: The Selenium Chrome webdriver doesn't support automatic transfer of proxies from the Session to the Webdriver at the moment. The Phantomjs driver does though.
 
