@@ -21,7 +21,7 @@ class Session(requests.Session):
 
     Header and proxy transfer is done only one time when the driver process starts.
 
-    Some usefull helper methods and object wrappings have been added.
+    Some useful helper methods and object wrappings have been added.
     """
 
     def __init__(self, webdriver_path, browser, default_timeout=5):
