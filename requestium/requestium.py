@@ -21,31 +21,32 @@ class Session(requests.Session):
 
     Header and proxy transfer is done only one time when the driver process starts.
 
-    Some usefull helper methods and object wrappings have been added.
+    Some useful helper methods and object wrappings have been added.
     """
 
     def __init__(self, webdriver_path, browser, default_timeout=5):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
-        self.browser = browser
         self._driver = None
         self._last_requests_url = None
+
+        if browser == 'phantomjs':
+            self._driver_initializer = self._start_phantomjs_browser
+        elif browser == 'chrome':
+            self._driver_initializer = self._start_chrome_browser
+        elif browser == 'chrome_headless':
+            self._driver_initializer = self._start_chrome_headless_browser
+        else:
+            raise ValueError(
+                'Invalid Argument: browser must be chrome, '
+                'chrome_headless or phantomjs, not: "{}"'.format(browser)
+            )
 
     @property
     def driver(self):
         if self._driver is None:
-            if self.browser == 'phantomjs':
-                self._driver = self._start_phantomjs_browser()
-            elif self.browser == 'chrome':
-                self._driver = self._start_chrome_browser()
-            elif self.browser == 'chrome_headless':
-                self._driver = self._start_chrome_headless_browser()
-            else:
-                raise AttributeError(
-                    'Browser must be chrome or phantomjs, not: "{}"'.format(self.browser)
-                )
-
+            self._driver = self._driver_initializer()
         return self._driver
 
     def _start_phantomjs_browser(self):
@@ -150,7 +151,7 @@ class Session(requests.Session):
     def copy_user_agent_from_driver(self):
         """ Updates requests' session user-agent with the driver's user agent
 
-        This method will start the browser process
+        This method will start the browser process if its not already running.
         """
         selenium_user_agent = self.driver.execute_script("return navigator.userAgent;")
         self.headers.update({"user-agent": selenium_user_agent})
@@ -269,32 +270,32 @@ class DriverMixin(object):
                 return True
         return False
 
-    def ensure_element_by_xpath(self, selector, criterium="presence", timeout=None):
-        return self.ensure_element('xpath', selector, criterium, timeout)
+    def ensure_element_by_id(self, selector, state="presence", timeout=None):
+        return self.ensure_element('id', selector, state, timeout)
 
-    def ensure_element_by_css(self, selector, criterium="presence", timeout=None):
-        return self.ensure_element('css', selector, criterium, timeout)
+    def ensure_element_by_name(self, selector, state="presence", timeout=None):
+        return self.ensure_element('name', selector, state, timeout)
 
-    def ensure_element_by_id(self, selector, criterium="presence", timeout=None):
-        return self.ensure_element('id', selector, criterium, timeout)
+    def ensure_element_by_xpath(self, selector, state="presence", timeout=None):
+        return self.ensure_element('xpath', selector, state, timeout)
 
-    def ensure_element_by_class(self, selector, criterium="presence", timeout=None):
-        return self.ensure_element('class', selector, criterium, timeout)
+    def ensure_element_by_link_text(self, selector, state="presence", timeout=None):
+        return self.ensure_element('link_text', selector, state, timeout)
 
-    def ensure_element_by_link_text(self, selector, criterium="presence", timeout=None):
-        return self.ensure_element('link_text', selector, criterium, timeout)
+    def ensure_element_by_partial_link_text(self, selector, state="presence", timeout=None):
+        return self.ensure_element('partial_link_text', selector, state, timeout)
 
-    def ensure_element_by_partial_link_text(self, selector, criterium="presence", timeout=None):
-        return self.ensure_element('partial_link_text', selector, criterium, timeout)
+    def ensure_element_by_tag_name(self, selector, state="presence", timeout=None):
+        return self.ensure_element('tag_name', selector, state, timeout)
 
-    def ensure_element_by_name(self, selector, criterium="presence", timeout=None):
-        return self.ensure_element('name', selector, criterium, timeout)
+    def ensure_element_by_class_name(self, selector, state="presence", timeout=None):
+        return self.ensure_element('class_name', selector, state, timeout)
 
-    def ensure_element_by_tag_name(self, selector, criterium="presence", timeout=None):
-        return self.ensure_element('tag', selector, criterium, timeout)
+    def ensure_element_by_css_selector(self, selector, state="presence", timeout=None):
+        return self.ensure_element('css_selector', selector, state, timeout)
 
-    def ensure_element(self, locator, selector, criterium="presence", timeout=None):
-        """This method allows us to wait till an element is loaded in the browser
+    def ensure_element(self, locator, selector, state="presence", timeout=None):
+        """This method allows us to wait till an element appears or disappears in the browser
 
         The webdriver runs in parallel with our scripts, so we must wait for it everytime it
         runs javascript. Selenium automatically waits till a page loads when GETing it,
@@ -303,124 +304,55 @@ class DriverMixin(object):
 
         The 'locator' argument defines what strategy we use to search for the element.
 
-        The 'criterium' argument allows us to chose between the visibility and presence of
-        the item in the webpage. Presence is more inclusive, but sometimes we want to know if
-        the element is visible. Careful, its not always intuitive what Selenium considers to be
-        a visible element. We can also wait for it to be clickable, although this method is a
-        bit buggy in selenium, an element can be 'clickable' according to selenium and still
-        fail when we try to click it.
-
-        This function also scrolls the element into view before returning it, so we can ensure that
-        the element is clickable before returning it.
+        The 'state' argument allows us to chose between waiting for the element to be visible,
+        clickable, present, or to dissapear from the webpage. Presence is more inclusive, but
+        sometimes we want to know if the element is visible. Careful, its not always intuitive
+        what Selenium considers to be a visible element. We can also wait for it to be clickable,
+        although this method is a bit buggy in selenium, an element can be 'clickable' according
+        to selenium and still fail when we try to click it.
 
         More info at: http://selenium-python.readthedocs.io/waits.html
         """
-        locators = {'xpath': By.XPATH,
-                    'id': By.ID,
+        locators = {'id': By.ID,
+                    'name': By.NAME,
+                    'xpath': By.XPATH,
                     'link_text': By.LINK_TEXT,
                     'partial_link_text': By.PARTIAL_LINK_TEXT,
-                    'name': By.NAME,
-                    'tag': By.TAG_NAME,
-                    'class': By.CLASS_NAME,
-                    'css': By.CSS_SELECTOR}
+                    'tag_name': By.TAG_NAME,
+                    'class_name': By.CLASS_NAME,
+                    'css_selector': By.CSS_SELECTOR}
         locator = locators[locator]
         if not timeout: timeout = self.default_timeout
 
-        if criterium == 'visibility':
+        if state == 'visible':
             element = WebDriverWait(self, timeout).until(
                 EC.visibility_of_element_located((locator, selector))
             )
-        elif criterium == 'clickable':
+        elif state == 'clickable':
             element = WebDriverWait(self, timeout).until(
                 EC.element_to_be_clickable((locator, selector))
             )
-        elif criterium == 'presence':
+        elif state == 'present':
             element = WebDriverWait(self, timeout).until(
                 EC.presence_of_element_located((locator, selector))
             )
+        elif state == 'disappeared':
+            WebDriverWait(self, timeout).until(
+                EC.invisibility_of_element_located((locator, selector))
+            )
+            element = None
         else:
             raise ValueError(
-                "The 'criterium' argument must be 'visibility', 'clickable' "
-                "or 'presence', not '{}'".format(criterium)
+                "The 'state' argument must be 'visible', 'clickable', 'present' "
+                "or 'disappeared', not '{}'".format(state)
             )
 
         # We add this method to our element to provide a more robust click. Chromedriver
         # sometimes needs some time before it can click an item, specially if it needs to
         # scroll into it first. This method ensures clicks don't fail because of this.
-        element.ensure_click = partial(_ensure_click, element)
+        if element:
+            element.ensure_click = partial(_ensure_click, element)
         return element
-
-    def wait_element_disappears_by_xpath(self, selector, criterium="presence",
-                                         appear_timeout=None, disappear_timeout=None):
-        return self.wait_element_disappears('xpath', selector, criterium, appear_timeout,
-                                            disappear_timeout)
-
-    def wait_element_disappears_by_css(self, selector, criterium="presence",
-                                       appear_timeout=None, disappear_timeout=None):
-        return self.wait_element_disappears('css', selector, criterium, appear_timeout,
-                                            disappear_timeout)
-
-    def wait_element_disappears_by_id(self, selector, criterium="presence",
-                                      appear_timeout=None, disappear_timeout=None):
-        return self.wait_element_disappears('id', selector, criterium, appear_timeout,
-                                            disappear_timeout)
-
-    def wait_element_disappears_by_class(self, selector, criterium="presence",
-                                         appear_timeout=None, disappear_timeout=None):
-        return self.wait_element_disappears('class', selector, criterium, appear_timeout,
-                                            disappear_timeout)
-
-    def wait_element_disappears_by_link_text(self, selector, criterium="presence",
-                                             appear_timeout=None, disappear_timeout=None):
-        return self.wait_element_disappears('link_text', selector, criterium, appear_timeout,
-                                            disappear_timeout)
-
-    def wait_element_disappears_by_partial_link_text(self, selector, criterium="presence",
-                                                     appear_timeout=None, disappear_timeout=None):
-        return self.wait_element_disappears('partial_link_text', selector, criterium,
-                                            appear_timeout, disappear_timeout)
-
-    def wait_element_disappears_by_name(self, selector, criterium="presence",
-                                        appear_timeout=None, disappear_timeout=None):
-        return self.wait_element_disappears('name', selector, criterium, appear_timeout,
-                                            disappear_timeout)
-
-    def wait_element_disappears_by_tag_name(self, selector, criterium="presence",
-                                            appear_timeout=None, disappear_timeout=None):
-        return self.wait_element_disappears('tag', selector, criterium, appear_timeout,
-                                            disappear_timeout)
-
-    def wait_element_disappears(self, locator, selector, criterium="presence",
-                                appear_timeout=None, disappear_timeout=None):
-        """
-        Wait for an element to disappear in the browser
-
-        Will assume the element already disappeared if it fails to find it in first place
-
-        This method follows the same logic behind ensure_element to locate the element
-        we want to wait until it disappears
-
-        """
-        try:
-            # Wait for element to appear. It can disappear before it had chance to appear
-            self.ensure_element(locator, selector, criterium, appear_timeout)
-        except TimeoutException:
-            # Assume element already disappeared
-            return
-
-        locators = {'xpath': By.XPATH,
-                    'id': By.ID,
-                    'link_text': By.LINK_TEXT,
-                    'partial_link_text': By.PARTIAL_LINK_TEXT,
-                    'name': By.NAME,
-                    'tag': By.TAG_NAME,
-                    'class': By.CLASS_NAME,
-                    'css': By.CSS_SELECTOR}
-        locator = locators[locator]
-        if not disappear_timeout: disappear_timeout = self.default_timeout
-        WebDriverWait(self, disappear_timeout).until(
-            EC.invisibility_of_element_located((locator, selector))
-        )
 
     @property
     def selector(self):
@@ -444,7 +376,7 @@ class DriverMixin(object):
 
 
 def _ensure_click(self):
-    """Ensures a click gets made, cause Selenium can be a bit buggy about clicks
+    """Ensures a click gets made, because Selenium can be a bit buggy about clicks
 
     This method gets added to the selenium elemenent returned in '__ensure_element_by_xpath'.
     We should probably add it to more selenium methods, such as all the 'find**' methods though.
@@ -466,7 +398,7 @@ def _ensure_click(self):
               "document.documentElement.clientHeight, window.innerHeight || 0);"
               "var elementTop = arguments[0].getBoundingClientRect().top;"
               "window.scrollBy(0, elementTop-(viewPortHeight/2));")
-    self.parent.execute_script(script, self)  # parent = the webdriber
+    self.parent.execute_script(script, self)  # parent = the webdriver
 
     for _ in range(10):
         try:
