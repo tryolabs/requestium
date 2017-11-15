@@ -237,3 +237,7 @@ else:
 
 ## Selenium-Requests
 This project intends to be a drop in replacement of requests' Session object, with added functionality. If your use case is a drop in replacement for a Selenium webdriver, but that also has some of requests' functionality, [Selenium-Requests](https://github.com/cryzed/Selenium-Requests) does just that.
+
+
+## License
+Copyright © 2017, [Tryolabs](https://tryolabs.com/). Released under the [BSD 3-Clause](https://github.com/tryolabs/luminoth/blob/master/LICENSE).
