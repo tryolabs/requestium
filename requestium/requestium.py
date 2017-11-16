@@ -24,10 +24,11 @@ class Session(requests.Session):
     Some useful helper methods and object wrappings have been added.
     """
 
-    def __init__(self, webdriver_path, browser, default_timeout=5):
+    def __init__(self, webdriver_path, browser, default_timeout=5, webdriver_options={}):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
+        self.webdriver_options = webdriver_options
         self._driver = None
         self._last_requests_url = None
 
@@ -35,12 +36,9 @@ class Session(requests.Session):
             self._driver_initializer = self._start_phantomjs_browser
         elif browser == 'chrome':
             self._driver_initializer = self._start_chrome_browser
-        elif browser == 'chrome_headless':
-            self._driver_initializer = self._start_chrome_headless_browser
         else:
             raise ValueError(
-                'Invalid Argument: browser must be chrome, '
-                'chrome_headless or phantomjs, not: "{}"'.format(browser)
+                'Invalid Argument: browser must be chrome or phantomjs, not: "{}"'.format(browser)
             )
 
     @property
@@ -83,25 +81,16 @@ class Session(requests.Session):
         # automated software" sometimes hides elements from being clickable. So I disable it.
         chrome_options.add_argument('disable-infobars')
 
-        # Create driver process
-        return RequestiumChrome(self.webdriver_path,
-                                chrome_options=chrome_options,
-                                default_timeout=self.default_timeout)
+        if 'binary_location' in self.webdriver_options:
+            chrome_options.binary_location = self.webdriver_options['binary_location']
 
-    def _start_chrome_headless_browser(self):
-        # TODO transfer headers, and authenticated proxies: not sure how to do it in chrome yet
-        chrome_options = webdriver.chrome.options.Options()
-
-        chrome_options.add_argument('headless')
-        chrome_options.add_argument('disable-infobars')
-        # With the disable-gpu flag, we don't need libosmesa.so in our deploy package
-        chrome_options.add_argument('disable-gpu')
-        # This is because /tmp is the only place we have write permissions in Lambda
-        chrome_options.add_argument('homedir=/tmp')
-        chrome_options.add_argument('data-path=/tmp/data-path')
-        chrome_options.add_argument('disk-cache-dir=/tmp/cache-dir')
-        chrome_options.add_argument('no-sandbox')
-        chrome_options.add_argument('single-process')
+        if 'arguments' in self.webdriver_options:
+            if isinstance(self.webdriver_options['arguments'], list):
+                for arg in self.webdriver_options['arguments']:
+                    chrome_options.add_argument(arg)
+            else:
+                raise Exception('A list is needed to use \'arguments\' option. Found {}'.format(
+                    type(self.webdriver_options['arguments'])))
 
         # Create driver process
         return RequestiumChrome(self.webdriver_path,
