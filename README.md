@@ -12,7 +12,7 @@ Requestium adds independent improvements to both Requests and Selenium, and ever
 - Improves Selenium's handling of dynamically loading elements
 - Makes cookie handling more flexible in Selenium
 - Makes clicking elements in Selenium more reliable
-- Supports Chrome, Chrome headless, and PhantomJS
+- Supports Chrome and PhantomJS
 
 ## Usage
 First create a session as you would do on Requests, and optionally add arguments for the web-driver if you plan to use one.
