@@ -86,9 +86,15 @@ Requestium adds several 'ensure' methods to the driver object, as Selenium is kn
 ### Wait for element
 The `ensure_element_by_` methods waits for the element to be loaded in the browser and returns it as soon as it loads. It's named after Selenium's `find_element_by_` methods (which immediately raise an exception if they can't find the element).
 
-By default Requestium waits for the element to be `present`, but it can also wait for it to be `clickable`, `visible` or for it to have `disappeared`. Very useful for single page web apps. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
+Requestium can wait for an element to be in any of the following states:
+- present (default)
+- clickable
+- visible
+- invisible (useful for things like *loading...* gifs)
 
-Elements you get using this methods have the new `ensure_click` method which makes the click less prone to failure. This helps with getting through a lot of the problems with Selenium clicking.
+These methods are very useful for single page web apps where the site is dynamically changing its elements. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
+
+Elements you get using these methods have the new `ensure_click` method which makes the click less prone to failure. This helps with getting through a lot of the problems with Selenium clicking.
 
 ```python
 s.driver.ensure_element_by_xpath("//li[@class='b1']", state='clickable', timeout=5).ensure_click()
@@ -157,7 +163,7 @@ if reddit_user_name:
     s.driver.ensure_element_by_id('passwd_login').send_keys(Keys.BACKSPACE)
 print('Please log-in in the chrome browser')
 
-s.driver.ensure_element_by_class_name("desktop-onboarding__title", timeout=60, state='disappeared')
+s.driver.ensure_element_by_class_name("desktop-onboarding__title", timeout=60, state='invisible')
 print('Thanks!')
 
 if not reddit_user_name:

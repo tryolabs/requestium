@@ -290,11 +290,11 @@ class DriverMixin(object):
         The 'locator' argument defines what strategy we use to search for the element.
 
         The 'state' argument allows us to chose between waiting for the element to be visible,
-        clickable, present, or to dissapear from the webpage. Presence is more inclusive, but
-        sometimes we want to know if the element is visible. Careful, its not always intuitive
-        what Selenium considers to be a visible element. We can also wait for it to be clickable,
-        although this method is a bit buggy in selenium, an element can be 'clickable' according
-        to selenium and still fail when we try to click it.
+        clickable, present, or invisible. Presence is more inclusive, but sometimes we want to
+        know if the element is visible. Careful, its not always intuitive what Selenium considers
+        to be a visible element. We can also wait for it to be clickable, although this method
+        is a bit buggy in selenium, an element can be 'clickable' according to selenium and 
+        still fail when we try to click it.
 
         More info at: http://selenium-python.readthedocs.io/waits.html
         """
@@ -321,7 +321,7 @@ class DriverMixin(object):
             element = WebDriverWait(self, timeout).until(
                 EC.presence_of_element_located((locator, selector))
             )
-        elif state == 'disappeared':
+        elif state == 'invisible':
             WebDriverWait(self, timeout).until(
                 EC.invisibility_of_element_located((locator, selector))
             )
@@ -329,7 +329,7 @@ class DriverMixin(object):
         else:
             raise ValueError(
                 "The 'state' argument must be 'visible', 'clickable', 'present' "
-                "or 'disappeared', not '{}'".format(state)
+                "or 'invisible', not '{}'".format(state)
             )
 
         # We add this method to our element to provide a more robust click. Chromedriver
