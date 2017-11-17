@@ -28,7 +28,7 @@ setup(
     packages=('requestium',),
     install_requires=(
         'requests>=2.18.1',
-        'selenium>=3.4.3',
+        'selenium>=3.7.0',
         'parsel>=1.2.0',
         'tldextract>=2.1.0'
     ),
