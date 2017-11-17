@@ -77,10 +77,6 @@ class Session(requests.Session):
         # TODO transfer headers, and authenticated proxies: not sure how to do it in chrome yet
         chrome_options = webdriver.chrome.options.Options()
 
-        # I suspect the infobar at the top of the browser saying "Chrome is being controlled by an
-        # automated software" sometimes hides elements from being clickable. So I disable it.
-        chrome_options.add_argument('disable-infobars')
-
         if 'binary_location' in self.webdriver_options:
             chrome_options.binary_location = self.webdriver_options['binary_location']
 
