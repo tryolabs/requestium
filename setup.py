@@ -2,16 +2,8 @@
 from setuptools import setup
 
 # Get the long description from the README file
-try:
-    import pypandoc
-except ImportError:
-    pypandoc = None
-
-if pypandoc:
-    long_description = pypandoc.convert('README.md', 'rst')
-else:
-    with open('README.md') as file:
-        long_description = file.read()
+with open('README.md') as file:
+    long_description = file.read()
 
 setup(
     name='requestium',
@@ -23,7 +15,7 @@ setup(
     ),
     long_description=long_description,
     author='Joaquin Alori',
-    author_email='joaquin.alori@gmail.com',
+    author_email='joaquin@tryolabs.com',
     url='https://github.com/tryolabs/requestium',
     packages=('requestium',),
     install_requires=(
@@ -40,5 +32,6 @@ setup(
         'Natural Language :: English',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
     ]
 )
