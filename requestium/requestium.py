@@ -259,31 +259,31 @@ class DriverMixin(object):
                 return True
         return False
 
-    def ensure_element_by_id(self, selector, state="presence", timeout=None):
+    def ensure_element_by_id(self, selector, state="present", timeout=None):
         return self.ensure_element('id', selector, state, timeout)
 
-    def ensure_element_by_name(self, selector, state="presence", timeout=None):
+    def ensure_element_by_name(self, selector, state="present", timeout=None):
         return self.ensure_element('name', selector, state, timeout)
 
-    def ensure_element_by_xpath(self, selector, state="presence", timeout=None):
+    def ensure_element_by_xpath(self, selector, state="present", timeout=None):
         return self.ensure_element('xpath', selector, state, timeout)
 
-    def ensure_element_by_link_text(self, selector, state="presence", timeout=None):
+    def ensure_element_by_link_text(self, selector, state="present", timeout=None):
         return self.ensure_element('link_text', selector, state, timeout)
 
-    def ensure_element_by_partial_link_text(self, selector, state="presence", timeout=None):
+    def ensure_element_by_partial_link_text(self, selector, state="present", timeout=None):
         return self.ensure_element('partial_link_text', selector, state, timeout)
 
-    def ensure_element_by_tag_name(self, selector, state="presence", timeout=None):
+    def ensure_element_by_tag_name(self, selector, state="present", timeout=None):
         return self.ensure_element('tag_name', selector, state, timeout)
 
-    def ensure_element_by_class_name(self, selector, state="presence", timeout=None):
+    def ensure_element_by_class_name(self, selector, state="present", timeout=None):
         return self.ensure_element('class_name', selector, state, timeout)
 
-    def ensure_element_by_css_selector(self, selector, state="presence", timeout=None):
+    def ensure_element_by_css_selector(self, selector, state="present", timeout=None):
         return self.ensure_element('css_selector', selector, state, timeout)
 
-    def ensure_element(self, locator, selector, state="presence", timeout=None):
+    def ensure_element(self, locator, selector, state="present", timeout=None):
         """This method allows us to wait till an element appears or disappears in the browser
 
         The webdriver runs in parallel with our scripts, so we must wait for it everytime it
