@@ -91,7 +91,7 @@ Requestium can wait for an element to be in any of the following states:
 - present (default)
 - clickable
 - visible
-- invisible (useful for things like *loading...* gifs)
+- invisible (useful for things like waiting for *loading...* gifs to disappear)
 
 These methods are very useful for single page web apps where the site is dynamically changing its elements. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
 
