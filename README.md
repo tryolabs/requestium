@@ -19,7 +19,10 @@ First create a session as you would do on Requests, and optionally add arguments
 ```python
 from requestium import Session, Keys
 
-s = Session(webdriver_path='./chromedriver', default_timeout=15, browser='chrome')
+s = Session(webdriver_path='./chromedriver',
+            browser='chrome',
+            default_timeout=15,
+            webdriver_options={'arguments': ['headless']})
 ```
 
 You don't need to parse the response, it is done automatically when calling xpath, css or re.
@@ -77,21 +80,6 @@ pip install requestium
 
 You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [PhantomJS](http://phantomjs.org)
 
-## Considerations
-New features are lazily evaluated, meaning:
-- The Selenium webdriver process is only started if you call the driver object. So if you don't need to use the webdriver, you could use the library with no overhead. Very useful if you just want to use the library for its integration with Parsel.
-- Parsing of the responses is only done if you call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if you don't need to use this feature.
-
-A byproduct of this is that the Selenium webdriver could be used just as a tool to ease in the development of regular Requests code: You can start writing your script using just the Requests' session, and at the last step of the script (the one you are currently working on) transfer the session to the Chrome webdriver. This way, a Chrome process starts in your machine, and acts as a real time "visor" for the last step of your code. You can see in what state your session is currently in, inspect it with Chrome's excellent inspect tools, and decide what's the next step your session object should take. Very useful to try code in an ipython interpreter and see how the site reacts in real time.
-
-When `transfer_driver_cookies_to_session` is called, Requestium automatically updates your Requests session user-agent to match that of the browser used in Selenium. This doesn't happen when running Requests without having switched from a Selenium session first though. So if you just want to run Requests but want it to use your browser's user agent instead of the default one (which sites love to block), just run:
-```python
-s.copy_user_agent_from_driver()
-```
-Take into account that doing this will launch a browser process.
-
-Note: The Selenium Chrome webdriver doesn't support automatic transfer of proxies from the Session to the Webdriver at the moment. The PhantomJS driver does though.
-
 ## Selenium workarounds
 Requestium adds several 'ensure' methods to the driver object, as Selenium is known to be very finicky about selecting elements and cookie handling.
 
@@ -130,6 +118,21 @@ cookie = {"domain": "www.site.com",
           "name": "sessionid"}
 s.driver.ensure_add_cookie(cookie, override_domain='')
 ```
+
+## Considerations
+New features are lazily evaluated, meaning:
+- The Selenium webdriver process is only started if you call the driver object. So if you don't need to use the webdriver, you could use the library with no overhead. Very useful if you just want to use the library for its integration with Parsel.
+- Parsing of the responses is only done if you call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if you don't need to use this feature.
+
+A byproduct of this is that the Selenium webdriver could be used just as a tool to ease in the development of regular Requests code: You can start writing your script using just the Requests' session, and at the last step of the script (the one you are currently working on) transfer the session to the Chrome webdriver. This way, a Chrome process starts in your machine, and acts as a real time "visor" for the last step of your code. You can see in what state your session is currently in, inspect it with Chrome's excellent inspect tools, and decide what's the next step your session object should take. Very useful to try code in an ipython interpreter and see how the site reacts in real time.
+
+When `transfer_driver_cookies_to_session` is called, Requestium automatically updates your Requests session user-agent to match that of the browser used in Selenium. This doesn't happen when running Requests without having switched from a Selenium session first though. So if you just want to run Requests but want it to use your browser's user agent instead of the default one (which sites love to block), just run:
+```python
+s.copy_user_agent_from_driver()
+```
+Take into account that doing this will launch a browser process.
+
+Note: The Selenium Chrome webdriver doesn't support automatic transfer of proxies from the Session to the Webdriver at the moment. The PhantomJS driver does though.
 
 ## Comparison with Requests + Selenium + lxml
 A silly working example of a script that runs on Reddit. We'll then show how it compares to using Requests + Selenium + lxml instead of Requestium.
@@ -249,4 +252,4 @@ This project intends to be a drop in replacement of requests' Session object, wi
 
 
 ## License
-Copyright © 2017, [Tryolabs](https://tryolabs.com/). Released under the [BSD 3-Clause](https://github.com/tryolabs/luminoth/blob/master/LICENSE).
+Copyright © 2017, [Tryolabs](https://tryolabs.com/). Released under the [BSD 3-Clause](https://github.com/tryolabs/requestium/blob/master/LICENSE).
