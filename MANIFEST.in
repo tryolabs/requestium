@@ -1,0 +1,5 @@
+include *.md tox.ini LICENSE *.yml *.py
+graft requestium
+
+global-exclude __pycache__
+global-exclude *.py[co]
