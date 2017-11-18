@@ -1,6 +1,9 @@
 ![Requestium](https://user-images.githubusercontent.com/14966348/32966130-8bb15b00-cbb7-11e7-9faf-85963ec5bd82.png)
 ========
 
+[![Build Status](https://travis-ci.org/tryolabs/requestium.svg?branch=master)](https://travis-ci.org/tryolabs/requestium)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+
 Requestium is a library that merges the power of [Requests](https://github.com/requests/requests), [Selenium](https://github.com/SeleniumHQ/selenium), and [Parsel](https://github.com/scrapy/parsel) into a single integrated tool for automatizing web actions.
 
 The library was created for writing web automation scripts that are written using mostly Requests but that are able to seamlessly switch to Selenium for the JavaScript heavy parts of the website, while maintaining the session.
