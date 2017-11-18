@@ -77,10 +77,6 @@ class Session(requests.Session):
         # TODO transfer headers, and authenticated proxies: not sure how to do it in chrome yet
         chrome_options = webdriver.chrome.options.Options()
 
-        # I suspect the infobar at the top of the browser saying "Chrome is being controlled by an
-        # automated software" sometimes hides elements from being clickable. So I disable it.
-        chrome_options.add_argument('disable-infobars')
-
         if 'binary_location' in self.webdriver_options:
             chrome_options.binary_location = self.webdriver_options['binary_location']
 
@@ -259,31 +255,31 @@ class DriverMixin(object):
                 return True
         return False
 
-    def ensure_element_by_id(self, selector, state="presence", timeout=None):
+    def ensure_element_by_id(self, selector, state="present", timeout=None):
         return self.ensure_element('id', selector, state, timeout)
 
-    def ensure_element_by_name(self, selector, state="presence", timeout=None):
+    def ensure_element_by_name(self, selector, state="present", timeout=None):
         return self.ensure_element('name', selector, state, timeout)
 
-    def ensure_element_by_xpath(self, selector, state="presence", timeout=None):
+    def ensure_element_by_xpath(self, selector, state="present", timeout=None):
         return self.ensure_element('xpath', selector, state, timeout)
 
-    def ensure_element_by_link_text(self, selector, state="presence", timeout=None):
+    def ensure_element_by_link_text(self, selector, state="present", timeout=None):
         return self.ensure_element('link_text', selector, state, timeout)
 
-    def ensure_element_by_partial_link_text(self, selector, state="presence", timeout=None):
+    def ensure_element_by_partial_link_text(self, selector, state="present", timeout=None):
         return self.ensure_element('partial_link_text', selector, state, timeout)
 
-    def ensure_element_by_tag_name(self, selector, state="presence", timeout=None):
+    def ensure_element_by_tag_name(self, selector, state="present", timeout=None):
         return self.ensure_element('tag_name', selector, state, timeout)
 
-    def ensure_element_by_class_name(self, selector, state="presence", timeout=None):
+    def ensure_element_by_class_name(self, selector, state="present", timeout=None):
         return self.ensure_element('class_name', selector, state, timeout)
 
-    def ensure_element_by_css_selector(self, selector, state="presence", timeout=None):
+    def ensure_element_by_css_selector(self, selector, state="present", timeout=None):
         return self.ensure_element('css_selector', selector, state, timeout)
 
-    def ensure_element(self, locator, selector, state="presence", timeout=None):
+    def ensure_element(self, locator, selector, state="present", timeout=None):
         """This method allows us to wait till an element appears or disappears in the browser
 
         The webdriver runs in parallel with our scripts, so we must wait for it everytime it
@@ -294,11 +290,11 @@ class DriverMixin(object):
         The 'locator' argument defines what strategy we use to search for the element.
 
         The 'state' argument allows us to chose between waiting for the element to be visible,
-        clickable, present, or to dissapear from the webpage. Presence is more inclusive, but
-        sometimes we want to know if the element is visible. Careful, its not always intuitive
-        what Selenium considers to be a visible element. We can also wait for it to be clickable,
-        although this method is a bit buggy in selenium, an element can be 'clickable' according
-        to selenium and still fail when we try to click it.
+        clickable, present, or invisible. Presence is more inclusive, but sometimes we want to
+        know if the element is visible. Careful, its not always intuitive what Selenium considers
+        to be a visible element. We can also wait for it to be clickable, although this method
+        is a bit buggy in selenium, an element can be 'clickable' according to selenium and 
+        still fail when we try to click it.
 
         More info at: http://selenium-python.readthedocs.io/waits.html
         """
@@ -325,7 +321,7 @@ class DriverMixin(object):
             element = WebDriverWait(self, timeout).until(
                 EC.presence_of_element_located((locator, selector))
             )
-        elif state == 'disappeared':
+        elif state == 'invisible':
             WebDriverWait(self, timeout).until(
                 EC.invisibility_of_element_located((locator, selector))
             )
@@ -333,7 +329,7 @@ class DriverMixin(object):
         else:
             raise ValueError(
                 "The 'state' argument must be 'visible', 'clickable', 'present' "
-                "or 'disappeared', not '{}'".format(state)
+                "or 'invisible', not '{}'".format(state)
             )
 
         # We add this method to our element to provide a more robust click. Chromedriver

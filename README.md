@@ -1,4 +1,5 @@
-# Requestium
+![Requestium](https://user-images.githubusercontent.com/14966348/32966130-8bb15b00-cbb7-11e7-9faf-85963ec5bd82.png)
+========
 
 Requestium is a library that merges the power of [Requests](https://github.com/requests/requests), [Selenium](https://github.com/SeleniumHQ/selenium), and [Parsel](https://github.com/scrapy/parsel) into a single integrated tool for automatizing web actions.
 
@@ -7,19 +8,22 @@ The library was created for writing web automation scripts that are written usin
 Requestium adds independent improvements to both Requests and Selenium, and every new feature is lazily evaluated, so its useful even if writing scripts that use only Requests or Selenium.
 
 ## Features
-- Enables switching between a Requests' Session and a Selenium webdriver while maintaining the current web session
+- Enables switching between a Requests' Session and a Selenium webdriver while maintaining the current web session.
 - Integrates Parsel's parser into the library, making xpath, css, and regex much cleaner to write.
-- Improves Selenium's handling of dynamically loading elements
-- Makes cookie handling more flexible in Selenium
-- Makes clicking elements in Selenium more reliable
-- Supports Chrome and PhantomJS
+- Improves Selenium's handling of dynamically loading elements.
+- Makes cookie handling more flexible in Selenium.
+- Makes clicking elements in Selenium more reliable.
+- Supports Chrome and PhantomJS.
 
 ## Usage
 First create a session as you would do on Requests, and optionally add arguments for the web-driver if you plan to use one.
 ```python
 from requestium import Session, Keys
 
-s = Session(webdriver_path='./chromedriver', default_timeout=15, browser='chrome')
+s = Session(webdriver_path='./chromedriver',
+            browser='chrome',
+            default_timeout=15,
+            webdriver_options={'arguments': ['headless']})
 ```
 
 You don't need to parse the response, it is done automatically when calling xpath, css or re.
@@ -77,30 +81,21 @@ pip install requestium
 
 You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [PhantomJS](http://phantomjs.org)
 
-## Considerations
-New features are lazily evaluated, meaning:
-- The Selenium webdriver process is only started if you call the driver object. So if you don't need to use the webdriver, you could use the library with no overhead. Very useful if you just want to use the library for its integration with Parsel.
-- Parsing of the responses is only done if you call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if you don't need to use this feature.
-
-A byproduct of this is that the Selenium webdriver could be used just as a tool to ease in the development of regular Requests code: You can start writing your script using just the Requests' session, and at the last step of the script (the one you are currently working on) transfer the session to the Chrome webdriver. This way, a Chrome process starts in your machine, and acts as a real time "visor" for the last step of your code. You can see in what state your session is currently in, inspect it with Chrome's excellent inspect tools, and decide what's the next step your session object should take. Very useful to try code in an ipython interpreter and see how the site reacts in real time.
-
-When `transfer_driver_cookies_to_session` is called, Requestium automatically updates your Requests session user-agent to match that of the browser used in Selenium. This doesn't happen when running Requests without having switched from a Selenium session first though. So if you just want to run Requests but want it to use your browser's user agent instead of the default one (which sites love to block), just run:
-```python
-s.copy_user_agent_from_driver()
-```
-Take into account that doing this will launch a browser process.
-
-Note: The Selenium Chrome webdriver doesn't support automatic transfer of proxies from the Session to the Webdriver at the moment. The PhantomJS driver does though.
-
 ## Selenium workarounds
 Requestium adds several 'ensure' methods to the driver object, as Selenium is known to be very finicky about selecting elements and cookie handling.
 
 ### Wait for element
 The `ensure_element_by_` methods waits for the element to be loaded in the browser and returns it as soon as it loads. It's named after Selenium's `find_element_by_` methods (which immediately raise an exception if they can't find the element).
 
-By default Requestium waits for the element to be `present`, but it can also wait for it to be `clickable`, `visible` or for it to have `disappeared`. Very useful for single page web apps. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
+Requestium can wait for an element to be in any of the following states:
+- present (default)
+- clickable
+- visible
+- invisible (useful for things like waiting for *loading...* gifs to disappear)
 
-Elements you get using this methods have the new `ensure_click` method which makes the click less prone to failure. This helps with getting through a lot of the problems with Selenium clicking.
+These methods are very useful for single page web apps where the site is dynamically changing its elements. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
+
+Elements you get using these methods have the new `ensure_click` method which makes the click less prone to failure. This helps with getting through a lot of the problems with Selenium clicking.
 
 ```python
 s.driver.ensure_element_by_xpath("//li[@class='b1']", state='clickable', timeout=5).ensure_click()
@@ -131,6 +126,21 @@ cookie = {"domain": "www.site.com",
 s.driver.ensure_add_cookie(cookie, override_domain='')
 ```
 
+## Considerations
+New features are lazily evaluated, meaning:
+- The Selenium webdriver process is only started if you call the driver object. So if you don't need to use the webdriver, you could use the library with no overhead. Very useful if you just want to use the library for its integration with Parsel.
+- Parsing of the responses is only done if you call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if you don't need to use this feature.
+
+A byproduct of this is that the Selenium webdriver could be used just as a tool to ease in the development of regular Requests code: You can start writing your script using just the Requests' session, and at the last step of the script (the one you are currently working on) transfer the session to the Chrome webdriver. This way, a Chrome process starts in your machine, and acts as a real time "visor" for the last step of your code. You can see in what state your session is currently in, inspect it with Chrome's excellent inspect tools, and decide what's the next step your session object should take. Very useful to try code in an ipython interpreter and see how the site reacts in real time.
+
+When `transfer_driver_cookies_to_session` is called, Requestium automatically updates your Requests session user-agent to match that of the browser used in Selenium. This doesn't happen when running Requests without having switched from a Selenium session first though. So if you just want to run Requests but want it to use your browser's user agent instead of the default one (which sites love to block), just run:
+```python
+s.copy_user_agent_from_driver()
+```
+Take into account that doing this will launch a browser process.
+
+Note: The Selenium Chrome webdriver doesn't support automatic transfer of proxies from the Session to the Webdriver at the moment. The PhantomJS driver does though.
+
 ## Comparison with Requests + Selenium + lxml
 A silly working example of a script that runs on Reddit. We'll then show how it compares to using Requests + Selenium + lxml instead of Requestium.
 
@@ -154,7 +164,7 @@ if reddit_user_name:
     s.driver.ensure_element_by_id('passwd_login').send_keys(Keys.BACKSPACE)
 print('Please log-in in the chrome browser')
 
-s.driver.ensure_element_by_class_name("desktop-onboarding__title", timeout=60, state='disappeared')
+s.driver.ensure_element_by_class_name("desktop-onboarding__title", timeout=60, state='invisible')
 print('Thanks!')
 
 if not reddit_user_name:
@@ -249,4 +259,4 @@ This project intends to be a drop in replacement of requests' Session object, wi
 
 
 ## License
-Copyright © 2017, [Tryolabs](https://tryolabs.com/). Released under the [BSD 3-Clause](https://github.com/tryolabs/luminoth/blob/master/LICENSE).
+Copyright © 2017, [Tryolabs](https://tryolabs.com/). Released under the [BSD 3-Clause](https://github.com/tryolabs/requestium/blob/master/LICENSE).
