@@ -24,19 +24,19 @@ class ChromeTestCase(unittest.TestCase):
             '//div[@id="case_login"]/h3[@class="success"]/text()').extract_first()
 
         self.assertEqual(
-            success_message, 'WELCOME :)', 'Failed to transfer cookies from selenium to requests')
+            success_message, 'WELCOME :)', 'Failed to transfer cookies from Selenium to Requests')
 
     def test_cookie_transfer_to_selenium(self):
-        self.s.get("http://testing-ground.scraping.pro/login")
-        self.s.cookies.set("tdsess", "TEST_DRIVE_SESSION", domain="testing-ground.scraping.pro")
+        self.s.get('http://testing-ground.scraping.pro/login')
+        self.s.cookies.set('tdsess', 'TEST_DRIVE_SESSION', domain='testing-ground.scraping.pro')
 
         self.s.transfer_session_cookies_to_driver()
-        self.s.driver.get("http://testing-ground.scraping.pro/login?mode=welcome")
+        self.s.driver.get('http://testing-ground.scraping.pro/login?mode=welcome')
         success_message = self.s.driver.xpath(
             '//div[@id="case_login"]/h3[@class="success"]/text()').extract_first()
 
         self.assertEqual(
-            success_message, 'WELCOME :)', 'Failed to transfer cookies from requests to Selenium')
+            success_message, 'WELCOME :)', 'Failed to transfer cookies from Requests to Selenium')
 
     def tearDown(self):
         self.s.driver.close()
