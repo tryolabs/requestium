@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/tryolabs/requestium.svg?branch=master)](https://travis-ci.org/tryolabs/requestium)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-Requestium is a library that merges the power of [Requests](https://github.com/requests/requests), [Selenium](https://github.com/SeleniumHQ/selenium), and [Parsel](https://github.com/scrapy/parsel) into a single integrated tool for automatizing web actions.
+Requestium is a python library that merges the power of [Requests](https://github.com/requests/requests), [Selenium](https://github.com/SeleniumHQ/selenium), and [Parsel](https://github.com/scrapy/parsel) into a single integrated tool for automatizing web actions.
 
 The library was created for writing web automation scripts that are written using mostly Requests but that are able to seamlessly switch to Selenium for the JavaScript heavy parts of the website, while maintaining the session.
 
@@ -17,6 +17,13 @@ Requestium adds independent improvements to both Requests and Selenium, and ever
 - Makes cookie handling more flexible in Selenium.
 - Makes clicking elements in Selenium more reliable.
 - Supports Chrome and PhantomJS.
+
+## Installation
+```bash
+pip install requestium
+```
+
+You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [PhantomJS](http://phantomjs.org)
 
 ## Usage
 First create a session as you would do on Requests, and optionally add arguments for the web-driver if you plan to use one.
@@ -76,13 +83,6 @@ And finally you can switch back to using Requests.
 s.transfer_driver_cookies_to_session()
 s.post('http://www.samplesite.com/sample2', data={'key1': 'value1'})
 ```
-
-## Installation
-```bash
-pip install requestium
-```
-
-You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [PhantomJS](http://phantomjs.org)
 
 ## Selenium workarounds
 Requestium adds several 'ensure' methods to the driver object, as Selenium is known to be very finicky about selecting elements and cookie handling.
