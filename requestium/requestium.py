@@ -17,7 +17,7 @@ class Session(requests.Session):
     This session class is a normal Requests Session that has the ability to switch back
     and forth between this session and a webdriver, allowing us to run js when needed.
 
-    Cookie transfer is done with the 'switch' methods.
+    Cookie transfer is done with the 'transfer' methods.
 
     Header and proxy transfer is done only one time when the driver process starts.
 
@@ -74,7 +74,9 @@ class Session(requests.Session):
                                    default_timeout=self.default_timeout)
 
     def _start_chrome_browser(self):
-        # TODO transfer headers, and authenticated proxies: not sure how to do it in chrome yet
+        # TODO transfer of proxies and headers: Not supported by chromedriver atm.
+        # Choosing not to use plug-ins for this as I don't want to worry about the
+        # extra dependencies and plug-ins dont work in headless mode. :-(
         chrome_options = webdriver.chrome.options.Options()
 
         if 'binary_location' in self.webdriver_options:
