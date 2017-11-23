@@ -76,7 +76,7 @@ class Session(requests.Session):
     def _start_chrome_browser(self):
         # TODO transfer of proxies and headers: Not supported by chromedriver atm.
         # Choosing not to use plug-ins for this as I don't want to worry about the
-        # extra dependencies and plug-ins dont work in headless mode. :-(
+        # extra dependencies and plug-ins don't work in headless mode. :-(
         chrome_options = webdriver.chrome.options.Options()
 
         if 'binary_location' in self.webdriver_options:
@@ -182,8 +182,8 @@ class DriverMixin(object):
     it will make sense to stop having this as a mixin and just add these methods to
     the RequestiumChrome class, as it will be our only driver class.
 
-    (We plan to stop supporting Phantomjs because the developer stated he wont be
-    mantaining the project any longer)
+    (We plan to stop supporting Phantomjs because the developer stated he won't be
+    maintaining the project any longer)
     """
 
     def __init__(self, *args, **kwargs):
@@ -226,7 +226,7 @@ class DriverMixin(object):
         if cookie_domain not in browser_domain:
             # TODO Check if hardcoding 'http' causes trouble
             # TODO Consider using a new proxy for this next request to not cause an anomalous
-            #      request. This way their server sees our ip address as continously having the
+            #      request. This way their server sees our ip address as continuously having the
             #      same cookies and not have a request mid-session with no cookies
             self.get('http://' + cookie_domain)
 
@@ -365,7 +365,7 @@ class DriverMixin(object):
 def _ensure_click(self):
     """Ensures a click gets made, because Selenium can be a bit buggy about clicks
 
-    This method gets added to the selenium elemenent returned in '__ensure_element_by_xpath'.
+    This method gets added to the selenium element returned in '__ensure_element_by_xpath'.
     We should probably add it to more selenium methods, such as all the 'find**' methods though.
 
     I wrote this method out of frustration with chromedriver and its problems with clicking

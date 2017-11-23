@@ -60,7 +60,7 @@ s.proxies.update({'http': 'http://10.11.4.254:3128', 'https': 'https://10.11.4.2
 
 And you can switch to using the Selenium webdriver to run any js code.
 ```python
-s.transfer_session_cookies_to_driver()  # You can mantain the session if needed
+s.transfer_session_cookies_to_driver()  # You can maintain the session if needed
 s.driver.get('http://www.samplesite.com/sample/process')
 ```
 
