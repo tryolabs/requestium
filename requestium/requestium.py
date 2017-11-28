@@ -387,6 +387,7 @@ def _ensure_click(self):
               "window.scrollBy(0, elementTop-(viewPortHeight/2));")
     self.parent.execute_script(script, self)  # parent = the webdriver
 
+    e = None  # define e at this level so it does not go out of scope in Python 3
     for _ in range(10):
         try:
             self.click()
