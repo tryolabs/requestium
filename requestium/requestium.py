@@ -392,9 +392,12 @@ def _ensure_click(self):
             self.click()
             return
         except WebDriverException as e:
+            exception_message = str(e)
             time.sleep(0.2)
     raise WebDriverException(
-        "Couldn't click item after trying 10 times, got error message: \n{}".format(e.message)
+        "Couldn't click item after trying 10 times, got error message: \n{}".format(
+            exception_message
+        )
     )
 
 
