@@ -10,6 +10,8 @@ The library was created for writing web automation scripts that are written usin
 
 Requestium adds independent improvements to both Requests and Selenium, and every new feature is lazily evaluated, so its useful even if writing scripts that use only Requests or Selenium.
 
+Read more about the motivation behind creating this library in this [blopost](https://tryolabs.com/blog/2017/11/22/requestium-integration-layer-requests-selenium-web-automation/).
+
 ## Features
 - Enables switching between a Requests' Session and a Selenium webdriver while maintaining the current web session.
 - Integrates Parsel's parser into the library, making xpath, css, and regex much cleaner to write.
