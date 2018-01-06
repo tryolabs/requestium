@@ -120,6 +120,13 @@ class Session(requests.Session):
         for cookie in self.driver.get_cookies():
                 self.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
 
+    def transfer_local_driver_cookies_to_session(self, driver, copy_user_agent=True):
+        if copy_user_agent:
+            selenium_user_agent = driver.execute_script("return navigator.userAgent;")
+            self.headers.update({"user-agent": selenium_user_agent})
+        for cookie in driver.get_cookies():
+            self.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
+
     def get(self, *args, **kwargs):
         resp = super(Session, self).get(*args, **kwargs)
         self._last_requests_url = resp.url
