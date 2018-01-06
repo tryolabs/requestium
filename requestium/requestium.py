@@ -38,8 +38,7 @@ class Session(requests.Session):
             self._driver_initializer = self._start_chrome_browser
         else:
             raise ValueError(
-                'Invalid Argument: browser must be chrome or phantomjs, not: "{}"'.format(
-                    browser)
+                'Invalid Argument: browser must be chrome or phantomjs, not: "{}"'.format(browser)
             )
 
     @property
@@ -52,8 +51,7 @@ class Session(requests.Session):
         # Add headers to driver
         for key, value in self.headers.items():
             # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
-            if key == 'Accept-Encoding':
-                continue
+            if key == 'Accept-Encoding': continue
 
             webdriver.DesiredCapabilities.PHANTOMJS[
                 'phantomjs.page.customHeaders.{}'.format(key)] = value
@@ -105,8 +103,7 @@ class Session(requests.Session):
         site if not provided.
         """
         if not domain and self._last_requests_url:
-            domain = tldextract.extract(
-                self._last_requests_url).registered_domain
+            domain = tldextract.extract(self._last_requests_url).registered_domain
         elif not domain and not self._last_requests_url:
             raise Exception('Trying to transfer cookies to selenium without specifying a domain '
                             'and without having visited any page in the current session')
@@ -121,17 +118,14 @@ class Session(requests.Session):
             self.copy_user_agent_from_driver()
 
         for cookie in self.driver.get_cookies():
-                self.cookies.set(
-                    cookie['name'], cookie['value'], domain=cookie['domain'])
+                self.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
 
     def transfer_local_driver_cookies_to_session(self, driver, copy_user_agent=True):
         if copy_user_agent:
-             selenium_user_agent = driver.execute_script(
-                 "return navigator.userAgent;")
-             self.headers.update({"user-agent": selenium_user_agent})
+            selenium_user_agent = driver.execute_script("return navigator.userAgent;")
+            self.headers.update({"user-agent": selenium_user_agent})
         for cookie in driver.get_cookies():
-             self.cookies.set(
-                 cookie['name'], cookie['value'], domain=cookie['domain'])
+            self.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
 
     def get(self, *args, **kwargs):
         resp = super(Session, self).get(*args, **kwargs)
@@ -153,8 +147,7 @@ class Session(requests.Session):
 
         This method will start the browser process if its not already running.
         """
-        selenium_user_agent = self.driver.execute_script(
-            "return navigator.userAgent;")
+        selenium_user_agent = self.driver.execute_script("return navigator.userAgent;")
         self.headers.update({"user-agent": selenium_user_agent})
 
 
@@ -245,19 +238,16 @@ class DriverMixin(object):
             self.get('http://' + cookie_domain)
 
         # Fixes phantomjs bug, all domains must start with a period
-        if self.name == "phantomjs":
-            cookie['domain'] = '.' + cookie['domain']
+        if self.name == "phantomjs": cookie['domain'] = '.' + cookie['domain']
         self.add_cookie(cookie)
 
         # If we fail adding the cookie, retry with a more permissive domain
         if not self.is_cookie_in_driver(cookie):
-            cookie['domain'] = tldextract.extract(
-                cookie['domain']).registered_domain
+            cookie['domain'] = tldextract.extract(cookie['domain']).registered_domain
             self.add_cookie(cookie)
             if not self.is_cookie_in_driver(cookie):
                 raise WebDriverException(
-                    "Couldn't add the following cookie to the webdriver\n{}\n".format(
-                        cookie)
+                    "Couldn't add the following cookie to the webdriver\n{}\n".format(cookie)
                 )
 
     def is_cookie_in_driver(self, cookie):
@@ -326,8 +316,7 @@ class DriverMixin(object):
                     'class_name': By.CLASS_NAME,
                     'css_selector': By.CSS_SELECTOR}
         locator = locators[locator]
-        if not timeout:
-            timeout = self.default_timeout
+        if not timeout: timeout = self.default_timeout
 
         if state == 'visible':
             element = WebDriverWait(self, timeout).until(
