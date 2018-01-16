@@ -113,11 +113,16 @@ class Session(requests.Session):
             self.driver.ensure_add_cookie({'name': c.name, 'value': c.value, 'path': c.path,
                                            'expiry': c.expires, 'domain': c.domain})
 
-    def transfer_driver_cookies_to_session(self, copy_user_agent=True):
-        if copy_user_agent:
-            self.copy_user_agent_from_driver()
+    def transfer_driver_cookies_to_session(self, external_driver=None ,copy_user_agent=True):
+        if external_driver:
+            driver = external_driver
+        else:
+            driver = self.driver
 
-        for cookie in self.driver.get_cookies():
+        if copy_user_agent:
+            self.copy_user_agent_from_driver(driver)
+
+        for cookie in driver.get_cookies():
                 self.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
 
     def get(self, *args, **kwargs):
@@ -135,12 +140,12 @@ class Session(requests.Session):
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
 
-    def copy_user_agent_from_driver(self):
+    def copy_user_agent_from_driver(self, driver):
         """ Updates requests' session user-agent with the driver's user agent
 
         This method will start the browser process if its not already running.
         """
-        selenium_user_agent = self.driver.execute_script("return navigator.userAgent;")
+        selenium_user_agent = driver.execute_script("return navigator.userAgent;")
         self.headers.update({"user-agent": selenium_user_agent})
 
 
