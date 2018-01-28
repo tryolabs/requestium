@@ -1,6 +1,8 @@
 import requests
 import time
 import tldextract
+import tempfile
+import os
 
 from functools import partial
 from parsel.selector import Selector
@@ -69,7 +71,7 @@ class Session(requests.Session):
 
         # Create driver process
         return RequestiumPhantomJS(executable_path=self.webdriver_path,
-                                   service_log_path="/tmp/ghostdriver.log",
+                                   service_log_path=os.path.join(tempfile.tempdir,"ghostdriver.log"),
                                    service_args=service_args,
                                    default_timeout=self.default_timeout)
 
