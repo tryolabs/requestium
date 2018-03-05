@@ -1,6 +1,7 @@
 import requests
 import time
 import tldextract
+import os
 
 from functools import partial
 from parsel.selector import Selector
@@ -89,6 +90,18 @@ class Session(requests.Session):
             else:
                 raise Exception('A list is needed to use \'arguments\' option. Found {}'.format(
                     type(self.webdriver_options['arguments'])))
+                
+        # adds in ability to set a new download directory
+        # https://stackoverflow.com/questions/35331854/downloading-a-file-at-a-specified-location-through-python-and-selenium-using-chr/43789674#43789674
+        if 'prefs' in self.webdriver_options:
+            if isinstance(self.webdriver_options['prefs'], dict):
+                download_dir = self.webdriver_options['prefs'].get('download.default_directory')
+                if download_dir:
+                    try:
+                        assert os.path.isdir(download_dir)
+                    except AssertionError:
+                        raise NotADirectoryError("No directory found at '{}'. Please check if the path is correct.".format(download_dir)) 
+                chrome_options.add_experimental_option('prefs', self.webdriver_options['prefs'])
 
         # Create driver process
         return RequestiumChrome(self.webdriver_path,
