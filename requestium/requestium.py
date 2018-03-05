@@ -99,7 +99,7 @@ class Session(requests.Session):
                     try:
                         assert os.path.isdir(download_dir)
                     except AssertionError:
-                        raise NotADirectoryError(f"No directory found at '{download_dir}'. Please check if the path is correct.") 
+                        raise NotADirectoryError("No directory found at '{0}'. Please check if the path is correct.".format(download_dir)) 
                 chrome_options.add_experimental_option('prefs', self.webdriver_options['prefs'])
 
         # Create driver process
