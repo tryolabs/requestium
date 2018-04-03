@@ -1,6 +1,7 @@
 import requests
 import time
 import tldextract
+import types
 
 from functools import partial
 from parsel.selector import Selector
@@ -24,22 +25,30 @@ class Session(requests.Session):
     Some useful helper methods and object wrappings have been added.
     """
 
-    def __init__(self, webdriver_path, browser, default_timeout=5, webdriver_options={}):
+    def __init__(self, webdriver_path, browser, default_timeout=5, webdriver_options={}, driver=None):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
-        self.default_timeout = default_timeout
+        self.default_timeout = default_timeoutl
         self.webdriver_options = webdriver_options
-        self._driver = None
+        self._driver = driver
         self._last_requests_url = None
 
-        if browser == 'phantomjs':
-            self._driver_initializer = self._start_phantomjs_browser
-        elif browser == 'chrome':
-            self._driver_initializer = self._start_chrome_browser
+        if self._driver is None:
+            if browser == 'phantomjs':
+                self._driver_initializer = self._start_phantomjs_browser
+            elif browser == 'chrome':
+                self._driver_initializer = self._start_chrome_browser
+            else:
+                raise ValueError(
+                    'Invalid Argument: browser must be chrome or phantomjs, not: "{}"'.format(browser)
+                )
         else:
-            raise ValueError(
-                'Invalid Argument: browser must be chrome or phantomjs, not: "{}"'.format(browser)
-            )
+            for name in DriverMixin.__dict__:
+                if name.startswith('__') and name.endswith('__') or not type(
+                        DriverMixin.__dict__[name]) == types.FunctionType or name in dir(self._driver):
+                    continue
+                self._driver.__dict__[name] = DriverMixin.__dict__[name].__get__(self._driver)
+            setattr(self._driver, "default_timeout", self.default_timeout)
 
     @property
     def driver(self):
@@ -204,7 +213,7 @@ class DriverMixin(object):
         the cookie's domain and then add the cookies to the driver.
 
         We can override the cookie's domain using 'override_domain'. The use for this
-        parameter is that sometimes GETting the cookie's domain redirects you to a different
+        parameter is that sometimes GETting the cookie's domain redirects you tlo a different
         sub domain, and therefore adding the cookie fails. So sometimes the user may
         need to override the cookie's domain to a less strict one, Eg.: 'site.com' instead of
         'home.site.com', in this way even if the site redirects us to a subdomain, the cookie will
