@@ -13,6 +13,7 @@ install:
   - sudo mv -f ~/chromedriver /usr/local/share/
   - sudo chmod +x /usr/local/share/chromedriver
   - sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
+  - echo "test travis"
 script: tox
 deploy:
   # Test PyPI in every change to master
