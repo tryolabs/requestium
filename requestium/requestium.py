@@ -28,7 +28,7 @@ class Session(requests.Session):
     def __init__(self, webdriver_path, browser, default_timeout=5, webdriver_options={}, driver=None):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
-        self.default_timeout = default_timeoutl
+        self.default_timeout = default_timeout
         self.webdriver_options = webdriver_options
         self._driver = driver
         self._last_requests_url = None
@@ -213,7 +213,7 @@ class DriverMixin(object):
         the cookie's domain and then add the cookies to the driver.
 
         We can override the cookie's domain using 'override_domain'. The use for this
-        parameter is that sometimes GETting the cookie's domain redirects you tlo a different
+        parameter is that sometimes GETting the cookie's domain redirects you to a different
         sub domain, and therefore adding the cookie fails. So sometimes the user may
         need to override the cookie's domain to a less strict one, Eg.: 'site.com' instead of
         'home.site.com', in this way even if the site redirects us to a subdomain, the cookie will
