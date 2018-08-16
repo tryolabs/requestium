@@ -1,4 +1,5 @@
 import unittest
+import os
 
 from requestium import Session, Keys
 
@@ -8,7 +9,8 @@ class ChromeTestCase(unittest.TestCase):
         self.s = Session('chromedriver',
                          browser='chrome',
                          default_timeout=15,
-                         webdriver_options={'arguments': ['headless', 'disable-gpu']})
+                         webdriver_options={'arguments': ['headless', 'disable-gpu'],
+                                            'prefs': {'download.default_directory': os.getcwd()}})
 
     def test_cookie_transfer_to_requests(self):
         """Tested on http://testing-ground.scraping.pro/login"""
