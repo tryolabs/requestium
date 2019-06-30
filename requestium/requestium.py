@@ -129,8 +129,10 @@ class Session(requests.Session):
 
         # Transfer cookies
         for c in [c for c in self.cookies if domain in c.domain]:
-            self.driver.ensure_add_cookie({'name': c.name, 'value': c.value, 'path': c.path,
-                                           'expiry': c.expires, 'domain': c.domain})
+            cookie = {'name': c.name, 'value': c.value, 'path': c.path,
+                      'expiry': c.expires, 'domain': c.domain}
+
+            self.driver.ensure_add_cookie({k: v for k, v in cookie.items() if v is not None})
 
     def transfer_driver_cookies_to_session(self, copy_user_agent=True):
         if copy_user_agent:
