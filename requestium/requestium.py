@@ -92,7 +92,7 @@ class Session(requests.Session):
 
         # Create driver process
         return RequestiumChrome(self.webdriver_path,
-                                chrome_options=chrome_options,
+                                options=chrome_options,
                                 default_timeout=self.default_timeout)
 
     def transfer_session_cookies_to_driver(self, domain=None):
@@ -295,7 +295,7 @@ class DriverMixin(object):
         clickable, present, or invisible. Presence is more inclusive, but sometimes we want to
         know if the element is visible. Careful, its not always intuitive what Selenium considers
         to be a visible element. We can also wait for it to be clickable, although this method
-        is a bit buggy in selenium, an element can be 'clickable' according to selenium and 
+        is a bit buggy in selenium, an element can be 'clickable' according to selenium and
         still fail when we try to click it.
 
         More info at: http://selenium-python.readthedocs.io/waits.html
