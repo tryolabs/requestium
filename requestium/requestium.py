@@ -90,6 +90,15 @@ class Session(requests.Session):
                 raise Exception('A list is needed to use \'arguments\' option. Found {}'.format(
                     type(self.webdriver_options['arguments'])))
 
+        if 'extensions' in self.webdriver_options:
+            if isinstance(self.webdriver_options['extensions'], list):
+                for arg in self.webdriver_options['extensions']:
+                    chrome_options.add_extension(arg)
+
+        if 'prefs' in self.webdriver_options:
+            prefs = self.webdriver_options['prefs']
+            chrome_options.add_experimental_option('prefs', prefs)
+
         # Create driver process
         return RequestiumChrome(self.webdriver_path,
                                 chrome_options=chrome_options,
