@@ -92,7 +92,7 @@ class Session(requests.Session):
 
         # Create driver process
         return RequestiumChrome(self.webdriver_path,
-                                chrome_options=chrome_options,
+                                options=chrome_options,
                                 default_timeout=self.default_timeout)
 
     def transfer_session_cookies_to_driver(self, domain=None):
