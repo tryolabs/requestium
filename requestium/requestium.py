@@ -5,7 +5,7 @@ import tldextract
 from functools import partial
 from parsel.selector import Selector
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -51,7 +51,8 @@ class Session(requests.Session):
         # Add headers to driver
         for key, value in self.headers.items():
             # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
-            if key == 'Accept-Encoding': continue
+            if key == 'Accept-Encoding':
+                continue
 
             webdriver.DesiredCapabilities.PHANTOMJS[
                 'phantomjs.page.customHeaders.{}'.format(key)] = value
@@ -92,7 +93,7 @@ class Session(requests.Session):
 
         # Create driver process
         return RequestiumChrome(self.webdriver_path,
-                                chrome_options=chrome_options,
+                                options=chrome_options,
                                 default_timeout=self.default_timeout)
 
     def transfer_session_cookies_to_driver(self, domain=None):
@@ -118,7 +119,7 @@ class Session(requests.Session):
             self.copy_user_agent_from_driver()
 
         for cookie in self.driver.get_cookies():
-                self.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
+            self.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
 
     def get(self, *args, **kwargs):
         resp = super(Session, self).get(*args, **kwargs)
@@ -231,7 +232,8 @@ class DriverMixin(object):
             self.get('http://' + cookie_domain)
 
         # Fixes phantomjs bug, all domains must start with a period
-        if self.name == "phantomjs": cookie['domain'] = '.' + cookie['domain']
+        if self.name == "phantomjs":
+            cookie['domain'] = '.' + cookie['domain']
         self.add_cookie(cookie)
 
         # If we fail adding the cookie, retry with a more permissive domain
@@ -250,10 +252,10 @@ class DriverMixin(object):
         We are a bit lenient when comparing domains.
         """
         for driver_cookie in self.get_cookies():
-            if (cookie['name'] == driver_cookie['name'] and
-                cookie['value'] == driver_cookie['value'] and
-                (cookie['domain'] == driver_cookie['domain'] or
-                 '.' + cookie['domain'] == driver_cookie['domain'])):
+            name_matches = cookie['name'] == driver_cookie['name']
+            value_matches = cookie['value'] == driver_cookie['value']
+            domain_matches = driver_cookie['domain'] in (cookie['domain'], '.' + cookie['domain'])
+            if name_matches and value_matches and domain_matches:
                 return True
         return False
 
@@ -295,7 +297,7 @@ class DriverMixin(object):
         clickable, present, or invisible. Presence is more inclusive, but sometimes we want to
         know if the element is visible. Careful, its not always intuitive what Selenium considers
         to be a visible element. We can also wait for it to be clickable, although this method
-        is a bit buggy in selenium, an element can be 'clickable' according to selenium and 
+        is a bit buggy in selenium, an element can be 'clickable' according to selenium and
         still fail when we try to click it.
 
         More info at: http://selenium-python.readthedocs.io/waits.html
@@ -309,7 +311,8 @@ class DriverMixin(object):
                     'class_name': By.CLASS_NAME,
                     'css_selector': By.CSS_SELECTOR}
         locator = locators[locator]
-        if not timeout: timeout = self.default_timeout
+        if not timeout:
+            timeout = self.default_timeout
 
         if state == 'visible':
             element = WebDriverWait(self, timeout).until(
