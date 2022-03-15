@@ -40,6 +40,8 @@ class Session(requests.Session):
                 self._driver_initializer = self._start_phantomjs_browser
             elif browser == 'chrome':
                 self._driver_initializer = self._start_chrome_browser
+            elif browser == 'chrome-headless':
+                self._driver_initializer = self._start_chrome_headless_browser
             else:
                 raise ValueError('Invalid Argument: browser must be chrome or phantomjs, not: "{}"'.format(browser))
         else:
@@ -116,6 +118,23 @@ class Session(requests.Session):
         return RequestiumChrome(self.webdriver_path,
                                 options=chrome_options,
                                 default_timeout=self.default_timeout)
+
+    def _start_chrome_headless_browser(self):
+        self.webdriver_options['arguments']
+        headless_arguments = [
+            'headless',
+            'disable-infobars',
+            'disable-gpu',  # So we don't need libosmesa.so in our deploy package
+            'homedir=/tmp',  # Ensures we have write permissions in all environments
+            'data-path=/tmp/data-path',
+            'disk-cache-dir=/tmp/cache-dir',
+            'no-sandbox',
+            'single-process',
+        ]
+        current_arguments = self.webdriver_options.get('arguments', [])
+        current_arguments = current_arguments if isinstance(current_arguments, list) else []
+        current_arguments.extend(headless_arguments)
+        return self._start_chrome_browser()
 
     def transfer_session_cookies_to_driver(self, domain=None):
         """Copies the Session's cookies into the webdriver

@@ -38,6 +38,17 @@ s = Session(webdriver_path='./chromedriver',
             webdriver_options={'arguments': ['headless']})
 ```
 
+Specifying `chrome-headless` as the browser type configures sensible default webdriver
+argument options when running Chrome in that mode.
+
+```python
+from requestium import Session, Keys
+
+s = Session(webdriver_path='./chromedriver',
+            browser='chrome-headless',
+            default_timeout=15)
+```
+
 You can also create a Selenium webdriver outside Requestium and have it use that instead:
 
 ```python

@@ -5,10 +5,7 @@ from requestium import Session, Keys
 
 class ChromeTestCase(unittest.TestCase):
     def setUp(self):
-        self.s = Session('chromedriver',
-                         browser='chrome',
-                         default_timeout=15,
-                         webdriver_options={'arguments': ['headless', 'disable-gpu']})
+        self.s = Session('chromedriver', browser='chrome-headless', default_timeout=15)
 
     def test_cookie_transfer_to_requests(self):
         """Tested on http://testing-ground.scraping.pro/login"""
