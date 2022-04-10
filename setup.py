@@ -7,13 +7,14 @@ with open('README.md') as file:
 
 setup(
     name='requestium',
-    version='0.1.10',
+    version='0.1.11',
     description=(
         "Adds a Selenium webdriver and parsel's parser to a request's Session "
         "object, and makes switching between them seamless. Handles cookie, "
         "proxy and header transfer."
     ),
     long_description=long_description,
+    long_description_content_type='text/markdown',
     author='Joaquin Alori',
     author_email='joaquin@tryolabs.com',
     url='https://github.com/tryolabs/requestium',
