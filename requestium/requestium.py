@@ -1,6 +1,7 @@
 import requests
 import time
 import tldextract
+import types
 
 from functools import partial
 from parsel.selector import Selector
@@ -24,22 +25,30 @@ class Session(requests.Session):
     Some useful helper methods and object wrappings have been added.
     """
 
-    def __init__(self, webdriver_path, browser, default_timeout=5, webdriver_options={}):
+    def __init__(self, webdriver_path=None, browser=None, default_timeout=5, webdriver_options={}, driver=None):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
         self.webdriver_options = webdriver_options
-        self._driver = None
+        self._driver = driver
         self._last_requests_url = None
 
-        if browser == 'phantomjs':
-            self._driver_initializer = self._start_phantomjs_browser
-        elif browser == 'chrome':
-            self._driver_initializer = self._start_chrome_browser
+        if self._driver is None:
+            if browser == 'phantomjs':
+                self._driver_initializer = self._start_phantomjs_browser
+            elif browser == 'chrome':
+                self._driver_initializer = self._start_chrome_browser
+            else:
+                raise ValueError('Invalid Argument: browser must be chrome or phantomjs, not: "{}"'.format(browser))
         else:
-            raise ValueError(
-                'Invalid Argument: browser must be chrome or phantomjs, not: "{}"'.format(browser)
-            )
+            for name in DriverMixin.__dict__:
+                name_private = name.startswith('__') and name.endswith('__')
+                name_function = isinstance(DriverMixin.__dict__[name], types.FunctionType)
+                name_in_driver = name in dir(self._driver)
+                if name_private or not name_function or name_in_driver:
+                    continue
+                self._driver.__dict__[name] = DriverMixin.__dict__[name].__get__(self._driver)
+            setattr(self._driver, 'default_timeout', self.default_timeout)
 
     @property
     def driver(self):

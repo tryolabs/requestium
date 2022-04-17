@@ -38,6 +38,17 @@ s = Session(webdriver_path='./chromedriver',
             webdriver_options={'arguments': ['headless']})
 ```
 
+You can also create a Selenium webdriver outside Requestium and have it use that instead:
+
+```python
+from selenium import webdriver
+from requestium import Session, Keys
+
+firefox_driver = webdriver.Firefox()
+
+s = Session(driver=firefox_driver)
+```
+
 You don't need to parse the response, it is done automatically when calling xpath, css or re.
 ```python
 title = s.get('http://samplesite.com').xpath('//title/text()').extract_first(default='Default Title')
