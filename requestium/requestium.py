@@ -1,4 +1,6 @@
+import os
 import requests
+import tempfile
 import time
 import tldextract
 import types
@@ -78,8 +80,9 @@ class Session(requests.Session):
             service_args.append('--proxy-auth=' + proxy_user_and_pass)
 
         # Create driver process
+        service_log_filename = os.path.join(tempfile.gettempdir(), 'ghostdriver.log')
         return RequestiumPhantomJS(executable_path=self.webdriver_path,
-                                   service_log_path="/tmp/ghostdriver.log",
+                                   service_log_path=service_log_filename,
                                    service_args=service_args,
                                    default_timeout=self.default_timeout)
 
