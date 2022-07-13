@@ -114,6 +114,11 @@ class Session(requests.Session):
             prefs = self.webdriver_options['prefs']
             chrome_options.add_experimental_option('prefs', prefs)
 
+        experimental_options = self.webdriver_options.get('experimental_options')
+        if isinstance(experimental_options, dict):
+            for name, value in experimental_options.items():
+                chrome_options.add_experimental_option(name, value)
+
         # Create driver process
         return RequestiumChrome(self.webdriver_path,
                                 options=chrome_options,
