@@ -60,6 +60,19 @@ firefox_driver = webdriver.Firefox()
 s = Session(driver=firefox_driver)
 ```
 
+You can also specify a 3rd party Chrome webdriver class and use it by specifying the `browser` argument as well. This will allow, for example, to use [Selenium-Wire](https://github.com/wkeeling/selenium-wire) to get XHR requests of a web page:
+
+```python
+from seleniumwire import webdriver
+from requestium import Session, Keys
+
+s = Session(webdriver_path='./chromedriver', 
+            driver_class=webdriver.Chrome,
+            browser='chrome-headless',
+            default_timeout=15)
+
+```
+
 You don't need to parse the response, it is done automatically when calling xpath, css or re.
 ```python
 title = s.get('http://samplesite.com').xpath('//title/text()').extract_first(default='Default Title')

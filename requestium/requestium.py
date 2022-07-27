@@ -27,12 +27,13 @@ class Session(requests.Session):
     Some useful helper methods and object wrappings have been added.
     """
 
-    def __init__(self, webdriver_path=None, browser=None, default_timeout=5, webdriver_options={}, driver=None):
+    def __init__(self, webdriver_path=None, browser=None, default_timeout=5, webdriver_options={}, driver=None, driver_class=None):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
         self.webdriver_options = webdriver_options
         self._driver = driver
+        self._driver_class = driver_class
         self._last_requests_url = None
 
         if self._driver is None:
@@ -120,6 +121,7 @@ class Session(requests.Session):
                 chrome_options.add_experimental_option(name, value)
 
         # Create driver process
+        RequestiumChrome = type('RequestiumChrome', (DriverMixin, self._driver_class or webdriver.Chrome), {})
         return RequestiumChrome(self.webdriver_path,
                                 options=chrome_options,
                                 default_timeout=self.default_timeout)
@@ -452,8 +454,4 @@ def _ensure_click(self):
 
 
 class RequestiumPhantomJS(DriverMixin, webdriver.PhantomJS):
-    pass
-
-
-class RequestiumChrome(DriverMixin, webdriver.Chrome):
     pass
