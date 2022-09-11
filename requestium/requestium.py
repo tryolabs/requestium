@@ -201,14 +201,14 @@ class RequestiumResponse(object):
         self.__class__ = type(response.__class__.__name__,
                               (self.__class__, response.__class__),
                               response.__dict__)
-        self._response = response
-        self._selector = None
 
     @property
     def selector(self):
-        if self._selector is None:
-            self._selector = Selector(text=self._response.text)
-        return self._selector
+        """Returns the response text in a Selector
+
+        We re-parse the text on each xpath, css, re call in case the encoding has changed.
+        """
+        return Selector(text=self.text)
 
     def xpath(self, *args, **kwargs):
         return self.selector.xpath(*args, **kwargs)
