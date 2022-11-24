@@ -1,0 +1,5 @@
+parsel==1.7.0
+requests==2.28.1
+selenium==4.6.0
+setuptools==59.2.0
+tldextract==3.4.0

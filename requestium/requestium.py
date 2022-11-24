@@ -1,11 +1,11 @@
 import os
-import requests
 import tempfile
 import time
-import tldextract
 import types
-
 from functools import partial
+
+import requests
+import tldextract
 from parsel.selector import Selector
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
