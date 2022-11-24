@@ -1,6 +1,6 @@
 import unittest
 
-from requestium import Session, Keys
+from requestium import Keys, Session
 
 
 class ChromeTestCase(unittest.TestCase):
