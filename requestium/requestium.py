@@ -241,6 +241,16 @@ class DriverMixin(object):
         del kwargs['default_timeout']
         super(DriverMixin, self).__init__(*args, **kwargs)
 
+    def try_add_cookie(self, cookie):
+        """Attempt to add the cookie. Suppress any errors, and simply
+        detect success or failure if the cookie was actually added.
+        """
+        try:
+            self.add_cookie(cookie)
+        except Exception as error:
+            pass
+        return self.is_cookie_in_driver(cookie)
+
     def ensure_add_cookie(self, cookie, override_domain=None):
         """Ensures a cookie gets added to the driver
 
@@ -283,16 +293,15 @@ class DriverMixin(object):
         # Fixes phantomjs bug, all domains must start with a period
         if self.name == "phantomjs":
             cookie['domain'] = '.' + cookie['domain']
-        self.add_cookie(cookie)
+
+        cookie_added = self.try_add_cookie(cookie)
 
         # If we fail adding the cookie, retry with a more permissive domain
-        if not self.is_cookie_in_driver(cookie):
+        if not cookie_added:
             cookie['domain'] = tldextract.extract(cookie['domain']).registered_domain
-            self.add_cookie(cookie)
-            if not self.is_cookie_in_driver(cookie):
-                raise WebDriverException(
-                    "Couldn't add the following cookie to the webdriver\n{}\n".format(cookie)
-                )
+            cookie_added = self.try_add_cookie(cookie)
+            if not cookie_added:
+                raise WebDriverException("Couldn't add the following cookie to the webdriver: {}".format(cookie))
 
     def is_cookie_in_driver(self, cookie):
         """We check that the cookie is correctly added to the driver
