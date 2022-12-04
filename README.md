@@ -66,7 +66,7 @@ You can also specify a 3rd party Chrome webdriver class and use it by specifying
 from seleniumwire import webdriver
 from requestium import Session, Keys
 
-s = Session(webdriver_path='./chromedriver', 
+s = Session(webdriver_path='./chromedriver',
             driver_class=webdriver.Chrome,
             browser='chrome-headless',
             default_timeout=15)
