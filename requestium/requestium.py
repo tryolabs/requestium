@@ -67,9 +67,9 @@ class Session(requests.Session):
             # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
             if key == 'Accept-Encoding':
                 continue
-
-            webdriver.DesiredCapabilities.PHANTOMJS[
-                'phantomjs.page.customHeaders.{}'.format(key)] = value
+            if hasattr(webdriver.DesiredCapabilities,'PHANTOMJS'):
+                webdriver.DesiredCapabilities.PHANTOMJS[
+                    'phantomjs.page.customHeaders.{}'.format(key)] = value
 
         # Set browser options
         service_args = ['--load-images=no', '--disk-cache=true']
@@ -461,6 +461,6 @@ def _ensure_click(self):
         )
     )
 
-
-class RequestiumPhantomJS(DriverMixin, webdriver.PhantomJS):
-    pass
+if hasattr(webdriver, 'PhantomJS'):
+    class RequestiumPhantomJS(DriverMixin, webdriver.PhantomJS):
+        pass
