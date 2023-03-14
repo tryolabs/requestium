@@ -37,14 +37,12 @@ class Session(requests.Session):
         self._last_requests_url = None
 
         if self._driver is None:
-            if browser == 'phantomjs':
-                self._driver_initializer = self._start_phantomjs_browser
-            elif browser == 'chrome':
+            if browser == 'chrome':
                 self._driver_initializer = self._start_chrome_browser
             elif browser == 'chrome-headless':
                 self._driver_initializer = self._start_chrome_headless_browser
             else:
-                raise ValueError('Invalid Argument: browser must be chrome or phantomjs, not: "{}"'.format(browser))
+                raise ValueError('Invalid Argument: browser must be chrome or chrome-headless, not: "{}"'.format(browser))
         else:
             for name in DriverMixin.__dict__:
                 name_private = name.startswith('__') and name.endswith('__')
@@ -60,34 +58,6 @@ class Session(requests.Session):
         if self._driver is None:
             self._driver = self._driver_initializer()
         return self._driver
-
-    def _start_phantomjs_browser(self):
-        # Add headers to driver
-        for key, value in self.headers.items():
-            # Manually setting Accept-Encoding to anything breaks it for some reason, so we skip it
-            if key == 'Accept-Encoding':
-                continue
-
-            webdriver.DesiredCapabilities.PHANTOMJS[
-                'phantomjs.page.customHeaders.{}'.format(key)] = value
-
-        # Set browser options
-        service_args = ['--load-images=no', '--disk-cache=true']
-
-        # Add proxies to driver
-        if self.proxies:
-            session_proxy = self.proxies['https'] or self.proxies['http']
-            proxy_user_and_pass = session_proxy.split('@')[0].split('://')[1]
-            proxy_ip_address = session_proxy.split('@')[1]
-            service_args.append('--proxy=' + proxy_ip_address)
-            service_args.append('--proxy-auth=' + proxy_user_and_pass)
-
-        # Create driver process
-        service_log_filename = os.path.join(tempfile.gettempdir(), 'ghostdriver.log')
-        return RequestiumPhantomJS(executable_path=self.webdriver_path,
-                                   service_log_path=service_log_filename,
-                                   service_args=service_args,
-                                   default_timeout=self.default_timeout)
 
     def _start_chrome_browser(self):
         # TODO transfer of proxies and headers: Not supported by chromedriver atm.
@@ -127,9 +97,8 @@ class Session(requests.Session):
                                 default_timeout=self.default_timeout)
 
     def _start_chrome_headless_browser(self):
-        self.webdriver_options['arguments']
         headless_arguments = [
-            'headless',
+            'headless',  # TODO use headless=new and get rid of other stuff (after writing some tests)
             'disable-infobars',
             'disable-gpu',  # So we don't need libosmesa.so in our deploy package
             'homedir=/tmp',  # Ensures we have write permissions in all environments
@@ -225,15 +194,6 @@ class RequestiumResponse(object):
 
 class DriverMixin(object):
     """Provides helper methods to our driver classes
-
-    This is a temporary solution.
-
-    When Chrome headless is finally stable, and we therefore stop using Phantomjs,
-    it will make sense to stop having this as a mixin and just add these methods to
-    the RequestiumChrome class, as it will be our only driver class.
-
-    (We plan to stop supporting Phantomjs because the developer stated he won't be
-    maintaining the project any longer)
     """
 
     def __init__(self, *args, **kwargs):
@@ -289,10 +249,6 @@ class DriverMixin(object):
             #      request. This way their server sees our ip address as continuously having the
             #      same cookies and not have a request mid-session with no cookies
             self.get('http://' + cookie_domain)
-
-        # Fixes phantomjs bug, all domains must start with a period
-        if self.name == "phantomjs":
-            cookie['domain'] = '.' + cookie['domain']
 
         cookie_added = self.try_add_cookie(cookie)
 
@@ -460,7 +416,3 @@ def _ensure_click(self):
             exception_message
         )
     )
-
-
-class RequestiumPhantomJS(DriverMixin, webdriver.PhantomJS):
-    pass

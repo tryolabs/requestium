@@ -18,14 +18,14 @@ Read more about the motivation behind creating this library in this [blopost](ht
 - Improves Selenium's handling of dynamically loading elements.
 - Makes cookie handling more flexible in Selenium.
 - Makes clicking elements in Selenium more reliable.
-- Supports Chrome and PhantomJS.
+- Supports Chromedriver natively plus adding a custom webdriver.
 
 ## Installation
 ```bash
 pip install requestium
 ```
 
-You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium: [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) or [PhantomJS](http://phantomjs.org)
+You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium, such as [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/).
 
 ## Usage
 First create a session as you would do on Requests, and optionally add arguments for the web-driver if you plan to use one.
@@ -179,7 +179,7 @@ s.copy_user_agent_from_driver()
 ```
 Take into account that doing this will launch a browser process.
 
-Note: The Selenium Chrome webdriver doesn't support automatic transfer of proxies from the Session to the Webdriver at the moment. The PhantomJS driver does though.
+Note: The Selenium Chrome webdriver doesn't support automatic transfer of proxies from the Session to the Webdriver at the moment.
 
 ## Comparison with Requests + Selenium + lxml
 A silly working example of a script that runs on Reddit. We'll then show how it compares to using Requests + Selenium + lxml instead of Requestium.
