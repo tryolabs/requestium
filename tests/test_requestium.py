@@ -1,13 +1,23 @@
 import warnings
 
 import pytest
+import selenium
 
 import requestium
 
 
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+
+
+chrome_webdriver = selenium.webdriver.chrome.webdriver.WebDriver()
+firefox_webdriver = selenium.webdriver.firefox.webdriver.WebDriver()
+
+
 session_parameters = [
-    {'webdriver_path': 'chromedriver', 'browser': 'chrome'},
-    {'webdriver_path': 'chromedriver', 'browser': 'chrome-headless'},
+    {'webdriver_path': 'chromedriver'},
+    {'webdriver_path': 'chromedriver', 'headless': True},
+    {'driver': chrome_webdriver},
+    {'driver': firefox_webdriver},
 ]
 
 
