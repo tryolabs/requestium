@@ -32,21 +32,16 @@ First create a session as you would do on Requests, and optionally add arguments
 ```python
 from requestium import Session, Keys
 
-s = Session(webdriver_path='./chromedriver',
-            browser='chrome',
-            default_timeout=15,
-            webdriver_options={'arguments': ['headless']})
+options = {'arguments': ['headless']}
+s = Session(webdriver_path='./chromedriver', default_timeout=15, webdriver_options=options)
 ```
 
-Specifying `chrome-headless` as the browser type configures sensible default webdriver
-argument options when running Chrome in that mode.
+Since headless mode is common, there's a shortcut for it by pecifying `headless=True`.
 
 ```python
 from requestium import Session, Keys
 
-s = Session(webdriver_path='./chromedriver',
-            browser='chrome-headless',
-            default_timeout=15)
+s = Session(webdriver_path='./chromedriver' headless=True)
 ```
 
 You can also create a Selenium webdriver outside Requestium and have it use that instead:
@@ -66,10 +61,9 @@ You can also specify a 3rd party Chrome webdriver class and use it by specifying
 from seleniumwire import webdriver
 from requestium import Session, Keys
 
-s = Session(webdriver_path='./chromedriver',
-            driver_class=webdriver.Chrome,
-            browser='chrome-headless',
-            default_timeout=15)
+seleniumwire_driver = webdriver.Chrome()
+
+s = Session(webdriver_path='./chromedriver', driver=seleniumwire_driver)
 
 ```
 
@@ -191,7 +185,7 @@ from requestium import Session, Keys
 # If you want requestium to type your username in the browser for you, write it in here:
 reddit_user_name = ''
 
-s = Session('./chromedriver', browser='chrome', default_timeout=15)
+s = Session('./chromedriver', default_timeout=15)
 s.driver.get('http://reddit.com')
 s.driver.find_element_by_xpath("//a[@href='https://www.reddit.com/login']").click()
 
@@ -222,6 +216,7 @@ else:
 ```
 
 ### Using Requests + Selenium + lxml
+
 ```python
 import re
 from lxml import etree
