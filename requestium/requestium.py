@@ -1,8 +1,6 @@
-import os
-import tempfile
+import functools
 import time
 import types
-from functools import partial
 
 import requests
 import tldextract
@@ -10,7 +8,7 @@ from parsel.selector import Selector
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
 
@@ -27,22 +25,17 @@ class Session(requests.Session):
     Some useful helper methods and object wrappings have been added.
     """
 
-    def __init__(self, webdriver_path=None, browser=None, default_timeout=5, webdriver_options={}, driver=None, driver_class=None):
+    def __init__(self, webdriver_path=None, headless=None, default_timeout=5,
+                 webdriver_options={}, driver=None, **kwargs):
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
         self.webdriver_options = webdriver_options
         self._driver = driver
-        self._driver_class = driver_class
         self._last_requests_url = None
 
         if self._driver is None:
-            if browser == 'chrome':
-                self._driver_initializer = self._start_chrome_browser
-            elif browser == 'chrome-headless':
-                self._driver_initializer = self._start_chrome_headless_browser
-            else:
-                raise ValueError('Invalid Argument: browser must be chrome or chrome-headless, not: "{}"'.format(browser))
+            self._driver_initializer = functools.partial(self._start_chrome_browser, headless=headless)
         else:
             for name in DriverMixin.__dict__:
                 name_private = name.startswith('__') and name.endswith('__')
@@ -59,11 +52,14 @@ class Session(requests.Session):
             self._driver = self._driver_initializer()
         return self._driver
 
-    def _start_chrome_browser(self):
+    def _start_chrome_browser(self, headless=False):
         # TODO transfer of proxies and headers: Not supported by chromedriver atm.
         # Choosing not to use plug-ins for this as I don't want to worry about the
         # extra dependencies and plug-ins don't work in headless mode. :-(
         chrome_options = webdriver.chrome.options.Options()
+
+        if headless:
+            chrome_options.add_argument('headless=new')
 
         if 'binary_location' in self.webdriver_options:
             chrome_options.binary_location = self.webdriver_options['binary_location']
@@ -91,26 +87,8 @@ class Session(requests.Session):
                 chrome_options.add_experimental_option(name, value)
 
         # Create driver process
-        RequestiumChrome = type('RequestiumChrome', (DriverMixin, self._driver_class or webdriver.Chrome), {})
-        return RequestiumChrome(self.webdriver_path,
-                                options=chrome_options,
-                                default_timeout=self.default_timeout)
-
-    def _start_chrome_headless_browser(self):
-        headless_arguments = [
-            'headless',  # TODO use headless=new and get rid of other stuff (after writing some tests)
-            'disable-infobars',
-            'disable-gpu',  # So we don't need libosmesa.so in our deploy package
-            'homedir=/tmp',  # Ensures we have write permissions in all environments
-            'data-path=/tmp/data-path',
-            'disk-cache-dir=/tmp/cache-dir',
-            'no-sandbox',
-            'single-process',
-        ]
-        current_arguments = self.webdriver_options.get('arguments', [])
-        current_arguments = current_arguments if isinstance(current_arguments, list) else []
-        current_arguments.extend(headless_arguments)
-        return self._start_chrome_browser()
+        RequestiumChrome = type('RequestiumChrome', (DriverMixin, webdriver.Chrome), {})
+        return RequestiumChrome(self.webdriver_path, options=chrome_options, default_timeout=self.default_timeout)
 
     def transfer_session_cookies_to_driver(self, domain=None):
         """Copies the Session's cookies into the webdriver
@@ -207,7 +185,7 @@ class DriverMixin(object):
         """
         try:
             self.add_cookie(cookie)
-        except Exception as error:
+        except Exception:
             pass
         return self.is_cookie_in_driver(cookie)
 
@@ -330,19 +308,19 @@ class DriverMixin(object):
 
         if state == 'visible':
             element = WebDriverWait(self, timeout).until(
-                EC.visibility_of_element_located((locator, selector))
+                expected_conditions.visibility_of_element_located((locator, selector))
             )
         elif state == 'clickable':
             element = WebDriverWait(self, timeout).until(
-                EC.element_to_be_clickable((locator, selector))
+                expected_conditions.element_to_be_clickable((locator, selector))
             )
         elif state == 'present':
             element = WebDriverWait(self, timeout).until(
-                EC.presence_of_element_located((locator, selector))
+                expected_conditions.presence_of_element_located((locator, selector))
             )
         elif state == 'invisible':
             WebDriverWait(self, timeout).until(
-                EC.invisibility_of_element_located((locator, selector))
+                expected_conditions.invisibility_of_element_located((locator, selector))
             )
             element = None
         else:
@@ -355,7 +333,7 @@ class DriverMixin(object):
         # sometimes needs some time before it can click an item, specially if it needs to
         # scroll into it first. This method ensures clicks don't fail because of this.
         if element:
-            element.ensure_click = partial(_ensure_click, element)
+            element.ensure_click = functools.partial(_ensure_click, element)
         return element
 
     @property
