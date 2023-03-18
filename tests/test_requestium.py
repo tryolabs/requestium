@@ -1,12 +1,7 @@
-import warnings
-
 import pytest
 import selenium
 
 import requestium
-
-
-warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 
 chrome_webdriver = selenium.webdriver.chrome.webdriver.WebDriver()
@@ -23,7 +18,6 @@ session_parameters = [
 
 @pytest.fixture(params=session_parameters)
 def session(request):
-    warnings.filterwarnings('ignore', category=DeprecationWarning)
     session = requestium.Session(**request.param)
     yield session
     session.driver.close()
@@ -31,8 +25,8 @@ def session(request):
 
 def test_simple_page_load(session):
     session.driver.get('http://the-internet.herokuapp.com')
-    session.driver.ensure_element_by_id('content')
+    session.driver.ensure_element('id', 'content')
     title = session.driver.title
-    heading = session.driver.find_element_by_xpath('//*[@id="content"]/h1')
+    heading = session.driver.find_element('xpath', '//*[@id="content"]/h1')
     assert title == 'The Internet'
     assert heading.text == 'Welcome to the-internet'
