@@ -7,7 +7,7 @@ with open('README.md') as file:
 
 setup(
     name='requestium',
-    version='0.2.0',
+    version='0.2.1',
     description=(
         "Adds a Selenium webdriver and parsel's parser to a request's Session "
         "object, and makes switching between them seamless. Handles cookie, "
