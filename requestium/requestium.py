@@ -7,6 +7,7 @@ import tldextract
 from parsel.selector import Selector
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver import ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
@@ -88,7 +89,12 @@ class Session(requests.Session):
 
         # Create driver process
         RequestiumChrome = type('RequestiumChrome', (DriverMixin, webdriver.Chrome), {})
-        return RequestiumChrome(self.webdriver_path, options=chrome_options, default_timeout=self.default_timeout)
+        # Selenium updated webdriver.Chrome's arg and kwargs, to accept options, service, keep_alive
+        # since ChromeService is the only object where webdriver_path is mapped to executable_path, it must be
+        # initialized and passed in as a kwarg to RequestiumChrome so it can be passed in as a kwarg
+        # when passed into webdriver.Chrome in super(DriverMixin, self).__init__(*args, **kwargs)
+        service = ChromeService(executable_path=self.webdriver_path)
+        return RequestiumChrome(service=service, options=chrome_options, default_timeout=self.default_timeout)
 
     def transfer_session_cookies_to_driver(self, domain=None):
         """Copies the Session's cookies into the webdriver
@@ -175,9 +181,9 @@ class DriverMixin(object):
     """
 
     def __init__(self, *args, **kwargs):
-        self.default_timeout = kwargs['default_timeout']
-        del kwargs['default_timeout']
+        self.default_timeout = kwargs.pop('default_timeout', None)
         super(DriverMixin, self).__init__(*args, **kwargs)
+
 
     def try_add_cookie(self, cookie):
         """Attempt to add the cookie. Suppress any errors, and simply
