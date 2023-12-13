@@ -184,7 +184,6 @@ class DriverMixin(object):
         self.default_timeout = kwargs.pop('default_timeout', None)
         super(DriverMixin, self).__init__(*args, **kwargs)
 
-
     def try_add_cookie(self, cookie):
         """Attempt to add the cookie. Suppress any errors, and simply
         detect success or failure if the cookie was actually added.
