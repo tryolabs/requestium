@@ -257,30 +257,30 @@ class DriverMixin(object):
         return False
 
     def ensure_element_by_id(self, selector, state="present", timeout=None):
-        return self.ensure_element('id', selector, state, timeout)
+        return self.ensure_element(By.ID, selector, state, timeout)
 
     def ensure_element_by_name(self, selector, state="present", timeout=None):
-        return self.ensure_element('name', selector, state, timeout)
+        return self.ensure_element(By.NAME, selector, state, timeout)
 
     def ensure_element_by_xpath(self, selector, state="present", timeout=None):
-        return self.ensure_element('xpath', selector, state, timeout)
+        return self.ensure_element(By.XPATH, selector, state, timeout)
 
     def ensure_element_by_link_text(self, selector, state="present", timeout=None):
-        return self.ensure_element('link_text', selector, state, timeout)
+        return self.ensure_element(By.LINK_TEXT, selector, state, timeout)
 
     def ensure_element_by_partial_link_text(self, selector, state="present", timeout=None):
-        return self.ensure_element('partial_link_text', selector, state, timeout)
+        return self.ensure_element(By.PARTIAL_LINK_TEXT, selector, state, timeout)
 
     def ensure_element_by_tag_name(self, selector, state="present", timeout=None):
-        return self.ensure_element('tag_name', selector, state, timeout)
+        return self.ensure_element(By.TAG_NAME, selector, state, timeout)
 
     def ensure_element_by_class_name(self, selector, state="present", timeout=None):
-        return self.ensure_element('class_name', selector, state, timeout)
+        return self.ensure_element(By.CLASS_NAME, selector, state, timeout)
 
     def ensure_element_by_css_selector(self, selector, state="present", timeout=None):
-        return self.ensure_element('css_selector', selector, state, timeout)
+        return self.ensure_element(By.CSS_SELECTOR, selector, state, timeout)
 
-    def ensure_element(self, locator, selector, state="present", timeout=None):
+    def ensure_element(self, locator: str, selector: str, state: str = "present", timeout=None):
         """This method allows us to wait till an element appears or disappears in the browser
 
         The webdriver runs in parallel with our scripts, so we must wait for it everytime it
@@ -289,6 +289,8 @@ class DriverMixin(object):
         So we must explicitly wait in that case.
 
         The 'locator' argument defines what strategy we use to search for the element.
+        It expects standard names from the By class in selenium.webdriver.common.by.
+        https://www.selenium.dev/selenium/docs/api/py/webdriver/selenium.webdriver.common.by.html
 
         The 'state' argument allows us to chose between waiting for the element to be visible,
         clickable, present, or invisible. Presence is more inclusive, but sometimes we want to
@@ -299,15 +301,6 @@ class DriverMixin(object):
 
         More info at: http://selenium-python.readthedocs.io/waits.html
         """
-        locators = {'id': By.ID,
-                    'name': By.NAME,
-                    'xpath': By.XPATH,
-                    'link_text': By.LINK_TEXT,
-                    'partial_link_text': By.PARTIAL_LINK_TEXT,
-                    'tag_name': By.TAG_NAME,
-                    'class_name': By.CLASS_NAME,
-                    'css_selector': By.CSS_SELECTOR}
-        locator = locators[locator]
         if not timeout:
             timeout = self.default_timeout
 

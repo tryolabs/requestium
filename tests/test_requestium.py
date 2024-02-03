@@ -1,15 +1,15 @@
-import pytest
-import selenium
 import shutil
 
-import requestium
+import pytest
+import selenium
+from selenium.webdriver.common.by import By
 
+import requestium
 
 chrome_webdriver_path = shutil.which('chromedriver')
 
 chrome_webdriver = selenium.webdriver.chrome.webdriver.WebDriver()
 firefox_webdriver = selenium.webdriver.firefox.webdriver.WebDriver()
-
 
 session_parameters = [
     {'webdriver_path': chrome_webdriver_path},
@@ -28,8 +28,8 @@ def session(request):
 
 def test_simple_page_load(session):
     session.driver.get('http://the-internet.herokuapp.com')
-    session.driver.ensure_element('id', 'content')
+    session.driver.ensure_element(By.ID, 'content')
     title = session.driver.title
-    heading = session.driver.find_element('xpath', '//*[@id="content"]/h1')
+    heading = session.driver.find_element(By.XPATH, '//*[@id="content"]/h1')
     assert title == 'The Internet'
     assert heading.text == 'Welcome to the-internet'
