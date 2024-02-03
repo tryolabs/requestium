@@ -1,6 +1,7 @@
 import functools
 import time
 import types
+import warnings
 
 import requests
 import tldextract
@@ -301,6 +302,23 @@ class DriverMixin(object):
 
         More info at: http://selenium-python.readthedocs.io/waits.html
         """
+        locators_compatibility = {
+            'link_text': By.LINK_TEXT,
+            'partial_link_text': By.PARTIAL_LINK_TEXT,
+            'tag_name': By.TAG_NAME,
+            'class_name': By.CLASS_NAME,
+            'css_selector': By.CSS_SELECTOR
+        }
+        if locator in locators_compatibility:
+            warnings.warn(
+                """
+                Support for locator strategy names with underscores is deprecated.
+                Use strategies from Selenium's By class (importable from selenium.webdriver.common.by).
+                """,
+                DeprecationWarning
+            )
+            locator = locators_compatibility[locator]
+
         if not timeout:
             timeout = self.default_timeout
 
