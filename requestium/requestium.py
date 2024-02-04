@@ -353,7 +353,7 @@ class DriverMixin(object):
             WebDriverWait(self, timeout).until(expected_conditions.invisibility_of_element_located((locator, selector)))
             element = None
         else:
-            raise ValueError("The 'state' argument must be 'visible', 'clickable', 'present' " "or 'invisible', not '{}'".format(state))
+            raise ValueError(f"The 'state' argument must be 'visible', 'clickable', 'present' or 'invisible', not '{state}'")
 
         # We add this method to our element to provide a more robust click. Chromedriver
         # sometimes needs some time before it can click an item, specially if it needs to
