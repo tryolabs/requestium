@@ -1,3 +1,5 @@
+"""Requestium is a Python library that merges the power of Requests, Selenium, and Parsel into a single integrated tool for automatizing web actions."""
+
 import functools
 import time
 import types
@@ -15,10 +17,11 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-class RequestiumResponse(object):
+class RequestiumResponse(requests.Response):
     """Adds xpath, css, and regex methods to a normal requests response object"""
 
     def __init__(self, response):
+        super().__init__()
         self.__class__ = type(
             response.__class__.__name__,
             (self.__class__, response.__class__),
