@@ -1,21 +1,20 @@
 import shutil
 
 import pytest
-import selenium
-from selenium.webdriver.common.by import By
+from selenium import webdriver
 
 import requestium
 
-chrome_webdriver_path = shutil.which('chromedriver')
+chrome_webdriver_path = shutil.which("chromedriver")
 
-chrome_webdriver = selenium.webdriver.chrome.webdriver.WebDriver()
-firefox_webdriver = selenium.webdriver.firefox.webdriver.WebDriver()
+chrome_webdriver = webdriver.Chrome()
+firefox_webdriver = webdriver.Firefox()
 
 session_parameters = [
-    {'webdriver_path': chrome_webdriver_path},
-    {'webdriver_path': chrome_webdriver_path, 'headless': True},
-    {'driver': chrome_webdriver},
-    {'driver': firefox_webdriver},
+    {"webdriver_path": chrome_webdriver_path},
+    {"webdriver_path": chrome_webdriver_path, "headless": True},
+    {"driver": chrome_webdriver},
+    {"driver": firefox_webdriver},
 ]
 
 
@@ -27,6 +26,6 @@ def session(request):
 
 
 def test_deprecation_warning_for_ensure_element_locators_with_underscores(session):
-    session.driver.get('http://the-internet.herokuapp.com')
+    session.driver.get("http://the-internet.herokuapp.com")
     with pytest.warns(DeprecationWarning):
-        session.driver.ensure_element("class_name", 'no-js')
+        session.driver.ensure_element("class_name", "no-js")
