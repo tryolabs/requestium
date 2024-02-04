@@ -15,6 +15,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import UnableToSetCookieException
 
 
 class RequestiumResponse(requests.Response):
@@ -66,7 +67,7 @@ class RequestiumChrome(webdriver.Chrome):
         """
         try:
             self.add_cookie(cookie)
-        except Exception:
+        except UnableToSetCookieException:
             pass
         return self.is_cookie_in_driver(cookie)
 
