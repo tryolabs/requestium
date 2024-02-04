@@ -336,6 +336,7 @@ class DriverMixin(object):
                 Use strategies from Selenium's By class (importable from selenium.webdriver.common.by).
                 """,
                 DeprecationWarning,
+                stacklevel=2,
             )
             locator = locators_compatibility[locator]
 
