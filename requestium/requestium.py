@@ -101,17 +101,15 @@ class Session(requests.Session):
         if "binary_location" in self.webdriver_options:
             chrome_options.binary_location = self.webdriver_options["binary_location"]
 
-        if "arguments" in self.webdriver_options:
-            if isinstance(self.webdriver_options["arguments"], list):
-                for arg in self.webdriver_options["arguments"]:
-                    chrome_options.add_argument(arg)
-            else:
-                raise Exception("A list is needed to use 'arguments' option. Found {}".format(type(self.webdriver_options["arguments"])))
+        args = self.webdriver_options.get("arguments")
+        if isinstance(args, list):
+            [chrome_options.add_argument(arg) for arg in args]
+        elif args:
+            raise Exception(f"A list is needed to use 'arguments' option. Found {type(args)}")
 
-        if "extensions" in self.webdriver_options:
-            if isinstance(self.webdriver_options["extensions"], list):
-                for arg in self.webdriver_options["extensions"]:
-                    chrome_options.add_extension(arg)
+        extensions = self.webdriver_options.get("extensions")
+        if isinstance(extensions, list):
+            [chrome_options.add_extension(arg) for arg in extensions]
 
         if "prefs" in self.webdriver_options:
             prefs = self.webdriver_options["prefs"]
@@ -119,8 +117,7 @@ class Session(requests.Session):
 
         experimental_options = self.webdriver_options.get("experimental_options")
         if isinstance(experimental_options, dict):
-            for name, value in experimental_options.items():
-                chrome_options.add_experimental_option(name, value)
+            [chrome_options.add_experimental_option(name, value) for name, value in experimental_options.items()]
 
         # Create driver process
         RequestiumChrome = type("RequestiumChrome", (DriverMixin, webdriver.Chrome), {})
