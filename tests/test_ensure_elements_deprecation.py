@@ -26,10 +26,7 @@ def session(request):
     session.driver.close()
 
 
-def test_simple_page_load(session):
+def test_deprecation_warning_for_ensure_element_locators_with_underscores(session):
     session.driver.get('http://the-internet.herokuapp.com')
-    session.driver.ensure_element(By.ID, 'content')
-    title = session.driver.title
-    heading = session.driver.find_element(By.XPATH, '//*[@id="content"]/h1')
-    assert title == 'The Internet'
-    assert heading.text == 'Welcome to the-internet'
+    with pytest.warns(DeprecationWarning):
+        session.driver.ensure_element("class_name", 'no-js')

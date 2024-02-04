@@ -97,9 +97,10 @@ s.driver.get('http://www.samplesite.com/sample/process')
 
 The driver object is a Selenium webdriver object, so you can use any of the normal selenium methods plus new methods added by Requestium.
 ```python
-s.driver.find_element_by_xpath("//input[@class='user_name']").send_keys('James Bond', Keys.ENTER)
+s.driver.find_element("xpath", "//input[@class='user_name']").send_keys('James Bond', Keys.ENTER)
 
-# New method which waits for element to load instead of failing, useful for single page web apps
+# New methods which wait for element to load instead of failing, useful for single page web apps
+s.driver.ensure_element("xpath", "//div[@attribute='button']").click()
 s.driver.ensure_element_by_xpath("//div[@attribute='button']").click()
 ```
 
@@ -119,7 +120,7 @@ s.post('http://www.samplesite.com/sample2', data={'key1': 'value1'})
 Requestium adds several 'ensure' methods to the driver object, as Selenium is known to be very finicky about selecting elements and cookie handling.
 
 ### Wait for element
-The `ensure_element_by_` methods waits for the element to be loaded in the browser and returns it as soon as it loads. It's named after Selenium's `find_element_by_` methods (which immediately raise an exception if they can't find the element).
+The `ensure_element` and `ensure_element_by_` methods wait for the element to be loaded in the browser and returns it as soon as it loads. They're named after Selenium's `find_element` and `find_element_by_` methods (which immediately raise an exception if they can't find the element).
 
 Requestium can wait for an element to be in any of the following states:
 - present (default)
@@ -127,16 +128,17 @@ Requestium can wait for an element to be in any of the following states:
 - visible
 - invisible (useful for things like waiting for *loading...* gifs to disappear)
 
-These methods are very useful for single page web apps where the site is dynamically changing its elements. We usually end up completely replacing our `find_element_by_` calls with `ensure_element_by_` calls as they are more flexible.
+These methods are very useful for single page web apps where the site is dynamically changing its elements. We usually end up completely replacing our `find_element` and `find_element_by_` calls with `ensure_element` and `ensure_element_by_` calls as they are more flexible.
 
 Elements you get using these methods have the new `ensure_click` method which makes the click less prone to failure. This helps with getting through a lot of the problems with Selenium clicking.
 
 ```python
-s.driver.ensure_element_by_xpath("//li[@class='b1']", state='clickable', timeout=5).ensure_click()
+s.driver.ensure_element("xpath", "//li[@class='b1']", state='clickable', timeout=5).ensure_click()
 
 # === We also added these methods named in accordance to Selenium's api design ===
 # ensure_element_by_id
 # ensure_element_by_name
+# ensure_element_by_xpath
 # ensure_element_by_link_text
 # ensure_element_by_partial_link_text
 # ensure_element_by_tag_name
@@ -187,18 +189,18 @@ reddit_user_name = ''
 
 s = Session('./chromedriver', default_timeout=15)
 s.driver.get('http://reddit.com')
-s.driver.find_element_by_xpath("//a[@href='https://www.reddit.com/login']").click()
+s.driver.find_element("xpath", "//a[@href='https://www.reddit.com/login']").click()
 
 print('Waiting for elements to load...')
-s.driver.ensure_element_by_class_name("desktop-onboarding-sign-up__form-toggler",
+s.driver.ensure_element("class name", "desktop-onboarding-sign-up__form-toggler",
 				      state='visible').click()
 
 if reddit_user_name:
-    s.driver.ensure_element_by_id('user_login').send_keys(reddit_user_name)
-    s.driver.ensure_element_by_id('passwd_login').send_keys(Keys.BACKSPACE)
+    s.driver.ensure_element('id', 'user_login').send_keys(reddit_user_name)
+    s.driver.ensure_element('id', 'passwd_login').send_keys(Keys.BACKSPACE)
 print('Please log-in in the chrome browser')
 
-s.driver.ensure_element_by_class_name("desktop-onboarding__title", timeout=60, state='invisible')
+s.driver.ensure_element("class name", "desktop-onboarding__title", timeout=60, state='invisible')
 print('Thanks!')
 
 if not reddit_user_name:
@@ -233,7 +235,7 @@ reddit_user_name = ''
 
 driver = webdriver.Chrome('./chromedriver')
 driver.get('http://reddit.com')
-driver.find_element_by_xpath("//a[@href='https://www.reddit.com/login']").click()
+driver.find_element("xpath", "//a[@href='https://www.reddit.com/login']").click()
 
 print('Waiting for elements to load...')
 WebDriverWait(driver, 15).until(
@@ -244,7 +246,7 @@ if reddit_user_name:
     WebDriverWait(driver, 15).until(
         EC.presence_of_element_located((By.ID, 'user_login'))
     ).send_keys(reddit_user_name)
-    driver.find_element_by_id('passwd_login').send_keys(Keys.BACKSPACE)
+    driver.find_element('id', 'passwd_login').send_keys(Keys.BACKSPACE)
 print('Please log-in in the chrome browser')
 
 try:
