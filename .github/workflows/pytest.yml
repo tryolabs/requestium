@@ -45,5 +45,6 @@ jobs:
       - name: Test code with pytest
         uses: pavelzw/pytest-action@v2
         with:
+          emoji: false
           verbose: false
           job-summary: true
