@@ -4,6 +4,7 @@ version = "0.3.0"
 description = ""
 authors = ["Joaquin Alori <joaquin@tryolabs.com>"]
 readme = "README.md"
+license = "BSD-3-Clause"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<=3.13"
