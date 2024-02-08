@@ -40,6 +40,7 @@ jobs:
         run: |
           pip install -U pip
           pip install .
+          pip install pytest-md
 
       - name: Test code with pytest
         uses: pavelzw/pytest-action@v2
