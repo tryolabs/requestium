@@ -1,6 +1,7 @@
 import functools
 import time
 import warnings
+from typing import Union
 
 import tldextract
 from parsel.selector import Selector, SelectorList
@@ -205,7 +206,7 @@ class RequestiumChrome(webdriver.Chrome):
     def re(self, *args, **kwargs) -> list[str]:
         return self.selector.re(*args, **kwargs)
 
-    def re_first(self, *args, **kwargs) -> str | None:
+    def re_first(self, *args, **kwargs) -> Union[str, None]:
         return self.selector.re_first(*args, **kwargs)
 
 
