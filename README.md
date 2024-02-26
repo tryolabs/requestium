@@ -36,7 +36,7 @@ options = {'arguments': ['headless']}
 s = Session(webdriver_path='./chromedriver', default_timeout=15, webdriver_options=options)
 ```
 
-Since headless mode is common, there's a shortcut for it by pecifying `headless=True`.
+Since headless mode is common, there's a shortcut for it by specifying `headless=True`.
 
 ```python
 from requestium import Session, Keys
