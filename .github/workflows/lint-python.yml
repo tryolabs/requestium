@@ -14,14 +14,15 @@ on:
 
 jobs:
   ruff:
+    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version:
           - "3.12"
           - "3.11"
           - "3.10"
           - "3.9"
-    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -32,12 +33,27 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
+      - name: Install uv and create venv
+        run: |
+          pip install -U pip uv
+          uv venv
+
+      - name: Enable macOS/Linux venv
+        if: runner.os != 'Windows'
+        run: |
+          source .venv/bin/activate
+          echo $PATH >> $GITHUB_PATH
+
+      - name: Enable Windows venv
+        if: runner.os == 'Windows'
+        run: |
+          .venv\Scripts\activate
+          echo $env:path >> $ENV:GITHUB_PATH
+
       - name: Install dependencies
         run: |
-          pip install -U pip
-          pip install .
-          pip install ruff ydiff
-      
+          uv pip install -e . ruff ydiff
+
       - name: Lint the code with ruff
         run: |
           ruff check $(git ls-files '*.py') --diff | ydiff -s

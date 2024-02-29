@@ -15,6 +15,7 @@ on:
 jobs:
   pytest:
     strategy:
+      fail-fast: false
       matrix:
         os:
           # - "ubuntu-latest" # doesn't work without headless
@@ -36,15 +37,28 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
+      - name: Install uv and create venv
+        run: |
+          pip install -U pip uv
+          uv venv
+
+      - name: Enable macOS/Linux venv
+        if: runner.os != 'Windows'
+        run: |
+          source .venv/bin/activate
+          echo $PATH >> $GITHUB_PATH
+
+      - name: Enable Windows venv
+        if: runner.os == 'Windows'
+        run: |
+          .venv\Scripts\activate
+          echo $env:path >> $ENV:GITHUB_PATH
+
       - name: Install dependencies
         run: |
-          pip install -U pip
-          pip install .
-          pip install pytest-md
+          uv pip install -r requirements.txt
+          uv pip install -e . pytest pytest-cov
 
-      - name: Test code with pytest
-        uses: pavelzw/pytest-action@v2
-        with:
-          emoji: false
-          verbose: false
-          job-summary: true
+      - name: Test with pytest
+        run: |
+          pytest --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
