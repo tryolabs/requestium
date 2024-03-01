@@ -1,10 +1,12 @@
 import functools
 import types
+from typing import Optional, Union
 
 import requests
 import tldextract
 from selenium import webdriver
 from selenium.webdriver import ChromeService
+from selenium.webdriver.remote.webdriver import WebDriver
 
 from .requestium_chrome import RequestiumChrome
 from .requestium_response import RequestiumResponse
@@ -25,7 +27,12 @@ class Session(requests.Session):
     """
 
     def __init__(
-        self, webdriver_path: str = None, headless: bool = False, default_timeout: float = 5, webdriver_options: dict = None, driver: webdriver = None
+        self,
+        webdriver_path: Optional[str] = None,
+        headless: bool = False,
+        default_timeout: Union[float, int] = 5,
+        webdriver_options: Optional[dict] = None,
+        driver: Optional[WebDriver] = None,
     ) -> None:
         if webdriver_options is None:
             webdriver_options = {}
@@ -68,13 +75,15 @@ class Session(requests.Session):
 
         args = self.webdriver_options.get("arguments")
         if isinstance(args, list):
-            [chrome_options.add_argument(arg) for arg in args]
+            for arg in args:
+                chrome_options.add_argument(arg)
         elif args:
             raise Exception(f"A list is needed to use 'arguments' option. Found {type(args)}")
 
         extensions = self.webdriver_options.get("extensions")
         if isinstance(extensions, list):
-            [chrome_options.add_extension(arg) for arg in extensions]
+            for arg in extensions:
+                chrome_options.add_extension(arg)
 
         if "prefs" in self.webdriver_options:
             prefs = self.webdriver_options["prefs"]
@@ -82,7 +91,8 @@ class Session(requests.Session):
 
         experimental_options = self.webdriver_options.get("experimental_options")
         if isinstance(experimental_options, dict):
-            [chrome_options.add_experimental_option(name, value) for name, value in experimental_options.items()]
+            for name, value in experimental_options.items():
+                chrome_options.add_experimental_option(name, value)
 
         # Selenium updated webdriver.Chrome's arg and kwargs, to accept options, service, keep_alive
         # since ChromeService is the only object where webdriver_path is mapped to executable_path, it must be
@@ -95,7 +105,7 @@ class Session(requests.Session):
             default_timeout=self.default_timeout,
         )
 
-    def transfer_session_cookies_to_driver(self, domain: str = None) -> None:
+    def transfer_session_cookies_to_driver(self, domain: Optional[str] = None) -> None:
         """
         Copies the Session's cookies into the webdriver
 

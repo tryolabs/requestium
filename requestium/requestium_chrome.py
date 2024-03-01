@@ -1,7 +1,7 @@
 import functools
 import time
 import warnings
-from typing import Union
+from typing import Optional, Union
 
 import tldextract
 from parsel.selector import Selector, SelectorList
@@ -23,7 +23,7 @@ class RequestiumChrome(webdriver.Chrome):
         self.default_timeout = kwargs.pop("default_timeout", None)
         super(RequestiumChrome, self).__init__(*args, **kwargs)
 
-    def try_add_cookie(self, cookie: dict[str]) -> bool:
+    def try_add_cookie(self, cookie: dict[str, str]) -> bool:
         """
         Attempt to add the cookie. Suppress any errors, and simply
         detect success or failure if the cookie was actually added.
@@ -34,7 +34,7 @@ class RequestiumChrome(webdriver.Chrome):
             pass
         return self.is_cookie_in_driver(cookie)
 
-    def ensure_add_cookie(self, cookie: dict[str], override_domain: str = None) -> None:
+    def ensure_add_cookie(self, cookie: dict[str, str], override_domain: Optional[str] = None) -> None:
         """
         Ensures a cookie gets added to the driver
 
@@ -83,7 +83,7 @@ class RequestiumChrome(webdriver.Chrome):
             if not cookie_added:
                 raise WebDriverException(f"Couldn't add the following cookie to the webdriver: {str(cookie)}")
 
-    def is_cookie_in_driver(self, cookie: dict[str]) -> bool:
+    def is_cookie_in_driver(self, cookie: dict[str, str]) -> bool:
         """
         We check that the cookie is correctly added to the driver
 
@@ -101,31 +101,31 @@ class RequestiumChrome(webdriver.Chrome):
                 return True
         return False
 
-    def ensure_element_by_id(self, selector: str, state: str = "present", timeout: float = None) -> WebElement:
+    def ensure_element_by_id(self, selector: str, state: str = "present", timeout: Union[float, int] = 1) -> Optional[WebElement]:
         return self.ensure_element(By.ID, selector, state, timeout)
 
-    def ensure_element_by_name(self, selector: str, state: str = "present", timeout: float = None) -> WebElement:
+    def ensure_element_by_name(self, selector: str, state: str = "present", timeout: Union[float, int] = 1) -> Optional[WebElement]:
         return self.ensure_element(By.NAME, selector, state, timeout)
 
-    def ensure_element_by_xpath(self, selector: str, state: str = "present", timeout: float = None) -> WebElement:
+    def ensure_element_by_xpath(self, selector: str, state: str = "present", timeout: Union[float, int] = 1) -> Optional[WebElement]:
         return self.ensure_element(By.XPATH, selector, state, timeout)
 
-    def ensure_element_by_link_text(self, selector: str, state: str = "present", timeout: float = None) -> WebElement:
+    def ensure_element_by_link_text(self, selector: str, state: str = "present", timeout: Union[float, int] = 1) -> Optional[WebElement]:
         return self.ensure_element(By.LINK_TEXT, selector, state, timeout)
 
-    def ensure_element_by_partial_link_text(self, selector: str, state: str = "present", timeout: float = None) -> WebElement:
+    def ensure_element_by_partial_link_text(self, selector: str, state: str = "present", timeout: Union[float, int] = 1) -> Optional[WebElement]:
         return self.ensure_element(By.PARTIAL_LINK_TEXT, selector, state, timeout)
 
-    def ensure_element_by_tag_name(self, selector: str, state: str = "present", timeout: float = None) -> WebElement:
+    def ensure_element_by_tag_name(self, selector: str, state: str = "present", timeout: Union[float, int] = 1) -> Optional[WebElement]:
         return self.ensure_element(By.TAG_NAME, selector, state, timeout)
 
-    def ensure_element_by_class_name(self, selector: str, state: str = "present", timeout: float = None) -> WebElement:
+    def ensure_element_by_class_name(self, selector: str, state: str = "present", timeout: Union[float, int] = 1) -> Optional[WebElement]:
         return self.ensure_element(By.CLASS_NAME, selector, state, timeout)
 
-    def ensure_element_by_css_selector(self, selector: str, state: str = "present", timeout: float = None) -> WebElement:
+    def ensure_element_by_css_selector(self, selector: str, state: str = "present", timeout: Union[float, int] = 1) -> Optional[WebElement]:
         return self.ensure_element(By.CSS_SELECTOR, selector, state, timeout)
 
-    def ensure_element(self, locator: str, selector: str, state: str = "present", timeout: float = None) -> WebElement:
+    def ensure_element(self, locator: str, selector: str, state: str = "present", timeout: Union[float, int] = 1) -> Optional[WebElement]:
         """
         This method allows us to wait till an element appears or disappears in the browser
 
