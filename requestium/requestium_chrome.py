@@ -99,7 +99,7 @@ class RequestiumChrome(webdriver.Chrome):
             )
             if name_matches and value_matches and domain_matches:
                 return True
-            return False
+        return False
 
     def ensure_element_by_id(self, selector: str, state: str = "present", timeout: float = None) -> WebElement:
         return self.ensure_element(By.ID, selector, state, timeout)
