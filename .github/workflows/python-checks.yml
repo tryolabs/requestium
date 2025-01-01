@@ -112,6 +112,34 @@ jobs:
               run: |
                 bandit -c pyproject.toml -r . -ll -ii
 
+    coverage:
+        runs-on: windows-latest
+
+        steps:
+            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+            - name: Set up Python 3.12
+              uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+              with:
+                  python-version: "3.12"
+
+            - name: Install uv
+              uses: install-pinned/uv@79408d4e43d557f731ba612bec337d5414737a70  # 0.4.12
+
+            - name: Install dependencies
+              run: |
+                uv pip install --system -e .[all]
+                uv pip install --system -r requirements.txt
+                uv pip install --system pytest coverage
+                
+            - name: Test with pytest
+              run: |
+                coverage run -m pytest
+
+            - name: Check coverage
+              run: |
+                coverage report -m --skip-covered --fail-under=75
+
     pip-install:
         strategy:
             fail-fast: false
