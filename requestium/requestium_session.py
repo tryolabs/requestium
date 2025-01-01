@@ -61,7 +61,7 @@ class Session(requests.Session):
             self._driver = self._driver_initializer()
         return self._driver
 
-    def _start_chrome_browser(self, headless: bool = False) -> RequestiumChrome:
+    def _start_chrome_browser(self, headless: bool = False) -> RequestiumChrome:  # noqa: C901
         # TODO transfer of proxies and headers: Not supported by chromedriver atm.
         # Choosing not to use plug-ins for this as I don't want to worry about the
         # extra dependencies and plug-ins don't work in headless mode. :-(
