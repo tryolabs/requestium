@@ -1,0 +1,141 @@
+name: Python checks
+
+on:
+    push:
+    pull_request:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    test:
+        strategy:
+            fail-fast: false
+            matrix:
+                python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+                os: ["ubuntu-latest", "windows-latest", "macos-latest"]
+
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+              with:
+                  python-version: ${{ matrix.python-version }}
+                  cache: pip
+
+            - name: Install uv
+              uses: install-pinned/uv@79408d4e43d557f731ba612bec337d5414737a70  # 0.4.12
+
+            - name: Install dependencies
+              run: |
+                uv pip install --system -e .[all]
+                uv pip install --system pytest
+                uv pip install --system -r requirements.txt
+
+            - name: Test with pytest
+              run: |
+                pytest
+
+    ruff-format:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+            - name: Set up Python 3.13
+              uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+              with:
+                  python-version: "3.13"
+                  cache: pip
+
+            - name: Install uv
+              uses: install-pinned/uv@79408d4e43d557f731ba612bec337d5414737a70  # 0.4.12
+
+            - name: Install dependencies
+              run: |
+                uv pip install --system -r requirements.txt
+                uv pip install --system ruff
+
+            - name: Run ruff format
+              run: |
+                ruff format --diff --target-version=py39 .
+
+    ruff:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+            - name: Set up Python 3.13
+              uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+              with:
+                  python-version: "3.13"
+                  cache: pip
+
+            - name: Install uv
+              uses: install-pinned/uv@79408d4e43d557f731ba612bec337d5414737a70  # 0.4.12
+
+            - name: Install dependencies
+              run: |
+                uv pip install --system -r requirements.txt
+                uv pip install --system ruff
+
+            - name: Run ruff
+              run: |
+                ruff check --output-format=github .
+
+    bandit:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+            - name: Set up Python 3.13
+              uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+              with:
+                  python-version: "3.13"
+                  cache: pip
+
+            - name: Install uv
+              uses: install-pinned/uv@79408d4e43d557f731ba612bec337d5414737a70  # 0.4.12
+
+            - name: Install bandit
+              run: |
+                uv pip install --system -r requirements.txt
+                uv pip install --system bandit
+
+            - name: Run bandit scan
+              run: |
+                bandit -c pyproject.toml -r . -ll -ii
+
+    pip-install:
+        strategy:
+            fail-fast: false
+            matrix:
+                python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+                os: ["ubuntu-latest", "windows-latest", "macos-latest"]
+
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - name: Harden Runner
+              uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
+              with:
+                  egress-policy: audit
+
+            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+              with:
+                  python-version: ${{ matrix.python-version }}
+                  cache: pip
+
+            - name: Install dependencies
+              run: |
+                  pip install -r requirements.txt
+                  pip install -e .[all]
