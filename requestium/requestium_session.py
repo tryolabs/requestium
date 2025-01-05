@@ -40,8 +40,8 @@ class Session(requests.Session):
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
         self.webdriver_options = webdriver_options
-        self._driver = driver
-        self._last_requests_url = None
+        self._driver: Optional[WebDriver] = driver
+        self._last_requests_url: Optional[str] = None
 
         if self._driver is None:
             self._driver_initializer = functools.partial(self._start_chrome_browser, headless=headless)
