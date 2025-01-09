@@ -1,0 +1,38 @@
+sudo: false
+language: python
+python:
+  - '2.7'
+  - '3.4'
+  - '3.5'
+  - '3.6'
+install:
+  - pip install tox-travis
+  - wget -N https://chromedriver.storage.googleapis.com/99.0.4844.51/chromedriver_linux64.zip -P ~/
+  - unzip ~/chromedriver_linux64.zip -d ~/
+  - rm ~/chromedriver_linux64.zip
+  - sudo mv -f ~/chromedriver /usr/local/share/
+  - sudo chmod +x /usr/local/share/chromedriver
+  - sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
+script: tox
+deploy:
+  # Test PyPI in every change to master
+  - provider: pypi
+    server: https://test.pypi.org/legacy/
+    distributions: sdist bdist_wheel --universal
+    user: $PYPI_TEST_USERNAME
+    password: $PYPI_TEST_PASSWORD
+    on:
+      all_branches: true
+      tags: false
+      python: 3.6
+  # Real PyPI in tags (ie. GitHub releases)
+  - provider: pypi
+    distributions: sdist bdist_wheel --universal
+    user: $PYPI_USERNAME
+    password: $PYPI_PASSWORD
+    on:
+      branch: master
+      tags: true
+      python: 3.6
+addons:
+  chrome: stable
