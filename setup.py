@@ -18,7 +18,7 @@ setup(
     author="Joaquin Alori",
     author_email="joaquin@tryolabs.com",
     url="https://github.com/tryolabs/requestium",
-    packages=("requestium",),
+    packages=["requestium"],
     install_requires=(
         "parsel==1.9.1",
         "requests==2.32.3",
