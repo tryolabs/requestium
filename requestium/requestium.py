@@ -261,8 +261,10 @@ class Session(requests.Session):
     """
 
     def __init__(
-        self, webdriver_path: str = None, headless: bool = False, default_timeout: float = 5, webdriver_options: dict = {}, driver: webdriver = None
+        self, webdriver_path: str = None, headless: bool = False, default_timeout: float = 5, webdriver_options: dict = None, driver: webdriver = None
     ) -> None:
+        if webdriver_options is None:
+            webdriver_options = {}
         super(Session, self).__init__()
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
