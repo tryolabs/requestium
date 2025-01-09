@@ -81,7 +81,7 @@ class Session(requests.Session):
                 if name_private or not name_function or name_in_driver:
                     continue
                 self._driver.__dict__[name] = DriverMixin.__dict__[name].__get__(self._driver)
-            setattr(self._driver, "default_timeout", self.default_timeout)
+            self._driver.default_timeout = self.default_timeout
 
     @property
     def driver(self):
