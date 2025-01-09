@@ -413,6 +413,7 @@ def _ensure_click(self) -> None:
     )
     self.parent.execute_script(script, self)  # parent = the webdriver
 
+    exception_message = ""
     for _ in range(10):
         try:
             self.click()
@@ -420,4 +421,4 @@ def _ensure_click(self) -> None:
         except WebDriverException as e:
             exception_message = str(e)
             time.sleep(0.2)
-    raise WebDriverException("Couldn't click item after trying 10 times, got error message: \n{}".format(exception_message))
+    raise WebDriverException(f"Couldn't click item after trying 10 times, got error message: {exception_message}")
