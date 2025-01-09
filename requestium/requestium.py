@@ -1,3 +1,5 @@
+"""Requestium is a Python library that merges the power of Requests, Selenium, and Parsel into a single integrated tool for automatizing web actions."""
+
 import functools
 import time
 import types
