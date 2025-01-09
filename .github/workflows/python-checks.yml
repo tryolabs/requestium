@@ -47,10 +47,10 @@ jobs:
     #     steps:
     #         - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-    #         - name: Set up Python 3.12
+    #         - name: Set up Python 3.13
     #           uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
     #           with:
-    #               python-version: "3.12"
+    #               python-version: "3.13"
     #               cache: pip
 
     #         - name: Install uv
@@ -71,10 +71,10 @@ jobs:
         steps:
             - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-            - name: Set up Python 3.12
+            - name: Set up Python 3.13
               uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
               with:
-                  python-version: "3.12"
+                  python-version: "3.13"
                   cache: pip
 
             - name: Install uv
@@ -95,10 +95,10 @@ jobs:
         steps:
             - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-            - name: Set up Python 3.12
+            - name: Set up Python 3.13
               uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
               with:
-                  python-version: "3.12"
+                  python-version: "3.13"
                   cache: pip
 
             - name: Install uv
@@ -119,10 +119,10 @@ jobs:
         steps:
             - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-            - name: Set up Python 3.12
+            - name: Set up Python 3.13
               uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
               with:
-                  python-version: "3.12"
+                  python-version: "3.13"
                   cache: pip
 
             - name: Install uv
@@ -143,10 +143,10 @@ jobs:
         steps:
             - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-            - name: Set up Python 3.12
+            - name: Set up Python 3.13
               uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
               with:
-                  python-version: "3.12"
+                  python-version: "3.13"
 
             - name: Install uv
               uses: install-pinned/uv@fcfffa0c3562cd3e841565020ad09a70bb82299b  # 0.5.14
@@ -170,7 +170,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                python-version: ["3.9", "3.10", "3.11", "3.12"]
+                python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
                 os: ["ubuntu-latest", "windows-latest", "macos-latest"]
 
         runs-on: ${{ matrix.os }}
