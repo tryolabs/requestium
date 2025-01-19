@@ -1,4 +1,4 @@
-include *.md tox.ini LICENSE *.yml *.py
+include *.md LICENSE *.yml *.py
 graft requestium
 
 global-exclude __pycache__
