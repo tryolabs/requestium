@@ -37,7 +37,7 @@ jobs:
                 uv pip install --system -r requirements.txt
 
             - name: Run headless pytest
-              uses: GabrielBB/xvfb-action@v1
+              uses: GabrielBB/xvfb-action@5bcda06da84ba084708898801da79736b88e00a9  # 1.7
               with:
                 run: pytest
 
@@ -158,7 +158,7 @@ jobs:
                 uv pip install --system pytest coverage
 
             - name: Run headless pytest with coverage
-              uses: GabrielBB/xvfb-action@v1
+              uses: GabrielBB/xvfb-action@5bcda06da84ba084708898801da79736b88e00a9  # 1.7
               with:
                 run: coverage run -m pytest
 
