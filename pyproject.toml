@@ -15,6 +15,24 @@ tldextract = "^5.1.1"
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
 
+[tool.ruff]
+line-length = 160
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+extend-select = ["B", "W", "C"]
+ignore = ["C400", "C401"]
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+
+[tool.coverage.paths]
+source = [
+    "requestium/",
+    ]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
