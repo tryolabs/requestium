@@ -48,7 +48,7 @@ jobs:
             - name: Install dependencies
               run: |
                 uv pip install --system -r requirements.txt
-                uv pip install --system .[all]
+                uv pip install --system .
                 uv pip install --system pytest
                 uv pip install --system coverage
 
@@ -108,7 +108,7 @@ jobs:
             - name: Install dependencies
               run: |
                 uv pip install --system -r requirements.txt
-                uv pip install --system .[all]
+                uv pip install --system .
                 uv pip install --system ruff
 
             - name: Run ruff format
@@ -133,7 +133,7 @@ jobs:
             - name: Install dependencies
               run: |
                 uv pip install --system -r requirements.txt
-                uv pip install --system .[all]
+                uv pip install --system .
                 uv pip install --system ruff
 
             - name: Run ruff
@@ -158,7 +158,7 @@ jobs:
             - name: Install bandit
               run: |
                 uv pip install --system -r requirements.txt
-                uv pip install --system .[all]
+                uv pip install --system .
                 uv pip install --system bandit[toml]
 
             - name: Run bandit scan
