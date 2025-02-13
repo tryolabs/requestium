@@ -16,9 +16,7 @@ import contextlib
 
 
 class RequestiumChrome(webdriver.Chrome):
-    """
-    Provides helper methods to our driver classes
-    """
+    """Provides helper methods to our driver classes."""
 
     def __init__(self, *args, **kwargs) -> None:
         self.default_timeout = kwargs.pop("default_timeout", None)
@@ -26,8 +24,9 @@ class RequestiumChrome(webdriver.Chrome):
 
     def try_add_cookie(self, cookie: dict[str, str]) -> bool:
         """
-        Attempt to add the cookie. Suppress any errors, and simply
-        detect success or failure if the cookie was actually added.
+        Attempt to add the cookie.
+
+        Suppresses any errors, and simply detect success or failure if the cookie was actually added.
         """
         with contextlib.suppress(UnableToSetCookieException):
             self.add_cookie(cookie)
@@ -35,7 +34,7 @@ class RequestiumChrome(webdriver.Chrome):
 
     def ensure_add_cookie(self, cookie: dict[str, str], override_domain: Optional[str] = None) -> None:
         """
-        Ensures a cookie gets added to the driver
+        Ensure a cookie gets added to the driver.
 
         Selenium needs the driver to be currently at the domain of the cookie
         before allowing you to add it, so we need to get through this limitation.
@@ -85,7 +84,7 @@ class RequestiumChrome(webdriver.Chrome):
 
     def is_cookie_in_driver(self, cookie: dict[str, str]) -> bool:
         """
-        We check that the cookie is correctly added to the driver
+        We check that the cookie is correctly added to the driver.
 
         We only compare name, value and domain, as the rest can produce false negatives.
         We are a bit lenient when comparing domains.
@@ -125,9 +124,15 @@ class RequestiumChrome(webdriver.Chrome):
     def ensure_element_by_css_selector(self, selector: str, state: str = "present", timeout: Union[float, int] = 1) -> Optional[WebElement]:
         return self.ensure_element(By.CSS_SELECTOR, selector, state, timeout)
 
-    def ensure_element(self, locator: str, selector: str, state: str = "present", timeout: Union[float, int] = 1) -> Optional[WebElement]:
+    def ensure_element(
+        self,
+        locator: str,
+        selector: str,
+        state: str = "present",
+        timeout: Union[float, int] = 1,
+    ) -> Optional[WebElement]:
         """
-        This method allows us to wait till an element appears or disappears in the browser
+        Wait till an element appears or disappears in the browser.
 
         The webdriver runs in parallel with our scripts, so we must wait for it everytime it
         runs javascript. Selenium automatically waits till a page loads when GETing it,
@@ -191,7 +196,7 @@ Use strategies from Selenium's By class (importable from selenium.webdriver.comm
     @property
     def selector(self) -> Selector:
         """
-        Returns the current state of the browser in a Selector
+        Returns the current state of the browser in a Selector.
 
         We re-parse the site on each xpath, css, re call because we are running a web browser
         and the site may change between calls
@@ -213,7 +218,7 @@ Use strategies from Selenium's By class (importable from selenium.webdriver.comm
 
 def _ensure_click(self) -> None:
     """
-    Ensures a click gets made, because Selenium can be a bit buggy about clicks
+    Ensure a click gets made, because Selenium can be a bit buggy about clicks.
 
     This method gets added to the selenium element returned in '__ensure_element_by_xpath'.
     We should probably add it to more selenium methods, such as all the 'find**' methods though.
