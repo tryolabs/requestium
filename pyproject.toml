@@ -22,3 +22,33 @@ ruff = "0.9.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint]
+select = [
+    "F",
+	"E",
+	"W",
+	"D",
+	"YTT",
+	"LOG",
+	"A",
+	"C4",
+	"DTZ",
+	"EM",
+	"G",
+	"T20",
+	"BLE",
+	"PT",
+	"SIM",
+	"RUF",
+	"UP",
+]
+ignore = [
+    "D100",
+	"D102",
+	"D103",
+	"D104",
+	"D107",
+	"D203",
+	"D212",
+]
