@@ -15,7 +15,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 class Session(requests.Session):
-    """Class that adds a Selenium Webdriver and helper methods to a  Requests Session
+    """
+    Class that adds a Selenium Webdriver and helper methods to a  Requests Session.
 
     This session class is a normal Requests Session that has the ability to switch back
     and forth between this session and a webdriver, allowing us to run js when needed.
@@ -100,7 +101,8 @@ class Session(requests.Session):
         return RequestiumChrome(service=service, options=chrome_options, default_timeout=self.default_timeout)
 
     def transfer_session_cookies_to_driver(self, domain=None):
-        """Copies the Session's cookies into the webdriver
+        """
+        Copies the Session's cookies into the webdriver.
 
         Using the 'domain' parameter we choose the cookies we wish to transfer, we only
         transfer the cookies which belong to that domain. The domain defaults to our last visited
@@ -140,7 +142,8 @@ class Session(requests.Session):
         return RequestiumResponse(resp)
 
     def copy_user_agent_from_driver(self):
-        """Updates requests' session user-agent with the driver's user agent
+        """
+        Updates requests' session user-agent with the driver's user agent.
 
         This method will start the browser process if its not already running.
         """
@@ -148,15 +151,16 @@ class Session(requests.Session):
         self.headers.update({"user-agent": selenium_user_agent})
 
 
-class RequestiumResponse(object):
-    """Adds xpath, css, and regex methods to a normal requests response object"""
+class RequestiumResponse:
+    """Adds xpath, css, and regex methods to a normal requests response object."""
 
     def __init__(self, response):
         self.__class__ = type(response.__class__.__name__, (self.__class__, response.__class__), response.__dict__)
 
     @property
     def selector(self):
-        """Returns the response text in a Selector
+        """
+        Returns the response text in a Selector.
 
         We re-parse the text on each xpath, css, re call in case the encoding has changed.
         """
@@ -175,15 +179,16 @@ class RequestiumResponse(object):
         return self.selector.re_first(*args, **kwargs)
 
 
-class DriverMixin(object):
-    """Provides helper methods to our driver classes"""
+class DriverMixin:
+    """Provides helper methods to our driver classes."""
 
     def __init__(self, *args, **kwargs):
         self.default_timeout = kwargs.pop("default_timeout", None)
         super(DriverMixin, self).__init__(*args, **kwargs)
 
     def try_add_cookie(self, cookie):
-        """Attempt to add the cookie. Suppress any errors, and simply
+        """
+        Attempt to add the cookie. Suppress any errors, and simply
         detect success or failure if the cookie was actually added.
         """
         try:
@@ -193,7 +198,8 @@ class DriverMixin(object):
         return self.is_cookie_in_driver(cookie)
 
     def ensure_add_cookie(self, cookie, override_domain=None):
-        """Ensures a cookie gets added to the driver
+        """
+        Ensures a cookie gets added to the driver.
 
         Selenium needs the driver to be currently at the domain of the cookie
         before allowing you to add it, so we need to get through this limitation.
@@ -238,10 +244,11 @@ class DriverMixin(object):
             cookie["domain"] = tldextract.extract(cookie["domain"]).registered_domain
             cookie_added = self.try_add_cookie(cookie)
             if not cookie_added:
-                raise WebDriverException("Couldn't add the following cookie to the webdriver: {}".format(cookie))
+                raise WebDriverException(f"Couldn't add the following cookie to the webdriver: {cookie}")
 
     def is_cookie_in_driver(self, cookie):
-        """We check that the cookie is correctly added to the driver
+        """
+        We check that the cookie is correctly added to the driver.
 
         We only compare name, value and domain, as the rest can produce false negatives.
         We are a bit lenient when comparing domains.
@@ -279,7 +286,8 @@ class DriverMixin(object):
         return self.ensure_element(By.CSS_SELECTOR, selector, state, timeout)
 
     def ensure_element(self, locator: str, selector: str, state: str = "present", timeout=None):
-        """This method allows us to wait till an element appears or disappears in the browser
+        """
+        This method allows us to wait till an element appears or disappears in the browser.
 
         The webdriver runs in parallel with our scripts, so we must wait for it everytime it
         runs javascript. Selenium automatically waits till a page loads when GETing it,
@@ -330,7 +338,7 @@ class DriverMixin(object):
             WebDriverWait(self, timeout).until(expected_conditions.invisibility_of_element_located((locator, selector)))
             element = None
         else:
-            raise ValueError("The 'state' argument must be 'visible', 'clickable', 'present' or 'invisible', not '{}'".format(state))
+            raise ValueError(f"The 'state' argument must be 'visible', 'clickable', 'present' or 'invisible', not '{state}'")
 
         # We add this method to our element to provide a more robust click. Chromedriver
         # sometimes needs some time before it can click an item, specially if it needs to
@@ -341,10 +349,12 @@ class DriverMixin(object):
 
     @property
     def selector(self):
-        """Returns the current state of the browser in a Selector
+        """
+        Returns the current state of the browser in a Selector.
 
         We re-parse the site on each xpath, css, re call because we are running a web browser
-        and the site may change between calls"""
+        and the site may change between calls
+        """
         return Selector(text=self.page_source)
 
     def xpath(self, *args, **kwargs):
@@ -361,7 +371,8 @@ class DriverMixin(object):
 
 
 def _ensure_click(self):
-    """Ensures a click gets made, because Selenium can be a bit buggy about clicks
+    """
+    Ensures a click gets made, because Selenium can be a bit buggy about clicks.
 
     This method gets added to the selenium element returned in '__ensure_element_by_xpath'.
     We should probably add it to more selenium methods, such as all the 'find**' methods though.
@@ -373,7 +384,6 @@ def _ensure_click(self):
     before clicking it. I tried SEVERAL more 'correct' methods to get around this, but none of them
     worked 100% of the time (waiting for the element to be 'clickable' does not work).
     """
-
     # We ensure the element is scrolled into the middle of the viewport to ensure that
     # it is clickable. There are two main ways an element may not be clickable:
     #   - It is outside of the viewport
@@ -394,4 +404,4 @@ def _ensure_click(self):
         except WebDriverException as e:
             exception_message = str(e)
             time.sleep(0.2)
-    raise WebDriverException("Couldn't click item after trying 10 times, got error message: \n{}".format(exception_message))
+    raise WebDriverException(f"Couldn't click item after trying 10 times, got error message: \n{exception_message}")
