@@ -1,0 +1,31 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: 'v5.0.0'
+      hooks:
+          - id: check-yaml
+          - id: check-ast
+          - id: check-builtin-literals
+          - id: check-case-conflict
+          - id: check-docstring-first
+          - id: check-executables-have-shebangs
+          - id: check-toml
+          - id: debug-statements
+          - id: mixed-line-ending
+    - repo: https://github.com/asottile/pyupgrade
+      rev: 'v3.19.1'
+      hooks:
+          - id: pyupgrade
+            args: ['--py39-plus']
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: 'v0.11.4'
+      hooks:
+          - id: ruff
+          - id: ruff-format
+    - repo: https://github.com/PyCQA/bandit
+      rev: '1.8.3'
+      hooks:
+          - id: bandit
+            args: ['--confidence-level', 'medium']
+            files: '^requestium'
