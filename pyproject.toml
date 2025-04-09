@@ -135,6 +135,6 @@ exclude_also = [
 
 [tool.bandit]
 exclude_dirs = [
-    "./tests/",
-    "./.venv/",
+    "./tests",
+    "./.venv",
 ]

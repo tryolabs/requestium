@@ -211,14 +211,15 @@ jobs:
                   uv pip install --system -e .[dev]
 
             - name: Run bandit scan
+              id: run-bandit-sarif
               run: |
-                  bandit --confidence-level=high --severity-level=high --configfile 'pyproject.toml' --format sarif --output results.sarif --recursive .
+                  bandit --configfile pyproject.toml --format sarif --output results.sarif --recursive ./requestium
 
             - name: Upload SARIF file to code scanning
+              if: ( success() || failure() ) && contains('["success", "failure"]', steps.run-bandit-sarif.outcome)
               uses: github/codeql-action/upload-sarif@1b549b9259bda1cb5ddde3b41741a82a2d15a841
               with:
                   sarif_file: results.sarif
-
 
     coverage:
         runs-on: ubuntu-latest
