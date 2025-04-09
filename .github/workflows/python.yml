@@ -1,0 +1,280 @@
+name: Python checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: 0 0 * * 1
+
+permissions: read-all
+
+jobs:
+  test:
+    name: Pytest testing
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - 3.9
+          - 3.10
+          - 3.11
+          - 3.12
+          - 3.13
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            files.pythonhosted.org:443
+            github.com:443
+            pypi.org:443
+            raw.githubusercontent.com:443
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - uses: install-pinned/uv@95e90cc576af729d90be7d0233d3452899eef976
+
+      - run: uv pip install --system -e .[dev]
+
+      - id: cache-pytest
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: .pytest_cache
+          key: ${{ runner.os }}-pytest-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+
+      - run: pytest
+        env:
+          COVERAGE_FILE: .coverage.${{ runner.os }}.${{ matrix.python-version }}
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: coverage-${{ runner.os }}${{ matrix.python-version }}
+          path: .coverage.${{ runner.os }}.${{ matrix.python-version }}
+          include-hidden-files: true
+
+  ruff-format:
+    name: Ruff formatting
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            files.pythonhosted.org:443
+            github.com:443
+            pypi.org:443
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55
+        with:
+          python-version: 3.13
+          cache: pip
+
+      - uses: install-pinned/uv@95e90cc576af729d90be7d0233d3452899eef976
+
+      - run: uv pip install --system -e .[dev]
+
+      - id: cache-ruff
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: .ruff_cache
+          key: ${{ runner.os }}-ruff-3.13-${{ hashFiles('pyproject.toml') }}
+
+      - id: run-ruff
+        run: ruff format --diff .
+
+  ruff-check:
+    name: Ruff linting
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      security-events: write
+
+    steps:
+      - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            files.pythonhosted.org:443
+            github.com:443
+            pypi.org:443
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55
+        with:
+          python-version: 3.13
+          cache: pip
+
+      - uses: install-pinned/uv@95e90cc576af729d90be7d0233d3452899eef976
+
+      - run: uv pip install --system -e .[dev]
+
+      - id: cache-ruff
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: .ruff_cache
+          key: ${{ runner.os }}-ruff-3.13-${{ hashFiles('pyproject.toml') }}
+
+      - id: run-ruff-sarif
+        run: |
+          ruff check --output-format=sarif -o results.sarif .
+
+      - uses: github/codeql-action/upload-sarif@1b549b9259bda1cb5ddde3b41741a82a2d15a841
+        if: ( success() || failure() ) && contains('["success", "failure"]', steps.run-ruff-sarif.outcome)
+        with:
+          sarif_file: results.sarif
+
+      - id: run-ruff
+        if: ( success() || failure() ) && contains('["success", "failure"]', steps.run-ruff-sarif.outcome)
+        run: |
+          ruff check --output-format=github .
+
+  bandit:
+    name: Bandit security
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      security-events: write
+
+    steps:
+      - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            files.pythonhosted.org:443
+            github.com:443
+            pypi.org:443
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - uses: install-pinned/uv@95e90cc576af729d90be7d0233d3452899eef976
+
+      - run: uv pip install --system -e .[dev]
+
+      - run: >
+          bandit --confidence-level 'medium' --format 'sarif' --output 'results.sarif' --recursive 'requestium'
+
+      - uses: github/codeql-action/upload-sarif@1b549b9259bda1cb5ddde3b41741a82a2d15a841
+        with:
+          sarif_file: results.sarif
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: |
+            api.github.com:443
+            github.com:443
+            img.shields.io:443
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        with:
+          pattern: coverage-*
+          merge-multiple: true
+
+      - name: Coverage comment
+        id: coverage_comment
+        uses: py-cov-action/python-coverage-comment-action@d1ff8fbb5ff80feedb3faa0f6d7b424f417ad0e1
+        with:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          MERGE_COVERAGE_FILES: true
+
+      - name: Store Pull Request comment to be posted
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
+        with:
+          name: python-coverage-comment-action
+          path: python-coverage-comment-action.txt
+
+  pre-commit:
+    runs-on: ubuntu-latest
+    needs:
+      - ruff-format
+      - ruff-check
+      - bandit
+    permissions:
+      contents: write
+
+    steps:
+      - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            files.pythonhosted.org:443
+            github.com:443
+            proxy.golang.org:443
+            pypi.org:443
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55
+        with:
+          python-version: 3.13
+          cache: pip
+
+      - uses: install-pinned/uv@95e90cc576af729d90be7d0233d3452899eef976
+
+      - run: uv pip install --system -e .[dev]
+
+      - id: cache-pre-commit
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: .pre-commit-cache
+          key: '${{ runner.os }}-pre-commit-3.13'
+
+      - name: Run pre-commit on all files
+        run: |
+          pre-commit install
+          pre-commit run --all-files
+        env:
+          PRE_COMMIT_HOME: .pre-commit-cache
