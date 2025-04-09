@@ -1,0 +1,50 @@
+name: CodeQL analysis
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: 0 0 * * 1
+
+permissions: read-all
+
+jobs:
+  analyze:
+    name: CodeQL analysis
+
+    permissions:
+      security-events: write
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - python
+
+    steps:
+      - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            uploads.github.com:443
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: github/codeql-action/init@1b549b9259bda1cb5ddde3b41741a82a2d15a841
+        with:
+          languages: ${{ matrix.language }}
+
+      - uses: github/codeql-action/autobuild@1b549b9259bda1cb5ddde3b41741a82a2d15a841
+
+      - uses: github/codeql-action/analyze@1b549b9259bda1cb5ddde3b41741a82a2d15a841
+        with:
+          category: /language:${{matrix.language}}
