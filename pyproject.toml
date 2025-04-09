@@ -45,13 +45,11 @@ issues = "https://github.com/tryolabs/requestium/issues"
 [project.optional-dependencies]
 dev = [
     "bandit[toml,sarif]==1.8.3",
+    "coverage==7.8.0",
+    "pytest-cov==6.0.0",
     "pytest-xdist==3.6.1",
     "pytest==8.3.5",
     "ruff==0.11.4",
-]
-github-actions = [
-    "coverage==7.8.0",
-    "pytest-cov==6.0.0",
 ]
 
 [build-system]
