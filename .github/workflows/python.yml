@@ -184,7 +184,7 @@ jobs:
 
       - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55
         with:
-          python-version: '3.13'
+          python-version: 3.13
           cache: pip
 
       - uses: install-pinned/uv@95e90cc576af729d90be7d0233d3452899eef976
@@ -225,7 +225,7 @@ jobs:
         id: coverage_comment
         uses: py-cov-action/python-coverage-comment-action@d1ff8fbb5ff80feedb3faa0f6d7b424f417ad0e1
         with:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MERGE_COVERAGE_FILES: true
 
       - name: Store Pull Request comment to be posted
@@ -270,7 +270,7 @@ jobs:
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: .pre-commit-cache
-          key: '${{ runner.os }}-pre-commit-3.13'
+          key: ${{ runner.os }}-pre-commit-3.13
 
       - name: Run pre-commit on all files
         run: |
