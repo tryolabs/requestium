@@ -211,11 +211,11 @@ if not reddit_user_name:
 
 if reddit_user_name:
     s.transfer_driver_cookies_to_session()
-    response = s.get("https://www.reddit.com/user/{}/".format(reddit_user_name))
+    response = s.get(f"https://www.reddit.com/user/{reddit_user_name}/")
     cmnt_karma = response.xpath("//span[@class='karma comment-karma']//text()").extract_first()
     reddit_golds_given = response.re_first(r"(\d+) gildings given out")
-    print("Comment karma: {}".format(cmnt_karma))
-    print("Reddit golds given: {}".format(reddit_golds_given))
+    print(f"Comment karma: {cmnt_karma}")
+    print(f"Reddit golds given: {reddit_golds_given}")
 else:
     print("Couldn't get user name")
 ```
@@ -277,7 +277,7 @@ if reddit_user_name:
     s.headers.update({"user-agent": selenium_user_agent})
     for cookie in driver.get_cookies():
         s.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
-    response = s.get("https://www.reddit.com/user/{}/".format(reddit_user_name))
+    response = s.get(f"https://www.reddit.com/user/{reddit_user_name}/")
     try:
         cmnt_karma = etree.HTML(response.content).xpath(
             "//span[@class='karma comment-karma']//text()")[0]
@@ -288,8 +288,8 @@ if reddit_user_name:
         reddit_golds_given = match.group(1)
     else:
         reddit_golds_given = None
-    print("Comment karma: {}".format(cmnt_karma))
-    print("Reddit golds given: {}".format(reddit_golds_given))
+    print(f"Comment karma: {cmnt_karma}")
+    print(f"Reddit golds given: {reddit_golds_given}")
 else:
     print("Couldn't get user name")
 ```

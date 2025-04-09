@@ -26,7 +26,7 @@ def session(request):
     session.driver.close()
 
 
-def test_simple_page_load(session):
+def test_simple_page_load(session) -> None:
     session.driver.get("http://the-internet.herokuapp.com")
     session.driver.ensure_element(By.ID, "content")
     title = session.driver.title
