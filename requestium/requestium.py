@@ -76,7 +76,7 @@ class Session(requests.Session):
         # TODO transfer of proxies and headers: Not supported by chromedriver atm.
         # Choosing not to use plug-ins for this as I don't want to worry about the
         # extra dependencies and plug-ins don't work in headless mode. :-(
-        chrome_options = webdriver.chrome.options.Options()
+        chrome_options = webdriver.ChromeOptions()
 
         if headless:
             chrome_options.add_argument("headless=new")
