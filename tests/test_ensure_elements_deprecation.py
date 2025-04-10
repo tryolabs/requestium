@@ -16,9 +16,8 @@ session_parameters = [
 
 @pytest.fixture(params=session_parameters)
 def session(request):
-    session = requestium.Session(**request.param)
-    yield session
-    session.driver.close()
+    with requestium.Session(**request.param) as session:
+        return session
 
 
 def test_deprecation_warning_for_ensure_element_locators_with_underscores(session):

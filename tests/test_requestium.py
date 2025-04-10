@@ -17,9 +17,8 @@ session_parameters = [
 
 @pytest.fixture(params=session_parameters)
 def session(request):
-    session = requestium.Session(**request.param)
-    yield session
-    session.driver.close()
+    with requestium.Session(**request.param) as session:
+        return session
 
 
 def test_simple_page_load(session):
