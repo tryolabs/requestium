@@ -41,10 +41,16 @@ jobs:
           disable-sudo: true
           egress-policy: block
           allowed-endpoints: >
+            accounts.google.com:443
+            clients2.google.com:80
             files.pythonhosted.org:443
             github.com:443
+            googlechromelabs.github.io:443
+            googlechromelabs.github.io:80
+            plausible.io:443
             pypi.org:443
             raw.githubusercontent.com:443
+            the-internet.herokuapp.com:443
 
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
