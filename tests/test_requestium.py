@@ -4,21 +4,25 @@ import pytest
 import selenium.webdriver
 from selenium.webdriver.common.by import By
 
-import requestium
+from requestium import Session
 
 chrome_webdriver_path = shutil.which("chromedriver")
-session_parameters = [
-    {"webdriver_path": chrome_webdriver_path},
-    {"webdriver_path": chrome_webdriver_path, "headless": True},
-    {"driver": selenium.webdriver.Chrome()},
-    {"driver": selenium.webdriver.Firefox()},
-]
+
+session_factories = {
+    "chrome": lambda: Session(webdriver_path=chrome_webdriver_path),
+    "chrome_headless": lambda: Session(
+        webdriver_path=chrome_webdriver_path, headless=True
+    ),
+    "firefox": lambda: Session(driver=selenium.webdriver.Firefox()),
+    "requestium_driver": lambda: Session(driver=selenium.webdriver.Chrome()),
+}
 
 
-@pytest.fixture(params=session_parameters)
+@pytest.fixture(params=session_factories.keys())
 def session(request):
-    with requestium.Session(**request.param) as session:
-        return session
+    session = session_factories[request.param]()
+    yield session
+    session.driver.quit()
 
 
 def test_simple_page_load(session):
