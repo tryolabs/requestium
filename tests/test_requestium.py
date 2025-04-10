@@ -1,3 +1,4 @@
+import contextlib
 import shutil
 import tempfile
 
@@ -7,17 +8,24 @@ from selenium.webdriver.common.by import By
 
 from requestium import Session
 
-chrome_webdriver_path = shutil.which("chromedriver")
 
-
+@contextlib.contextmanager
 def create_chrome_session(headless=False):
-    chrome_options = selenium.webdriver.ChromeOptions()
-    if headless:
-        chrome_options.add_argument("--headless=new")
-    chrome_options.add_argument(f"--user-data-dir={tempfile.mkdtemp()}")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    return Session(webdriver_path=chrome_webdriver_path, browser_options=chrome_options)
+    with tempfile.TemporaryDirectory() as tmp_profile_dir:
+        chrome_options = selenium.webdriver.ChromeOptions()
+        if headless:
+            chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument(f"--user-data-dir={tmp_profile_dir}")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+
+        session = Session(
+            webdriver_path=shutil.which("chromedriver"), browser_options=chrome_options
+        )
+        try:
+            yield session
+        finally:
+            session.driver.quit()
 
 
 session_factories = {
@@ -28,11 +36,10 @@ session_factories = {
 }
 
 
-@pytest.fixture(params=session_factories.keys())
+@pytest.fixture(params=["chrome", "chrome_headless"])
 def session(request):
-    session = session_factories[request.param]()
-    yield session
-    session.driver.quit()
+    with create_chrome_session(headless=(request.param == "chrome_headless")) as s:
+        yield s
 
 
 def test_simple_page_load(session):
