@@ -23,5 +23,8 @@ def session(request):
 
 def test_deprecation_warning_for_ensure_element_locators_with_underscores(session):
     session.driver.get("http://the-internet.herokuapp.com")
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(
+        DeprecationWarning,
+        match="Support for locator strategy names with underscores is deprecated",
+    ):
         session.driver.ensure_element("class_name", "no-js")
