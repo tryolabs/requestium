@@ -1,4 +1,5 @@
 import shutil
+import tempfile
 
 import pytest
 import selenium.webdriver
@@ -8,11 +9,18 @@ from requestium import Session
 
 chrome_webdriver_path = shutil.which("chromedriver")
 
+
+def create_chrome_session(headless=False):
+    chrome_options = selenium.webdriver.ChromeOptions()
+    if headless:
+        chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument(f"--user-data-dir={tempfile.mkdtemp()}")
+    return Session(webdriver_path=chrome_webdriver_path, browser_options=chrome_options)
+
+
 session_factories = {
-    "chrome": lambda: Session(webdriver_path=chrome_webdriver_path),
-    "chrome_headless": lambda: Session(
-        webdriver_path=chrome_webdriver_path, headless=True
-    ),
+    "chrome": lambda: create_chrome_session(),
+    "chrome_headless": lambda: create_chrome_session(headless=True),
     "firefox": lambda: Session(driver=selenium.webdriver.Firefox()),
     "requestium_driver": lambda: Session(driver=selenium.webdriver.Chrome()),
 }
