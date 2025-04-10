@@ -37,7 +37,7 @@ class Session(requests.Session):
         webdriver_path=None,
         headless=None,
         default_timeout=5,
-        webdriver_options={},
+        webdriver_options=None,
         driver=None,
         **kwargs,
     ):
@@ -45,6 +45,8 @@ class Session(requests.Session):
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
         self.webdriver_options = webdriver_options
+        if not self.webdriver_options:
+            self.webdriver_options = {}
         self._driver = driver
         self._last_requests_url = None
 
@@ -453,6 +455,7 @@ def _ensure_click(self):
     )
     self.parent.execute_script(script, self)  # parent = the webdriver
 
+    exception_message = ""
     for _ in range(10):
         try:
             self.click()
