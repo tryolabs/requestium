@@ -3,12 +3,13 @@ name: Dependency review
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
   schedule:
     - cron: 0 0 * * 1
+  workflow_dispatch:
 
 permissions: read-all
 
