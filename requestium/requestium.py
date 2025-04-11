@@ -448,15 +448,16 @@ def _ensure_click(self):
     )
     self.parent.execute_script(script, self)  # parent = the webdriver
 
+    exception_message = TimeoutError()
     for _ in range(10):
         try:
             self.click()
             return
         except WebDriverException as e:
-            exception_message = str(e)
+            exception_message = e
             time.sleep(0.2)
     raise WebDriverException(
         "Couldn't click item after trying 10 times, got error message: \n{}".format(
-            exception_message
+            str(exception_message)
         )
-    )
+    ) from exception_message
