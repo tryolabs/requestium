@@ -226,12 +226,7 @@ class DriverMixin:
         """
         try:
             self.add_cookie(cookie)
-        except (
-            UnableToSetCookieException,
-            InvalidCookieDomainException,
-            NoSuchCookieException,
-            WebDriverException,
-        ):
+        except WebDriverException:
             pass
         return self.is_cookie_in_driver(cookie)
 
