@@ -89,7 +89,7 @@ class Session(requests.Session):
                 for arg in self.webdriver_options["arguments"]:
                     chrome_options.add_argument(arg)
             else:
-                raise Exception(
+                raise TypeError(
                     "A list is needed to use 'arguments' option. Found {}".format(
                         type(self.webdriver_options["arguments"])
                     )
@@ -132,7 +132,7 @@ class Session(requests.Session):
         if not domain and self._last_requests_url:
             domain = tldextract.extract(self._last_requests_url).registered_domain
         elif not domain and not self._last_requests_url:
-            raise Exception(
+            raise InvalidCookieDomainException(
                 "Trying to transfer cookies to selenium without specifying a domain "
                 "and without having visited any page in the current session"
             )
