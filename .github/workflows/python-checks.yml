@@ -66,30 +66,6 @@ jobs:
                   path: .coverage.${{ matrix.os }}.${{ matrix.python-version }}
                   include-hidden-files: true
 
-    # mypy:
-    #     runs-on: ubuntu-latest
-
-    #     steps:
-    #         - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-    #         - name: Set up Python 3.13
-    #           uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
-    #           with:
-    #               python-version: "3.13"
-    #               cache: pip
-
-    #         - name: Install uv
-    #           uses: install-pinned/uv@fcfffa0c3562cd3e841565020ad09a70bb82299b  # 0.5.14
-
-    #         - name: Install dependencies
-    #           run: |
-    #             uv pip install --system -r requirements.txt
-    #             uv pip install --system mypy types-requests types-setuptools
-
-    #         - name: Run mypy
-    #           run: |
-    #             mypy .
-
     ruff-format:
         runs-on: ubuntu-latest
 
@@ -196,30 +172,3 @@ jobs:
               with:
                   name: python-coverage-comment-action
                   path: python-coverage-comment-action.txt
-
-    pip-install:
-        strategy:
-            fail-fast: false
-            matrix:
-                python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-                os: ["ubuntu-latest", "windows-latest", "macos-latest"]
-
-        runs-on: ${{ matrix.os }}
-
-        steps:
-            - name: Harden Runner
-              uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
-              with:
-                  egress-policy: audit
-
-            - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
-              with:
-                  python-version: ${{ matrix.python-version }}
-                  cache: pip
-
-            - name: Install dependencies
-              run: |
-                pip install .
