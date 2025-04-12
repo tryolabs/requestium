@@ -48,6 +48,7 @@ dev = [
     "coverage==7.8.0",
     "pre-commit==4.2.0",
     "pytest-cov==6.0.0",
+    "pytest-xdist==3.6.1",
     "pytest==8.3.5",
     "ruff==0.11.4",
 ]
@@ -69,7 +70,7 @@ testpaths = [
 [tool.coverage.run]
 branch = true
 relative_files = true
-command_line = "-m pytest"
+command_line = "-m pytest -n auto"
 
 [tool.coverage.paths]
 source = [
