@@ -62,7 +62,7 @@ include = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--cov=requestium"
+addopts = "--cov=requestium -n auto"
 testpaths = [
     "tests/",
 ]
@@ -70,7 +70,7 @@ testpaths = [
 [tool.coverage.run]
 branch = true
 relative_files = true
-command_line = "-m pytest -n auto"
+command_line = "-m pytest"
 
 [tool.coverage.paths]
 source = [
