@@ -41,9 +41,8 @@ jobs:
             - name: Install dependencies
               run: |
                 uv pip install --system -r requirements.txt
+                uv pip install --system -r requirements-dev.txt
                 uv pip install --system .
-                uv pip install --system pytest
-                uv pip install --system coverage
 
             - name: Test with pytest (with headless support)
               uses: GabrielBB/xvfb-action@5bcda06da84ba084708898801da79736b88e00a9  # 1.7
@@ -77,8 +76,8 @@ jobs:
             - name: Install dependencies
               run: |
                 uv pip install --system -r requirements.txt
+                uv pip install --system -r requirements-dev.txt
                 uv pip install --system .
-                uv pip install --system ruff
 
             - name: Run ruff format
               run: |
@@ -102,8 +101,8 @@ jobs:
             - name: Install dependencies
               run: |
                 uv pip install --system -r requirements.txt
+                uv pip install --system -r requirements-dev.txt
                 uv pip install --system .
-                uv pip install --system ruff
 
             - name: Run ruff
               run: |
@@ -127,8 +126,8 @@ jobs:
             - name: Install bandit
               run: |
                 uv pip install --system -r requirements.txt
+                uv pip install --system -r requirements-dev.txt
                 uv pip install --system .
-                uv pip install --system bandit[toml]
 
             - name: Run bandit scan
               run: |
