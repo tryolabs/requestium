@@ -28,7 +28,7 @@ class Session(requests.Session):
     """
 
     def __init__(self, webdriver_path=None, headless=None, default_timeout=5, webdriver_options=None, driver=None, **kwargs):
-        super(Session, self).__init__()
+        super().__init__()
 
         if webdriver_options is None:
             webdriver_options = {}
@@ -125,17 +125,17 @@ class Session(requests.Session):
             self.cookies.set(cookie["name"], cookie["value"], domain=cookie["domain"])
 
     def get(self, *args, **kwargs):
-        resp = super(Session, self).get(*args, **kwargs)
+        resp = super().get(*args, **kwargs)
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
 
     def post(self, *args, **kwargs):
-        resp = super(Session, self).post(*args, **kwargs)
+        resp = super().post(*args, **kwargs)
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
 
     def put(self, *args, **kwargs):
-        resp = super(Session, self).put(*args, **kwargs)
+        resp = super().put(*args, **kwargs)
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
 
@@ -148,7 +148,7 @@ class Session(requests.Session):
         self.headers.update({"user-agent": selenium_user_agent})
 
 
-class RequestiumResponse(object):
+class RequestiumResponse:
     """Adds xpath, css, and regex methods to a normal requests response object"""
 
     def __init__(self, response):
@@ -175,12 +175,12 @@ class RequestiumResponse(object):
         return self.selector.re_first(*args, **kwargs)
 
 
-class DriverMixin(object):
+class DriverMixin:
     """Provides helper methods to our driver classes"""
 
     def __init__(self, *args, **kwargs):
         self.default_timeout = kwargs.pop("default_timeout", None)
-        super(DriverMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def try_add_cookie(self, cookie):
         """Attempt to add the cookie. Suppress any errors, and simply
@@ -238,7 +238,7 @@ class DriverMixin(object):
             cookie["domain"] = tldextract.extract(cookie["domain"]).registered_domain
             cookie_added = self.try_add_cookie(cookie)
             if not cookie_added:
-                raise WebDriverException("Couldn't add the following cookie to the webdriver: {}".format(cookie))
+                raise WebDriverException(f"Couldn't add the following cookie to the webdriver: {cookie}")
 
     def is_cookie_in_driver(self, cookie):
         """We check that the cookie is correctly added to the driver
@@ -330,7 +330,7 @@ class DriverMixin(object):
             WebDriverWait(self, timeout).until(expected_conditions.invisibility_of_element_located((locator, selector)))
             element = None
         else:
-            raise ValueError("The 'state' argument must be 'visible', 'clickable', 'present' or 'invisible', not '{}'".format(state))
+            raise ValueError(f"The 'state' argument must be 'visible', 'clickable', 'present' or 'invisible', not '{state}'")
 
         # We add this method to our element to provide a more robust click. Chromedriver
         # sometimes needs some time before it can click an item, specially if it needs to
@@ -394,4 +394,4 @@ def _ensure_click(self):
         except WebDriverException as e:
             exception_message = str(e)
             time.sleep(0.2)
-    raise WebDriverException("Couldn't click item after trying 10 times, got error message: \n{}".format(exception_message))
+    raise WebDriverException(f"Couldn't click item after trying 10 times, got error message: \n{exception_message}")
