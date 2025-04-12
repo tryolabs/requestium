@@ -17,8 +17,7 @@ on:
         - cron:  '0 9 * * 1'
     workflow_dispatch:
 
-permissions:
-    contents: read
+permissions: read-all
 
 jobs:
     test:
