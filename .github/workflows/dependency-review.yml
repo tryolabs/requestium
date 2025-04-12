@@ -1,0 +1,34 @@
+name: Dependency review
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron: 0 0 * * 1
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  dependency-review:
+    name: Dependency review
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+              api.github.com:443
+              api.securityscorecards.dev:443
+              github.com:443
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/dependency-review-action@ce3cf9537a52e8119d91fd484ab5b8a807627bf8
