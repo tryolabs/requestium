@@ -38,19 +38,19 @@ jobs:
     steps:
       - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
         with:
-            disable-sudo: false
-            egress-policy: audit
-            allowed-endpoints: >
-                files.pythonhosted.org:443
-                github.com:443
-                pypi.org:443
-                packages.microsoft.com:443
-                archive.ubuntu.com:80
-                azure.archive.ubuntu.com:80
-                esm.ubuntu.com:443
-                esm.ubuntu.com:80
-                motd.ubuntu.com:80
-                security.ubuntu.com:80
+          disable-sudo: false
+          egress-policy: audit
+          allowed-endpoints: >
+            files.pythonhosted.org:443
+            github.com:443
+            pypi.org:443
+            packages.microsoft.com:443
+            archive.ubuntu.com:80
+            azure.archive.ubuntu.com:80
+            esm.ubuntu.com:443
+            esm.ubuntu.com:80
+            motd.ubuntu.com:80
+            security.ubuntu.com:80
 
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
@@ -66,15 +66,15 @@ jobs:
       - id: cache-pytest
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
-            path: .pytest_cache
-            key: ${{ runner.os }}-pytest-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+          path: .pytest_cache
+          key: ${{ runner.os }}-pytest-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Run pytest (with headless support)
         uses: GabrielBB/xvfb-action@5bcda06da84ba084708898801da79736b88e00a9
         env:
-            COVERAGE_FILE: .coverage.${{ runner.os }}.${{ matrix.python-version }}
+          COVERAGE_FILE: .coverage.${{ runner.os }}.${{ matrix.python-version }}
         with:
-            run: pytest
+          run: pytest
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -226,7 +226,7 @@ jobs:
         with:
           disable-sudo: true
           egress-policy: block
-          allowed-endpoints: |
+          allowed-endpoints: >
             api.github.com:443
             github.com:443
             img.shields.io:443
