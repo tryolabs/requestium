@@ -1,4 +1,0 @@
-parsel>=1.8
-requests>=2.31
-selenium>=4.15
-tldextract>=5.1
