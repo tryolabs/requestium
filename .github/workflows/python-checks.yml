@@ -89,7 +89,7 @@ jobs:
 
             - name: Run ruff format
               run: |
-                ruff format --diff --target-version=py39 .
+                ruff format --diff .
 
     ruff-check:
         runs-on: ubuntu-latest
@@ -139,7 +139,7 @@ jobs:
 
             - name: Run bandit scan
               run: |
-                bandit -c pyproject.toml -r . -ll -ii
+                bandit --confidence-level 'medium' --recursive 'requestium'
 
     coverage:
         runs-on: ubuntu-latest
