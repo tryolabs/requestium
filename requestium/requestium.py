@@ -188,7 +188,7 @@ class DriverMixin(object):
         """
         try:
             self.add_cookie(cookie)
-        except Exception:
+        except WebDriverException:
             pass
         return self.is_cookie_in_driver(cookie)
 
