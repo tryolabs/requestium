@@ -1,21 +1,15 @@
 name: Python checks
 
 on:
-    push:
-        paths:
-          - '**.py'
-          - 'pyproject.toml'
-          - 'requirements*.txt'
-          - '.github/workflows/python-checks.yml'
-    pull_request:
-        paths:
-          - '**.py'
-          - 'pyproject.toml'
-          - 'requirements*.txt'
-          - '.github/workflows/python-checks.yml'
-    schedule:
-        - cron:  '0 9 * * 1'
-    workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron: 0 0 * * 1
+  workflow_dispatch:
 
 permissions: read-all
 
