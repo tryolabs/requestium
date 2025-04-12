@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
         with:
-          disable-sudo: true
+          disable-sudo: false
           egress-policy: block
           allowed-endpoints: >
             files.pythonhosted.org:443
