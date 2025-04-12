@@ -5,7 +5,7 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/requestium)](https://pypi.org/project/requestium/)
 [![PyPI](https://img.shields.io/pypi/v/requestium?color=blue)](https://pypi.org/project/requestium/)
 [![Coverage](https://raw.githubusercontent.com/tryolabs/requestium/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://github.com/tryolabs/requestium/blob/python-coverage-comment-action-data/htmlcov/index.html)
-[![Python checks](https://github.com/tryolabs/requestium/actions/workflows/python-checks.yml/badge.svg)](https://github.com/tryolabs/requestium/actions/workflows/python-checks.yml)
+[![Python checks](https://github.com/tryolabs/requestium/actions/workflows/python.yml/badge.svg)](https://github.com/tryolabs/requestium/actions/workflows/python.yml)
 
 Requestium is a Python library that merges the power of [Requests](https://github.com/requests/requests), [Selenium](https://github.com/SeleniumHQ/selenium), and [Parsel](https://github.com/scrapy/parsel) into a single integrated tool for automatizing web actions.
 
