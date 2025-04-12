@@ -39,18 +39,37 @@ jobs:
       - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
         with:
           disable-sudo: false
-          egress-policy: audit
+          egress-policy: block
           allowed-endpoints: >
             files.pythonhosted.org:443
             github.com:443
             pypi.org:443
+
+            # accounts.google.com:443
+            # clients2.google.com:80
+            # optimizationguide-pa.googleapis.com:443
+
+            detectportal.firefox.com:80
+            content-signature-2.cdn.mozilla.net:443
+            firefox-settings-attachments.cdn.mozilla.net:443
+            firefox.settings.services.mozilla.com:443
+
+            raw.githubusercontent.com:443
+            googlechromelabs.github.io:443
+
             packages.microsoft.com:443
-            archive.ubuntu.com:80
+
             azure.archive.ubuntu.com:80
             esm.ubuntu.com:443
-            esm.ubuntu.com:80
-            motd.ubuntu.com:80
-            security.ubuntu.com:80
+
+            # plausible.io:443
+
+            r10.o.lencr.org:80
+            r11.o.lencr.org:80
+
+            nel.heroku.com:443
+            the-internet.herokuapp.com:443
+            the-internet.herokuapp.com:80
 
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
