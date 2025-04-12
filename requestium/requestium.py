@@ -27,9 +27,12 @@ class Session(requests.Session):
     Some useful helper methods and object wrappings have been added.
     """
 
-    def __init__(self, webdriver_path=None, headless=None, default_timeout=5,
-                 webdriver_options={}, driver=None, **kwargs):
-        super(Session, self).__init__()
+    def __init__(self, webdriver_path=None, headless=None, default_timeout=5, webdriver_options=None, driver=None, **kwargs):
+        super().__init__()
+
+        if webdriver_options is None:
+            webdriver_options = {}
+
         self.webdriver_path = webdriver_path
         self.default_timeout = default_timeout
         self.webdriver_options = webdriver_options
@@ -40,13 +43,13 @@ class Session(requests.Session):
             self._driver_initializer = functools.partial(self._start_chrome_browser, headless=headless)
         else:
             for name in DriverMixin.__dict__:
-                name_private = name.startswith('__') and name.endswith('__')
+                name_private = name.startswith("__") and name.endswith("__")
                 name_function = isinstance(DriverMixin.__dict__[name], types.FunctionType)
                 name_in_driver = name in dir(self._driver)
                 if name_private or not name_function or name_in_driver:
                     continue
                 self._driver.__dict__[name] = DriverMixin.__dict__[name].__get__(self._driver)
-            setattr(self._driver, 'default_timeout', self.default_timeout)
+            self._driver.default_timeout = self.default_timeout
 
     @property
     def driver(self):
@@ -54,42 +57,41 @@ class Session(requests.Session):
             self._driver = self._driver_initializer()
         return self._driver
 
-    def _start_chrome_browser(self, headless=False):
+    def _start_chrome_browser(self, headless=False):  # noqa C901
         # TODO transfer of proxies and headers: Not supported by chromedriver atm.
         # Choosing not to use plug-ins for this as I don't want to worry about the
         # extra dependencies and plug-ins don't work in headless mode. :-(
         chrome_options = webdriver.chrome.options.Options()
 
         if headless:
-            chrome_options.add_argument('headless=new')
+            chrome_options.add_argument("headless=new")
 
-        if 'binary_location' in self.webdriver_options:
-            chrome_options.binary_location = self.webdriver_options['binary_location']
+        if "binary_location" in self.webdriver_options:
+            chrome_options.binary_location = self.webdriver_options["binary_location"]
 
-        if 'arguments' in self.webdriver_options:
-            if isinstance(self.webdriver_options['arguments'], list):
-                for arg in self.webdriver_options['arguments']:
+        if "arguments" in self.webdriver_options:
+            if isinstance(self.webdriver_options["arguments"], list):
+                for arg in self.webdriver_options["arguments"]:
                     chrome_options.add_argument(arg)
             else:
-                raise Exception('A list is needed to use \'arguments\' option. Found {}'.format(
-                    type(self.webdriver_options['arguments'])))
+                raise Exception("A list is needed to use 'arguments' option. Found {}".format(type(self.webdriver_options["arguments"])))
 
-        if 'extensions' in self.webdriver_options:
-            if isinstance(self.webdriver_options['extensions'], list):
-                for arg in self.webdriver_options['extensions']:
+        if "extensions" in self.webdriver_options:
+            if isinstance(self.webdriver_options["extensions"], list):
+                for arg in self.webdriver_options["extensions"]:
                     chrome_options.add_extension(arg)
 
-        if 'prefs' in self.webdriver_options:
-            prefs = self.webdriver_options['prefs']
-            chrome_options.add_experimental_option('prefs', prefs)
+        if "prefs" in self.webdriver_options:
+            prefs = self.webdriver_options["prefs"]
+            chrome_options.add_experimental_option("prefs", prefs)
 
-        experimental_options = self.webdriver_options.get('experimental_options')
+        experimental_options = self.webdriver_options.get("experimental_options")
         if isinstance(experimental_options, dict):
             for name, value in experimental_options.items():
                 chrome_options.add_experimental_option(name, value)
 
         # Create driver process
-        RequestiumChrome = type('RequestiumChrome', (DriverMixin, webdriver.Chrome), {})
+        RequestiumChrome = type("RequestiumChrome", (DriverMixin, webdriver.Chrome), {})
         # Selenium updated webdriver.Chrome's arg and kwargs, to accept options, service, keep_alive
         # since ChromeService is the only object where webdriver_path is mapped to executable_path, it must be
         # initialized and passed in as a kwarg to RequestiumChrome so it can be passed in as a kwarg
@@ -107,13 +109,11 @@ class Session(requests.Session):
         if not domain and self._last_requests_url:
             domain = tldextract.extract(self._last_requests_url).registered_domain
         elif not domain and not self._last_requests_url:
-            raise Exception('Trying to transfer cookies to selenium without specifying a domain '
-                            'and without having visited any page in the current session')
+            raise Exception("Trying to transfer cookies to selenium without specifying a domain and without having visited any page in the current session")
 
         # Transfer cookies
         for c in [c for c in self.cookies if domain in c.domain]:
-            cookie = {'name': c.name, 'value': c.value, 'path': c.path,
-                      'expiry': c.expires, 'domain': c.domain}
+            cookie = {"name": c.name, "value": c.value, "path": c.path, "expiry": c.expires, "domain": c.domain}
 
             self.driver.ensure_add_cookie({k: v for k, v in cookie.items() if v is not None})
 
@@ -122,25 +122,25 @@ class Session(requests.Session):
             self.copy_user_agent_from_driver()
 
         for cookie in self.driver.get_cookies():
-            self.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
+            self.cookies.set(cookie["name"], cookie["value"], domain=cookie["domain"])
 
     def get(self, *args, **kwargs):
-        resp = super(Session, self).get(*args, **kwargs)
+        resp = super().get(*args, **kwargs)
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
 
     def post(self, *args, **kwargs):
-        resp = super(Session, self).post(*args, **kwargs)
+        resp = super().post(*args, **kwargs)
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
 
     def put(self, *args, **kwargs):
-        resp = super(Session, self).put(*args, **kwargs)
+        resp = super().put(*args, **kwargs)
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
 
     def copy_user_agent_from_driver(self):
-        """ Updates requests' session user-agent with the driver's user agent
+        """Updates requests' session user-agent with the driver's user agent
 
         This method will start the browser process if its not already running.
         """
@@ -148,13 +148,11 @@ class Session(requests.Session):
         self.headers.update({"user-agent": selenium_user_agent})
 
 
-class RequestiumResponse(object):
+class RequestiumResponse:
     """Adds xpath, css, and regex methods to a normal requests response object"""
 
     def __init__(self, response):
-        self.__class__ = type(response.__class__.__name__,
-                              (self.__class__, response.__class__),
-                              response.__dict__)
+        self.__class__ = type(response.__class__.__name__, (self.__class__, response.__class__), response.__dict__)
 
     @property
     def selector(self):
@@ -177,13 +175,12 @@ class RequestiumResponse(object):
         return self.selector.re_first(*args, **kwargs)
 
 
-class DriverMixin(object):
-    """Provides helper methods to our driver classes
-    """
+class DriverMixin:
+    """Provides helper methods to our driver classes"""
 
     def __init__(self, *args, **kwargs):
-        self.default_timeout = kwargs.pop('default_timeout', None)
-        super(DriverMixin, self).__init__(*args, **kwargs)
+        self.default_timeout = kwargs.pop("default_timeout", None)
+        super().__init__(*args, **kwargs)
 
     def try_add_cookie(self, cookie):
         """Attempt to add the cookie. Suppress any errors, and simply
@@ -191,7 +188,7 @@ class DriverMixin(object):
         """
         try:
             self.add_cookie(cookie)
-        except Exception:
+        except WebDriverException:
             pass
         return self.is_cookie_in_driver(cookie)
 
@@ -220,28 +217,28 @@ class DriverMixin(object):
         was to not do anything, which was very hard to debug.
         """
         if override_domain:
-            cookie['domain'] = override_domain
+            cookie["domain"] = override_domain
 
-        cookie_domain = cookie['domain'] if cookie['domain'][0] != '.' else cookie['domain'][1:]
+        cookie_domain = cookie["domain"] if cookie["domain"][0] != "." else cookie["domain"][1:]
         try:
             browser_domain = tldextract.extract(self.current_url).fqdn
         except AttributeError:
-            browser_domain = ''
+            browser_domain = ""
         if cookie_domain not in browser_domain:
             # TODO Check if hardcoding 'http' causes trouble
             # TODO Consider using a new proxy for this next request to not cause an anomalous
             #      request. This way their server sees our ip address as continuously having the
             #      same cookies and not have a request mid-session with no cookies
-            self.get('http://' + cookie_domain)
+            self.get("http://" + cookie_domain)
 
         cookie_added = self.try_add_cookie(cookie)
 
         # If we fail adding the cookie, retry with a more permissive domain
         if not cookie_added:
-            cookie['domain'] = tldextract.extract(cookie['domain']).registered_domain
+            cookie["domain"] = tldextract.extract(cookie["domain"]).registered_domain
             cookie_added = self.try_add_cookie(cookie)
             if not cookie_added:
-                raise WebDriverException("Couldn't add the following cookie to the webdriver: {}".format(cookie))
+                raise WebDriverException(f"Couldn't add the following cookie to the webdriver: {cookie}")
 
     def is_cookie_in_driver(self, cookie):
         """We check that the cookie is correctly added to the driver
@@ -250,9 +247,9 @@ class DriverMixin(object):
         We are a bit lenient when comparing domains.
         """
         for driver_cookie in self.get_cookies():
-            name_matches = cookie['name'] == driver_cookie['name']
-            value_matches = cookie['value'] == driver_cookie['value']
-            domain_matches = driver_cookie['domain'] in (cookie['domain'], '.' + cookie['domain'])
+            name_matches = cookie["name"] == driver_cookie["name"]
+            value_matches = cookie["value"] == driver_cookie["value"]
+            domain_matches = driver_cookie["domain"] in (cookie["domain"], "." + cookie["domain"])
             if name_matches and value_matches and domain_matches:
                 return True
         return False
@@ -303,11 +300,11 @@ class DriverMixin(object):
         More info at: http://selenium-python.readthedocs.io/waits.html
         """
         locators_compatibility = {
-            'link_text': By.LINK_TEXT,
-            'partial_link_text': By.PARTIAL_LINK_TEXT,
-            'tag_name': By.TAG_NAME,
-            'class_name': By.CLASS_NAME,
-            'css_selector': By.CSS_SELECTOR
+            "link_text": By.LINK_TEXT,
+            "partial_link_text": By.PARTIAL_LINK_TEXT,
+            "tag_name": By.TAG_NAME,
+            "class_name": By.CLASS_NAME,
+            "css_selector": By.CSS_SELECTOR,
         }
         if locator in locators_compatibility:
             warnings.warn(
@@ -315,35 +312,25 @@ class DriverMixin(object):
                 Support for locator strategy names with underscores is deprecated.
                 Use strategies from Selenium's By class (importable from selenium.webdriver.common.by).
                 """,
-                DeprecationWarning
+                DeprecationWarning,
+                stacklevel=2,
             )
             locator = locators_compatibility[locator]
 
         if not timeout:
             timeout = self.default_timeout
 
-        if state == 'visible':
-            element = WebDriverWait(self, timeout).until(
-                expected_conditions.visibility_of_element_located((locator, selector))
-            )
-        elif state == 'clickable':
-            element = WebDriverWait(self, timeout).until(
-                expected_conditions.element_to_be_clickable((locator, selector))
-            )
-        elif state == 'present':
-            element = WebDriverWait(self, timeout).until(
-                expected_conditions.presence_of_element_located((locator, selector))
-            )
-        elif state == 'invisible':
-            WebDriverWait(self, timeout).until(
-                expected_conditions.invisibility_of_element_located((locator, selector))
-            )
+        if state == "visible":
+            element = WebDriverWait(self, timeout).until(expected_conditions.visibility_of_element_located((locator, selector)))
+        elif state == "clickable":
+            element = WebDriverWait(self, timeout).until(expected_conditions.element_to_be_clickable((locator, selector)))
+        elif state == "present":
+            element = WebDriverWait(self, timeout).until(expected_conditions.presence_of_element_located((locator, selector)))
+        elif state == "invisible":
+            WebDriverWait(self, timeout).until(expected_conditions.invisibility_of_element_located((locator, selector)))
             element = None
         else:
-            raise ValueError(
-                "The 'state' argument must be 'visible', 'clickable', 'present' "
-                "or 'invisible', not '{}'".format(state)
-            )
+            raise ValueError(f"The 'state' argument must be 'visible', 'clickable', 'present' or 'invisible', not '{state}'")
 
         # We add this method to our element to provide a more robust click. Chromedriver
         # sometimes needs some time before it can click an item, specially if it needs to
@@ -392,10 +379,12 @@ def _ensure_click(self):
     #   - It is outside of the viewport
     #   - It is under a banner or toolbar
     # This script solves both cases
-    script = ("var viewPortHeight = Math.max("
-              "document.documentElement.clientHeight, window.innerHeight || 0);"
-              "var elementTop = arguments[0].getBoundingClientRect().top;"
-              "window.scrollBy(0, elementTop-(viewPortHeight/2));")
+    script = (
+        "var viewPortHeight = Math.max("
+        "document.documentElement.clientHeight, window.innerHeight || 0);"
+        "var elementTop = arguments[0].getBoundingClientRect().top;"
+        "window.scrollBy(0, elementTop-(viewPortHeight/2));"
+    )
     self.parent.execute_script(script, self)  # parent = the webdriver
 
     for _ in range(10):
@@ -405,8 +394,4 @@ def _ensure_click(self):
         except WebDriverException as e:
             exception_message = str(e)
             time.sleep(0.2)
-    raise WebDriverException(
-        "Couldn't click item after trying 10 times, got error message: \n{}".format(
-            exception_message
-        )
-    )
+    raise WebDriverException(f"Couldn't click item after trying 10 times, got error message: \n{exception_message}")

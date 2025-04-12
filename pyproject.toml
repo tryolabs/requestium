@@ -1,20 +1,86 @@
-[tool.poetry]
+[project]
 name = "requestium"
-version = "0.4.0"
-description = ""
-authors = ["Joaquin Alori <joaquin@tryolabs.com>"]
+version = "0.5.0"
 readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Joaquin Alori", email = "joaquin@tryolabs.com" }
+]
+maintainers = [
+    { name = "Judson Neer", email = "jkudson.neer@gmail.com" },
+    { name = "Wil T", email = "wil.t.me@pm.me" },
+]
+dependencies = [
+    "parsel>=1.0",
+    "requests>=2.0",
+    "selenium>=4.0",
+    "tldextract>=5.0",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Natural Language :: English",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX",
+  "Operating System :: OS Independent",
+  "Environment :: Web Environment",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Software Development :: Testing",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.9,<3.14"
-parsel = "^1.8.1"
-requests = "^2.31.0"
-selenium = "^4.15.2"
-tldextract = "^5.1.1"
+[project.urls]
+source = "https://github.com/tryolabs/requestium"
+download = "https://pypi.org/project/requestium/#files"
+issues = "https://github.com/tryolabs/requestium/issues"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.3"
+[project.optional-dependencies]
+dev = [
+    "bandit[sarif]==1.8.3",
+    "coverage==7.8.0",
+    "pre-commit==4.2.0",
+    "pytest-cov==6.0.0",
+    "pytest-xdist==3.6.1",
+    "pytest==8.3.5",
+    "ruff==0.11.4",
+]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff]
+line-length = 160
+target-version = "py39"
+include = [
+    "requestium/**/*.py",
+    "tests/**/*.py",
+]
+
+[tool.pytest.ini_options]
+addopts = "--cov=requestium -n auto"
+testpaths = [
+    "tests/",
+]
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+command_line = "-m pytest"
+
+[tool.coverage.paths]
+source = [
+    "requestium/",
+]
+omit = [
+    "tests/",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "logger.",
+]
