@@ -3,10 +3,9 @@ name: CodeQL analysis
 on:
   push:
     branches:
+      - main
       - master
   pull_request:
-    branches:
-      - master
   schedule:
     - cron: 0 0 * * 1
   workflow_dispatch:
