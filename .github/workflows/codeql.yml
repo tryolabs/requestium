@@ -39,12 +39,12 @@ jobs:
 
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - uses: github/codeql-action/init@1b549b9259bda1cb5ddde3b41741a82a2d15a841
+      - uses: github/codeql-action/init@45775bd8235c68ba998cffa5171334d58593da47
         with:
           languages: ${{ matrix.language }}
 
-      - uses: github/codeql-action/autobuild@1b549b9259bda1cb5ddde3b41741a82a2d15a841
+      - uses: github/codeql-action/autobuild@45775bd8235c68ba998cffa5171334d58593da47
 
-      - uses: github/codeql-action/analyze@1b549b9259bda1cb5ddde3b41741a82a2d15a841
+      - uses: github/codeql-action/analyze@45775bd8235c68ba998cffa5171334d58593da47
         with:
           category: /language:${{matrix.language}}
