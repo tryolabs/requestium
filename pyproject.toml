@@ -53,6 +53,7 @@ dev = [
 ]
 
 [tool.ruff]
+line-length = 160
 target-version = "py39"
 include = [
     "requestium/**/*.py",
