@@ -37,3 +37,12 @@ def test_simple_page_load(session) -> None:
     heading = session.driver.find_element(By.XPATH, '//*[@id="content"]/h1')
     assert title == "The Internet"
     assert heading.text == "Welcome to the-internet"
+
+
+def test_copy_user_agent_from_driver(session) -> None:
+    """Ensure that requests user-agent header has been changed after calling session.copy_user_agent_from_driver()"""
+    pre_copy_requests_useragent = session.headers["user-agent"]
+    session.driver.get("http://the-internet.herokuapp.com")
+    session.copy_user_agent_from_driver()
+    assert pre_copy_requests_useragent and pre_copy_requests_useragent != ""
+    assert session.headers["user-agent"] != pre_copy_requests_useragent
