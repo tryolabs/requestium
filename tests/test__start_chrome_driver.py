@@ -1,3 +1,5 @@
+import time
+
 import pytest
 
 import requestium
@@ -7,6 +9,7 @@ def test__start_chrome_driver() -> None:
     with requestium.Session() as session:
         session._start_chrome_browser()
         session.driver.get("http://the-internet.herokuapp.com")
+        time.sleep(1)
         title = session.driver.title
         assert title == "The Internet"
 
