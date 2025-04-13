@@ -50,3 +50,11 @@ def test_copy_user_agent_from_driver(session) -> None:
     post_copy_requests_useragent = session.headers["user-agent"]
 
     assert post_copy_requests_useragent != pre_copy_requests_useragent
+
+
+def test_transfer_session_cookies_to_driver_no_domain_error(session) -> None:
+    with pytest.raises(
+        InvalidCookieDomainException,
+        match="Trying to transfer cookies to selenium without specifying a domain and without having visited any page in the current session",
+    ):
+        session.transfer_session_cookies_to_driver()
