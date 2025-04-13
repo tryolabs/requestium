@@ -6,6 +6,16 @@ from test_session import session_parameters
 
 
 @pytest.mark.parametrize("params", session_parameters)
+def test_transfer_session_cookies_to_driver(params) -> None:
+    with requestium.Session(**params) as session:
+        assert session.cookies.keys() == []
+        response = session.get("http://google.com/")
+        assert response.cookies.keys().sort() == ["AEC", "NID"].sort()
+        session.transfer_session_cookies_to_driver()
+        assert session.cookies.keys() == ["AEC", "NID"]
+
+
+@pytest.mark.parametrize("params", session_parameters)
 def test_transfer_session_cookies_to_driver_no_domain_error(params) -> None:
     with (
         requestium.Session(**params) as session,
