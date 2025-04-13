@@ -19,17 +19,14 @@ session_parameters = [
 ]
 
 
-@pytest.fixture(params=session_parameters)
-def session(request):
-    session = requestium.Session(**request.param)
-    yield session
-    session.driver.close()
+@pytest.mark.parametrize("params", session_parameters)
+def test_simple_page_load(params) -> None:
+    with requestium.Session(**params) as session:
+        session.driver.get("http://the-internet.herokuapp.com")
+        session.driver.ensure_element(By.ID, "content")
 
+        title = session.driver.title
+        heading = session.driver.find_element(By.XPATH, '//*[@id="content"]/h1')
 
-def test_simple_page_load(session):
-    session.driver.get("http://the-internet.herokuapp.com")
-    session.driver.ensure_element(By.ID, "content")
-    title = session.driver.title
-    heading = session.driver.find_element(By.XPATH, '//*[@id="content"]/h1')
-    assert title == "The Internet"
-    assert heading.text == "Welcome to the-internet"
+        assert title == "The Internet"
+        assert heading.text == "Welcome to the-internet"
