@@ -7,7 +7,7 @@ import requests
 import tldextract
 from parsel.selector import Selector
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import WebDriverException, InvalidCookieDomainException
 from selenium.webdriver import ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
@@ -74,7 +74,7 @@ class Session(requests.Session):
                 for arg in self.webdriver_options["arguments"]:
                     chrome_options.add_argument(arg)
             else:
-                raise Exception("A list is needed to use 'arguments' option. Found {}".format(type(self.webdriver_options["arguments"])))
+                raise TypeError(f"'arguments' option must be a list, but got {type(self.webdriver_options['arguments']).__name__}")
 
         if "extensions" in self.webdriver_options:
             if isinstance(self.webdriver_options["extensions"], list):
@@ -109,7 +109,9 @@ class Session(requests.Session):
         if not domain and self._last_requests_url:
             domain = tldextract.extract(self._last_requests_url).registered_domain
         elif not domain and not self._last_requests_url:
-            raise Exception("Trying to transfer cookies to selenium without specifying a domain and without having visited any page in the current session")
+            raise InvalidCookieDomainException(
+                "Trying to transfer cookies to selenium without specifying a domain and without having visited any page in the current session"
+            )
 
         # Transfer cookies
         for c in [c for c in self.cookies if domain in c.domain]:
