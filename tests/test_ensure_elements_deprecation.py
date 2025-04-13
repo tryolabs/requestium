@@ -1,9 +1,13 @@
 import shutil
+from typing import Any
+
+from collections.abc import Generator
 
 import pytest
 import selenium
 
 import requestium
+from requestium import Session
 
 chrome_webdriver_path = shutil.which("chromedriver")
 
@@ -19,13 +23,13 @@ session_parameters = [
 
 
 @pytest.fixture(params=session_parameters)
-def session(request):
+def session(request) -> Generator[Session, Any, None]:
     session = requestium.Session(**request.param)
     yield session
-    session.driver.close()
+    session.driver.quit()
 
 
-def test_deprecation_warning_for_ensure_element_locators_with_underscores(session):
+def test_deprecation_warning_for_ensure_element_locators_with_underscores(session) -> None:
     session.driver.get("http://the-internet.herokuapp.com")
     with pytest.warns(DeprecationWarning):
         session.driver.ensure_element("class_name", "no-js")

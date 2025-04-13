@@ -1,10 +1,14 @@
 import shutil
+from typing import Any
+
+from collections.abc import Generator
 
 import pytest
 import selenium
 from selenium.webdriver.common.by import By
 
 import requestium
+from requestium import Session
 
 chrome_webdriver_path = shutil.which("chromedriver")
 
@@ -20,13 +24,13 @@ session_parameters = [
 
 
 @pytest.fixture(params=session_parameters)
-def session(request):
+def session(request) -> Generator[Session, Any, None]:
     session = requestium.Session(**request.param)
     yield session
     session.driver.close()
 
 
-def test_simple_page_load(session):
+def test_simple_page_load(session) -> None:
     session.driver.get("http://the-internet.herokuapp.com")
     session.driver.ensure_element(By.ID, "content")
     title = session.driver.title
