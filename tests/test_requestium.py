@@ -27,7 +27,7 @@ session_parameters = [
 def session(request) -> Generator[Session, Any, None]:
     session = requestium.Session(**request.param)
     yield session
-    session.driver.close()
+    session.driver.quit()
 
 
 def test_simple_page_load(session) -> None:
