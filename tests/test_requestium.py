@@ -33,6 +33,26 @@ def test_simple_page_load(params) -> None:
         assert heading.text == "Welcome to the-internet"
 
 
+def test__start_chrome_driver() -> None:
+    with requestium.Session() as session:
+        session._start_chrome_browser()
+        session.driver.get("http://the-internet.herokuapp.com")
+        title = session.driver.title
+        assert title == "The Internet"
+
+
+def test__start_chrome_driver_options_typeerror() -> None:
+    invalid_webdriver_options = {"arguments": "invalid_string"}
+    with (
+        requestium.Session(webdriver_options=invalid_webdriver_options) as session,
+        pytest.raises(
+            TypeError,
+            match=f"'arguments' option must be a list, but got {type(invalid_webdriver_options['arguments']).__name__}",
+        ),
+    ):
+        session._start_chrome_browser()
+
+
 @pytest.mark.parametrize("params", session_parameters)
 def test_copy_user_agent_from_driver(params) -> None:
     """Ensure that requests user-agent header has been changed after calling session.copy_user_agent_from_driver()"""
