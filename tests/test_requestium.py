@@ -5,6 +5,7 @@ from collections.abc import Generator
 
 import pytest
 import selenium
+from selenium.common import InvalidCookieDomainException
 from selenium.webdriver.common.by import By
 
 import requestium
@@ -42,7 +43,10 @@ def test_simple_page_load(session) -> None:
 def test_copy_user_agent_from_driver(session) -> None:
     """Ensure that requests user-agent header has been changed after calling session.copy_user_agent_from_driver()"""
     pre_copy_requests_useragent = session.headers["user-agent"]
+    assert pre_copy_requests_useragent and pre_copy_requests_useragent != ""
+
     session.driver.get("http://the-internet.herokuapp.com")
     session.copy_user_agent_from_driver()
-    assert pre_copy_requests_useragent and pre_copy_requests_useragent != ""
-    assert session.headers["user-agent"] != pre_copy_requests_useragent
+    post_copy_requests_useragent = session.headers["user-agent"]
+
+    assert post_copy_requests_useragent != pre_copy_requests_useragent
