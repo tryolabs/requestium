@@ -7,15 +7,11 @@ from selenium.webdriver.common.by import By
 import requestium
 
 chrome_webdriver_path = shutil.which("chromedriver")
-
-chrome_webdriver = selenium.webdriver.chrome.webdriver.WebDriver()
-firefox_webdriver = selenium.webdriver.firefox.webdriver.WebDriver()
-
 session_parameters = [
     {"webdriver_path": chrome_webdriver_path},
     {"webdriver_path": chrome_webdriver_path, "headless": True},
-    {"driver": chrome_webdriver},
-    {"driver": firefox_webdriver},
+    {"driver": selenium.webdriver.Chrome()},
+    {"driver": selenium.webdriver.Firefox()},
 ]
 
 
