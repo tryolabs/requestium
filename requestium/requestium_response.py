@@ -1,6 +1,6 @@
 from typing import Optional
 
-from parsel.selector import Selector, _SelectorType, SelectorList
+from parsel.selector import Selector, SelectorList
 from requests import Response
 
 
@@ -18,10 +18,10 @@ class RequestiumResponse:
         """
         return Selector(text=self.text)
 
-    def xpath(self, *args, **kwargs) -> SelectorList[_SelectorType]:
+    def xpath(self, *args, **kwargs) -> SelectorList[Selector]:
         return self.selector.xpath(*args, **kwargs)
 
-    def css(self, *args, **kwargs) -> SelectorList[_SelectorType]:
+    def css(self, *args, **kwargs) -> SelectorList[Selector]:
         return self.selector.css(*args, **kwargs)
 
     def re(self, *args, **kwargs) -> list[str]:
