@@ -1,13 +1,15 @@
 from typing import Optional
 
+import requests
 from parsel.selector import Selector, SelectorList
 from requests import Response
 
 
-class RequestiumResponse:
+class RequestiumResponse(requests.Response):
     """Adds xpath, css, and regex methods to a normal requests response object"""
 
     def __init__(self, response: Response) -> None:
+        super().__init__()
         self.__class__ = type(response.__class__.__name__, (self.__class__, response.__class__), response.__dict__)
 
     @property
