@@ -1,5 +1,6 @@
 import functools
 import types
+from typing import Any, Optional
 
 import requests
 from selenium import webdriver
@@ -24,7 +25,14 @@ class Session(requests.Session):
     Some useful helper methods and object wrappings have been added.
     """
 
-    def __init__(self, webdriver_path=None, headless=None, default_timeout=5, webdriver_options=None, driver=None, **kwargs):
+    def __init__(
+        self,
+        webdriver_path: Optional[str] = None,
+        headless: Optional[bool] = None,
+        default_timeout: float = 5,
+        webdriver_options: Optional[dict[str, Any]] = None,
+        driver=None,
+    ) -> None:
         super().__init__()
 
         if webdriver_options is None:
@@ -36,7 +44,7 @@ class Session(requests.Session):
         self._driver = driver
         self._last_requests_url = None
 
-        if self._driver is None:
+        if not self._driver:
             self._driver_initializer = functools.partial(self._start_chrome_browser, headless=headless)
         else:
             for name in DriverMixin.__dict__:
@@ -54,7 +62,7 @@ class Session(requests.Session):
             self._driver = self._driver_initializer()
         return self._driver
 
-    def _start_chrome_browser(self, headless=False):  # noqa C901
+    def _start_chrome_browser(self, headless: Optional[bool] = False):  # noqa C901
         # TODO transfer of proxies and headers: Not supported by chromedriver atm.
         # Choosing not to use plug-ins for this as I don't want to worry about the
         # extra dependencies and plug-ins don't work in headless mode. :-(
@@ -96,7 +104,7 @@ class Session(requests.Session):
         service = ChromeService(executable_path=self.webdriver_path)
         return RequestiumChrome(service=service, options=chrome_options, default_timeout=self.default_timeout)
 
-    def transfer_session_cookies_to_driver(self, domain=None):
+    def transfer_session_cookies_to_driver(self, domain: Optional[str] = None) -> None:
         """Copies the Session's cookies into the webdriver
 
         Using the 'domain' parameter we choose the cookies we wish to transfer, we only
@@ -116,29 +124,29 @@ class Session(requests.Session):
 
             self.driver.ensure_add_cookie({k: v for k, v in cookie.items() if v is not None})
 
-    def transfer_driver_cookies_to_session(self, copy_user_agent=True):
+    def transfer_driver_cookies_to_session(self, copy_user_agent: Optional[bool] = True) -> None:
         if copy_user_agent:
             self.copy_user_agent_from_driver()
 
         for cookie in self.driver.get_cookies():
             self.cookies.set(cookie["name"], cookie["value"], domain=cookie["domain"])
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs) -> RequestiumResponse:
         resp = super().get(*args, **kwargs)
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
 
-    def post(self, *args, **kwargs):
+    def post(self, *args, **kwargs) -> RequestiumResponse:
         resp = super().post(*args, **kwargs)
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
 
-    def put(self, *args, **kwargs):
+    def put(self, *args, **kwargs) -> RequestiumResponse:
         resp = super().put(*args, **kwargs)
         self._last_requests_url = resp.url
         return RequestiumResponse(resp)
 
-    def copy_user_agent_from_driver(self):
+    def copy_user_agent_from_driver(self) -> None:
         """Updates requests' session user-agent with the driver's user agent
 
         This method will start the browser process if its not already running.
