@@ -75,6 +75,7 @@ extend-select = [
     "DTZ",  # flake8-datetimez (DTZ)
     "E",  # pycodestyle-error (E)
     "EM",  # flake8-errmsg (EM)
+    "EXE",  # flake8-executable (EXE)
     "F",  # Pyflakes (F)
     "FBT",  # flake8-boolean-trap (FBT)
     "G",  # flake8-logging-format (G)
