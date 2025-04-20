@@ -3,9 +3,9 @@ import types
 from typing import Any, Optional
 
 import requests
+import tldextract
 from selenium import webdriver
 from selenium.common import InvalidCookieDomainException
-import tldextract
 from selenium.webdriver import ChromeService
 
 from .requestium_mixin import DriverMixin
