@@ -25,7 +25,9 @@ class DriverMixin:
         """
         try:
             self.add_cookie(cookie)
-        except WebDriverException:
+        except WebDriverException as e:
+            if not e.msg.__contains__("Couldn't add the following cookie to the webdriver"):
+                raise WebDriverException from e
             pass
         return self.is_cookie_in_driver(cookie)
 
