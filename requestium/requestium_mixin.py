@@ -36,7 +36,6 @@ class DriverMixin(RemoteWebDriver):
         except WebDriverException as e:
             if e.msg and not e.msg.__contains__("Couldn't add the following cookie to the webdriver"):
                 raise WebDriverException from e
-            pass
         return self.is_cookie_in_driver(cookie)
 
     def ensure_add_cookie(self, cookie: dict[str, Any], override_domain: str | None = None) -> None:
