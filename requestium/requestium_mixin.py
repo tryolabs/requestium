@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-class DriverMixin:
+class DriverMixin(RemoteWebDriver):
     """Provides helper methods to our driver classes"""
 
     def __init__(self, *args, **kwargs) -> None:
