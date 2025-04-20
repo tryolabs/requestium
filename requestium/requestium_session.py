@@ -59,7 +59,7 @@ class Session(requests.Session):
             self._driver.default_timeout = self.default_timeout
 
     @property
-    def driver(self):
+    def driver(self) -> DriverMixin:
         if self._driver is None:
             self._driver = self._driver_initializer()
         return self._driver

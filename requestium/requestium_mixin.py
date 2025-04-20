@@ -1,7 +1,7 @@
 import functools
 import time
 import warnings
-from typing import Optional
+from typing import Any, Optional
 
 import tldextract
 from parsel.selector import Selector, SelectorList
@@ -12,15 +12,17 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
+DEFAULT_TIMEOUT: float = 0.5
+
 
 class DriverMixin(RemoteWebDriver):
     """Provides helper methods to our driver classes."""
 
     def __init__(self, *args, **kwargs) -> None:
-        self.default_timeout = kwargs.pop("default_timeout", None)
+        self.default_timeout = kwargs.pop("default_timeout", DEFAULT_TIMEOUT)
         super().__init__(*args, **kwargs)
 
-    def try_add_cookie(self, cookie) -> bool:
+    def try_add_cookie(self, cookie: dict[str, Any]) -> bool:
         """Attempt to add the cookie. Suppress any errors, and simply
         detect success or failure if the cookie was actually added.
         """
@@ -32,7 +34,7 @@ class DriverMixin(RemoteWebDriver):
             pass
         return self.is_cookie_in_driver(cookie)
 
-    def ensure_add_cookie(self, cookie, override_domain=None) -> None:
+    def ensure_add_cookie(self, cookie: dict[str, Any], override_domain: Optional[str] = None) -> None:
         """Ensures a cookie gets added to the driver.
 
         Selenium needs the driver to be currently at the domain of the cookie
@@ -81,7 +83,7 @@ class DriverMixin(RemoteWebDriver):
                 msg = f"Couldn't add the following cookie to the webdriver: {cookie}"
                 raise WebDriverException(msg)
 
-    def is_cookie_in_driver(self, cookie) -> bool:
+    def is_cookie_in_driver(self, cookie: dict[str, Any]) -> bool:
         """We check that the cookie is correctly added to the driver.
 
         We only compare name, value and domain, as the rest can produce false negatives.
@@ -95,31 +97,31 @@ class DriverMixin(RemoteWebDriver):
                 return True
         return False
 
-    def ensure_element_by_id(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_id(self, selector: str, state: Optional[str] = "present", timeout: Optional[float] = None) -> Optional[WebElement]:
         return self.ensure_element(By.ID, selector, state, timeout)
 
-    def ensure_element_by_name(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_name(self, selector: str, state: Optional[str] = "present", timeout: Optional[float] = None) -> Optional[WebElement]:
         return self.ensure_element(By.NAME, selector, state, timeout)
 
-    def ensure_element_by_xpath(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_xpath(self, selector: str, state: Optional[str] = "present", timeout: Optional[float] = None) -> Optional[WebElement]:
         return self.ensure_element(By.XPATH, selector, state, timeout)
 
-    def ensure_element_by_link_text(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_link_text(self, selector: str, state: Optional[str] = "present", timeout: Optional[float] = None) -> Optional[WebElement]:
         return self.ensure_element(By.LINK_TEXT, selector, state, timeout)
 
-    def ensure_element_by_partial_link_text(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_partial_link_text(self, selector: str, state: Optional[str] = "present", timeout: Optional[float] = None) -> Optional[WebElement]:
         return self.ensure_element(By.PARTIAL_LINK_TEXT, selector, state, timeout)
 
-    def ensure_element_by_tag_name(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_tag_name(self, selector: str, state: Optional[str] = "present", timeout: Optional[float] = None) -> Optional[WebElement]:
         return self.ensure_element(By.TAG_NAME, selector, state, timeout)
 
-    def ensure_element_by_class_name(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_class_name(self, selector: str, state: Optional[str] = "present", timeout: Optional[float] = None) -> Optional[WebElement]:
         return self.ensure_element(By.CLASS_NAME, selector, state, timeout)
 
-    def ensure_element_by_css_selector(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_css_selector(self, selector: str, state: Optional[str] = "present", timeout: Optional[float] = None) -> Optional[WebElement]:
         return self.ensure_element(By.CSS_SELECTOR, selector, state, timeout)
 
-    def ensure_element(self, locator: str, selector: str, state: str = "present", timeout=None) -> Optional[WebElement]:
+    def ensure_element(self, locator: str, selector: str, state: Optional[str] = "present", timeout: Optional[float] = None) -> Optional[WebElement]:
         """This method allows us to wait till an element appears or disappears in the browser.
 
         The webdriver runs in parallel with our scripts, so we must wait for it everytime it
@@ -159,7 +161,7 @@ class DriverMixin(RemoteWebDriver):
             locator = locators_compatibility[locator]
 
         if not timeout:
-            timeout = self.default_timeout
+            timeout = self.default_timeout or DEFAULT_TIMEOUT
 
         if state == "visible":
             element = WebDriverWait(self, timeout).until(expected_conditions.visibility_of_element_located((locator, selector)))
@@ -203,7 +205,7 @@ class DriverMixin(RemoteWebDriver):
         return self.selector.re_first(*args, **kwargs)
 
 
-def _ensure_click(self) -> None:
+def _ensure_click(self: WebElement) -> None:
     """Ensures a click gets made, because Selenium can be a bit buggy about clicks.
 
     This method gets added to the selenium element returned in '__ensure_element_by_xpath'.
