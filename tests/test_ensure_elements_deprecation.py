@@ -1,6 +1,6 @@
 import pytest
 
-import requestium
+import requestium.requestium
 
 
 def test_deprecation_warning_for_ensure_element_locators_with_underscores(session: requestium.Session) -> None:

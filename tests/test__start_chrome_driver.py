@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-import requestium
+import requestium.requestium
 
 
 def test__start_chrome_driver(session: requestium.Session) -> None:

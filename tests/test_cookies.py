@@ -1,7 +1,7 @@
 import pytest
 from selenium.common import InvalidCookieDomainException
 
-import requestium
+import requestium.requestium
 
 
 def test_transfer_session_cookies_to_driver(session: requestium.Session) -> None:

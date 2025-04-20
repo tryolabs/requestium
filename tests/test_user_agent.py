@@ -1,4 +1,4 @@
-import requestium
+import requestium.requestium
 
 
 def test_copy_user_agent_from_driver(session: requestium.Session) -> None:

@@ -1,6 +1,6 @@
 from selenium.webdriver.common.by import By
 
-import requestium
+import requestium.requestium
 
 
 def test_simple_page_load(session: requestium.Session) -> None:
