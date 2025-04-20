@@ -83,6 +83,7 @@ extend-select = [
     "G",  # flake8-logging-format (G)
     "I",  # isort (I)
     "ICN",  # flake8-import-conventions (ICN)
+    "INT",  # flake8-gettext (INT)
     "ISC",  # flake8-implicit-str-concat (ISC)
     "LOG",  # flake8-logging (LOG)
     "N",  # pep8-naming (N)
