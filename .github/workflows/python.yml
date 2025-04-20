@@ -193,7 +193,7 @@ jobs:
 
       - id: run-mypy-sarif
         run: |
-          mypy . --output json
+          mypy . --output=json > results.sarif
 
       - uses: github/codeql-action/upload-sarif@45775bd8235c68ba998cffa5171334d58593da47
         if: ( success() || failure() ) && contains('["success", "failure"]', steps.run-mypy-sarif.outcome)
