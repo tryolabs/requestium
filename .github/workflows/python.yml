@@ -160,9 +160,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    permissions:
-      security-events: write
-
     steps:
       - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
         with:
@@ -191,17 +188,7 @@ jobs:
           path: .mypy_cache
           key: ${{ runner.os }}-mypy-3.13-${{ hashFiles('pyproject.toml') }}
 
-      - id: run-mypy-sarif
-        run: |
-          mypy . --output=json > results.sarif
-
-      - uses: github/codeql-action/upload-sarif@45775bd8235c68ba998cffa5171334d58593da47
-        if: ( success() || failure() ) && contains('["success", "failure"]', steps.run-mypy-sarif.outcome)
-        with:
-          sarif_file: results.sarif
-
       - id: run-mypy
-        if: failure() && contains('["failure"]', steps.run-mypy-sarif.outcome)
         run: |
           mypy .
 
