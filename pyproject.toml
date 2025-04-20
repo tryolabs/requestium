@@ -100,6 +100,7 @@ extend-select = [
     "T10",  # flake8-debugger (T10)
     "T20",  # flake8-print (T20)
     "TC",  # flake8-type-checking (TC)
+    "TD",  # flake8-todos (TD)
     "TID",  # flake8-tidy-imports (TID)
     "UP",  # pyupgrade (UP)
     "W",  # pycodestyle-warning (W)
@@ -108,6 +109,7 @@ extend-select = [
 ignore = [
     "ANN002",
     "ANN003",
+    "FIX002",
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -67,9 +67,11 @@ class Session(requests.Session):
         return self._driver
 
     def _start_chrome_browser(self, headless: bool | None = False):  # noqa C901
-        # TODO transfer of proxies and headers: Not supported by chromedriver atm.  # noqa: FIX002
-        # Choosing not to use plug-ins for this as I don't want to worry about the
-        # extra dependencies and plug-ins don't work in headless mode. :-(
+        # TODO @joaqo: Transfer of proxies and headers.
+        # https://github.com/tryolabs/requestium/issues/96
+        # Not currently supported by chromedriver. Choosing not to use plug-ins
+        # for this as I don't want to worry about the extra dependencies and
+        # plug-ins don't work in headless mode. :-(
         chrome_options = webdriver.ChromeOptions()
 
         if headless:
