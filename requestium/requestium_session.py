@@ -11,6 +11,8 @@ from selenium.webdriver import ChromeService
 from .requestium_mixin import DriverMixin
 from .requestium_response import RequestiumResponse
 
+RequestiumChrome = type("RequestiumChrome", (DriverMixin, webdriver.Chrome), {})
+
 
 class Session(requests.Session):
     """Class that adds a Selenium Webdriver and helper methods to a  Requests Session.
@@ -95,8 +97,6 @@ class Session(requests.Session):
             for name, value in experimental_options.items():
                 chrome_options.add_experimental_option(name, value)
 
-        # Create driver process
-        RequestiumChrome = type("RequestiumChrome", (DriverMixin, webdriver.Chrome), {})
         # Selenium updated webdriver.Chrome's arg and kwargs, to accept options, service, keep_alive
         # since ChromeService is the only object where webdriver_path is mapped to executable_path, it must be
         # initialized and passed in as a kwarg to RequestiumChrome so it can be passed in as a kwarg
