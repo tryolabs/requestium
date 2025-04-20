@@ -2,11 +2,14 @@
 
 [Full report](https://htmlpreview.github.io/?https://github.com/tryolabs/requestium/blob/python-coverage-comment-action-data/htmlcov/index.html)
 
-| Name                       |    Stmts |     Miss |   Branch |   BrPart |   Cover |   Missing |
-|--------------------------- | -------: | -------: | -------: | -------: | ------: | --------: |
-| requestium/\_\_init\_\_.py |        4 |        0 |        0 |        0 |    100% |           |
-| requestium/requestium.py   |      197 |       64 |       70 |       14 |     64% |70, 74-75, 80-82, 85-86, 90-91, 111->117, 123-127, 135-137, 140-142, 165, 168, 171, 174, 177, 193-194, 222, 227-228, 240-243, 257, 260, 263, 266, 269, 272, 275, 278, 281, 322->325, 326, 328, 331-335, 340->342, 350, 353, 356, 359, 362, 384-399 |
-|                  **TOTAL** |  **201** |   **64** |   **70** |   **14** | **65%** |           |
+| Name                               |    Stmts |     Miss |   Branch |   BrPart |   Cover |   Missing |
+|----------------------------------- | -------: | -------: | -------: | -------: | ------: | --------: |
+| requestium/\_\_init\_\_.py         |        4 |        0 |        0 |        0 |    100% |           |
+| requestium/requestium.py           |        4 |        0 |        0 |        0 |    100% |           |
+| requestium/requestium\_mixin.py    |      106 |       38 |       30 |        7 |     62% |28-31, 59, 64-65, 80, 97, 100, 103, 106, 109, 112, 115, 118, 159->162, 163, 165, 168-172, 177->179, 187, 190, 193, 196, 199, 221-237 |
+| requestium/requestium\_response.py |       19 |        5 |        0 |        0 |     74% |21, 24, 27, 30, 33 |
+| requestium/requestium\_session.py  |       88 |       22 |       42 |        8 |     68% |62, 72, 75, 79-80, 85-87, 90-91, 95-96, 116->122, 128-132, 140-142, 145-147 |
+|                          **TOTAL** |  **221** |   **65** |   **72** |   **15** | **67%** |           |
 
 
 ## Setup coverage badge
