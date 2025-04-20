@@ -1,28 +1,12 @@
-import shutil
-
-import pytest
-import selenium
 from selenium.webdriver.common.by import By
 
-import requestium
 
-chrome_webdriver_path = shutil.which("chromedriver")
-session_parameters = [
-    {"webdriver_path": chrome_webdriver_path},
-    {"webdriver_path": chrome_webdriver_path, "headless": True},
-    {"driver": selenium.webdriver.Chrome()},
-    {"driver": selenium.webdriver.Firefox()},
-]
+def test_simple_page_load(session) -> None:
+    session.driver.get("http://the-internet.herokuapp.com")
+    session.driver.ensure_element(By.ID, "content")
 
+    title = session.driver.title
+    heading = session.driver.find_element(By.XPATH, '//*[@id="content"]/h1')
 
-@pytest.mark.parametrize("params", session_parameters)
-def test_simple_page_load(params) -> None:
-    with requestium.Session(**params) as session:
-        session.driver.get("http://the-internet.herokuapp.com")
-        session.driver.ensure_element(By.ID, "content")
-
-        title = session.driver.title
-        heading = session.driver.find_element(By.XPATH, '//*[@id="content"]/h1')
-
-        assert title == "The Internet"
-        assert heading.text == "Welcome to the-internet"
+    assert title == "The Internet"
+    assert heading.text == "Welcome to the-internet"
