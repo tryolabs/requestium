@@ -107,9 +107,9 @@ extend-select = [
     "YTT",  # flake8-2020 (YTT)
 ]
 ignore = [
-    "ANN002",
-    "ANN003",
-    "FIX002",
+    "ANN002",  # missing-type-args (ANN002)
+    "ANN003",  # missing-type-kwargs (ANN003)
+    "FIX002",  # line-contains-todo (FIX002)
 ]
 
 [tool.ruff.lint.per-file-ignores]
