@@ -79,12 +79,12 @@ class Session(requests.Session):
                 for arg in self.webdriver_options["arguments"]:
                     chrome_options.add_argument(arg)
             else:
-                raise TypeError(f"'arguments' option must be a list, but got {type(self.webdriver_options['arguments']).__name__}")
+                msg = f"'arguments' option must be a list, but got {type(self.webdriver_options['arguments']).__name__}"
+                raise TypeError(msg)
 
-        if "extensions" in self.webdriver_options:
-            if isinstance(self.webdriver_options["extensions"], list):
-                for arg in self.webdriver_options["extensions"]:
-                    chrome_options.add_extension(arg)
+        if "extensions" in self.webdriver_options and isinstance(self.webdriver_options["extensions"], list):
+            for arg in self.webdriver_options["extensions"]:
+                chrome_options.add_extension(arg)
 
         if "prefs" in self.webdriver_options:
             prefs = self.webdriver_options["prefs"]
@@ -115,9 +115,8 @@ class Session(requests.Session):
             domain = tldextract.extract(self._last_requests_url).registered_domain
 
         if not domain:
-            raise InvalidCookieDomainException(
-                "Trying to transfer cookies to selenium without specifying a domain and without having visited any page in the current session"
-            )
+            msg = "Trying to transfer cookies to selenium without specifying a domain and without having visited any page in the current session"
+            raise InvalidCookieDomainException(msg)
 
         # Transfer cookies
         for c in [c for c in self.cookies if domain in c.domain]:

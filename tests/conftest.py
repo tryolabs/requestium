@@ -38,7 +38,8 @@ def session(request):
     #     assert os.path.exists(custom_path), f"Custom chromedriver not found at {custom_path}."
     #     driver = webdriver.Chrome(service=webdriver.ChromeService(executable_path=custom_path))
     else:
-        raise ValueError(f"Unknown driver type: {driver_type}")
+        msg = f"Unknown driver type: {driver_type}"
+        raise ValueError(msg)
 
     with requestium.Session(driver=driver) as session:
         yield session

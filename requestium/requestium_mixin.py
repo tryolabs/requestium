@@ -78,7 +78,8 @@ class DriverMixin(RemoteWebDriver):
             cookie["domain"] = tldextract.extract(cookie["domain"]).registered_domain
             cookie_added = self.try_add_cookie(cookie)
             if not cookie_added:
-                raise WebDriverException(f"Couldn't add the following cookie to the webdriver: {cookie}")
+                msg = f"Couldn't add the following cookie to the webdriver: {cookie}"
+                raise WebDriverException(msg)
 
     def is_cookie_in_driver(self, cookie) -> bool:
         """We check that the cookie is correctly added to the driver.
@@ -170,7 +171,8 @@ class DriverMixin(RemoteWebDriver):
             WebDriverWait(self, timeout).until(expected_conditions.invisibility_of_element_located((locator, selector)))
             element = None
         else:
-            raise ValueError(f"The 'state' argument must be 'visible', 'clickable', 'present' or 'invisible', not '{state}'")
+            msg = f"The 'state' argument must be 'visible', 'clickable', 'present' or 'invisible', not '{state}'"
+            raise ValueError(msg)
 
         # We add this method to our element to provide a more robust click. Chromedriver
         # sometimes needs some time before it can click an item, specially if it needs to
@@ -235,4 +237,5 @@ def _ensure_click(self) -> None:
         except WebDriverException as e:
             exception_message = str(e)
             time.sleep(0.2)
-    raise WebDriverException(f"Couldn't click item after trying 10 times, got error message: \n{exception_message}")
+    msg = f"Couldn't click item after trying 10 times, got error message: \n{exception_message}"
+    raise WebDriverException(msg)
