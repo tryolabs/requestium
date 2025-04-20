@@ -1,10 +1,14 @@
 # import os
 # import shutil
+from typing import TYPE_CHECKING, cast
 
 import pytest
 from selenium import webdriver
 
 import requestium
+
+if TYPE_CHECKING:
+    from requestium.requestium_mixin import DriverMixin
 
 
 @pytest.fixture(
@@ -41,5 +45,5 @@ def session(request):
         msg = f"Unknown driver type: {driver_type}"
         raise ValueError(msg)
 
-    with requestium.Session(driver=driver) as session:
+    with requestium.Session(driver=cast("DriverMixin", driver)) as session:
         yield session

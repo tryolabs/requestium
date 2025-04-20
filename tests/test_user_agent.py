@@ -1,4 +1,7 @@
-def test_copy_user_agent_from_driver(session) -> None:
+import requestium
+
+
+def test_copy_user_agent_from_driver(session: requestium.Session) -> None:
     """Ensure that requests user-agent header has been changed after calling session.copy_user_agent_from_driver()."""
     pre_copy_requests_useragent = session.headers["user-agent"]
     assert pre_copy_requests_useragent
