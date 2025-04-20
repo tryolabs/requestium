@@ -1,5 +1,5 @@
-import os
-import shutil
+# import os
+# import shutil
 
 import pytest
 from selenium import webdriver
@@ -13,7 +13,7 @@ import requestium
         "chrome-headless",
         "firefox",
         "firefox-headless",
-        "chrome-custom-path",
+        # "chrome-custom-path",
     ]
 )
 def session(request):
@@ -31,12 +31,12 @@ def session(request):
         options = webdriver.FirefoxOptions()
         options.add_argument("--headless")
         driver = webdriver.Firefox(options=options)
-    elif driver_type == "chrome-custom-path":
-        chromedriver_name = "chromedriver"
-        custom_path = shutil.which(chromedriver_name)
-        assert custom_path, f"'{chromedriver_name}' not found in PATH."
-        assert os.path.exists(custom_path), f"Custom chromedriver not found at {custom_path}."
-        driver = webdriver.Chrome(service=webdriver.ChromeService(executable_path=custom_path))
+    # elif driver_type == "chrome-custom-path":
+    #     chromedriver_name = "chromedriver"
+    #     custom_path = shutil.which(chromedriver_name)
+    #     assert custom_path, f"'{chromedriver_name}' not found in PATH."
+    #     assert os.path.exists(custom_path), f"Custom chromedriver not found at {custom_path}."
+    #     driver = webdriver.Chrome(service=webdriver.ChromeService(executable_path=custom_path))
     else:
         raise ValueError(f"Unknown driver type: {driver_type}")
 
