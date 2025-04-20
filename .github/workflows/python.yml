@@ -75,9 +75,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    permissions:
-      pull-requests: write
-
     steps:
       - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
         with:
@@ -114,7 +111,6 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      pull-requests: write
       security-events: write
 
     steps:
@@ -159,6 +155,43 @@ jobs:
         run: |
           ruff check --output-format=github .
 
+  mypy:
+    name: Mypy type checking
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            files.pythonhosted.org:443
+            github.com:443
+            pypi.org:443
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - uses: install-pinned/uv@5e770af195bb60f7bafe5430e7c5045bc2894b2a
+
+      - run: uv pip install --system -e .[dev]
+
+      - id: cache-mypy
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: .mypy_cache
+          key: ${{ runner.os }}-mypy-3.13-${{ hashFiles('pyproject.toml') }}
+
+      - id: run-mypy
+        run: |
+          mypy .
+
   bandit:
     name: Bandit security
 
@@ -190,7 +223,7 @@ jobs:
       - run: uv pip install --system -e .[dev]
 
       - id: run-bandit-sarif
-        run: >
+        run: |
           bandit --confidence-level 'medium' --format 'sarif' --output 'results.sarif' --recursive 'requestium'
 
       - uses: github/codeql-action/upload-sarif@45775bd8235c68ba998cffa5171334d58593da47
@@ -200,7 +233,7 @@ jobs:
 
       - id: run-bandit
         if: failure() && contains('["failure"]', steps.run-bandit-sarif.outcome)
-        run: >
+        run: |
           bandit --confidence-level 'medium' --recursive 'requestium'
 
   coverage:

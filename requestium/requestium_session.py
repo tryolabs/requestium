@@ -3,9 +3,9 @@ import types
 from typing import Any, Optional
 
 import requests
+import tldextract
 from selenium import webdriver
 from selenium.common import InvalidCookieDomainException
-import tldextract
 from selenium.webdriver import ChromeService
 
 from .requestium_mixin import DriverMixin
@@ -31,7 +31,7 @@ class Session(requests.Session):
         headless: Optional[bool] = None,
         default_timeout: float = 5,
         webdriver_options: Optional[dict[str, Any]] = None,
-        driver=None,
+        driver: Optional[DriverMixin] = None,
     ) -> None:
         super().__init__()
 
@@ -42,7 +42,7 @@ class Session(requests.Session):
         self.default_timeout = default_timeout
         self.webdriver_options = webdriver_options
         self._driver = driver
-        self._last_requests_url = None
+        self._last_requests_url: Optional[str] = None
 
         if not self._driver:
             self._driver_initializer = functools.partial(self._start_chrome_browser, headless=headless)
@@ -113,7 +113,8 @@ class Session(requests.Session):
         """
         if not domain and self._last_requests_url:
             domain = tldextract.extract(self._last_requests_url).registered_domain
-        elif not domain and not self._last_requests_url:
+
+        if not domain:
             raise InvalidCookieDomainException(
                 "Trying to transfer cookies to selenium without specifying a domain and without having visited any page in the current session"
             )

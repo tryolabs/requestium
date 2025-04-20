@@ -7,12 +7,13 @@ import tldextract
 from parsel.selector import Selector, SelectorList
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-class DriverMixin:
+class DriverMixin(RemoteWebDriver):
     """Provides helper methods to our driver classes"""
 
     def __init__(self, *args, **kwargs) -> None:
@@ -26,7 +27,7 @@ class DriverMixin:
         try:
             self.add_cookie(cookie)
         except WebDriverException as e:
-            if not e.msg.__contains__("Couldn't add the following cookie to the webdriver"):
+            if e.msg and not e.msg.__contains__("Couldn't add the following cookie to the webdriver"):
                 raise WebDriverException from e
             pass
         return self.is_cookie_in_driver(cookie)
@@ -175,7 +176,7 @@ class DriverMixin:
         # sometimes needs some time before it can click an item, specially if it needs to
         # scroll into it first. This method ensures clicks don't fail because of this.
         if element:
-            element.ensure_click = functools.partial(_ensure_click, element)
+            element.ensure_click = functools.partial(_ensure_click, element)  # type: ignore[attr-defined]
         return element
 
     @property
