@@ -176,7 +176,7 @@ class DriverMixin(RemoteWebDriver):
         # sometimes needs some time before it can click an item, specially if it needs to
         # scroll into it first. This method ensures clicks don't fail because of this.
         if element:
-            element.ensure_click = functools.partial(_ensure_click, element)
+            element.ensure_click = functools.partial(_ensure_click, element)  # type: ignore[attr-defined]
         return element
 
     @property
