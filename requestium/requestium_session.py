@@ -124,7 +124,7 @@ class Session(requests.Session):
 
             self.driver.ensure_add_cookie({k: v for k, v in cookie.items() if v is not None})
 
-    def transfer_driver_cookies_to_session(self, copy_user_agent: Optional[bool] = True) -> None:
+    def transfer_driver_cookies_to_session(self, *, copy_user_agent: Optional[bool] = True) -> None:
         if copy_user_agent:
             self.copy_user_agent_from_driver()
 
