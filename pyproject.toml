@@ -72,6 +72,7 @@ extend-select = [
     "BLE",  # flake8-blind-except (BLE)
     "C4",  # flake8-comprehensions (C4)
     "C90",  # mccabe (C90)
+    "D",  # pydocstyle (D)
     "DTZ",  # flake8-datetimez (DTZ)
     "E",  # pycodestyle-error (E)
     "EM",  # flake8-errmsg (EM)
@@ -109,6 +110,13 @@ extend-select = [
 ignore = [
     "ANN002",  # missing-type-args (ANN002)
     "ANN003",  # missing-type-kwargs (ANN003)
+    "D100",  # undocumented-public-module (D100)
+    "D102",  # undocumented-public-method (D102)
+    "D103",  # undocumented-public-function (D103)
+    "D104",  # undocumented-public-package (D104)
+    "D107",  # undocumented-public-init (D107)
+    "D203",  # incorrect-blank-line-before-class (D203)
+    "D212",  # multi-line-summary-first-line (D212)
     "FIX002",  # line-contains-todo (FIX002)
 ]
 

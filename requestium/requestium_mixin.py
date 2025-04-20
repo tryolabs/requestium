@@ -28,8 +28,10 @@ class DriverMixin(RemoteWebDriver):
         super().__init__(*args, **kwargs)
 
     def try_add_cookie(self, cookie: dict[str, Any]) -> bool:
-        """Attempt to add the cookie. Suppress any errors, and simply
-        detect success or failure if the cookie was actually added.
+        """
+        Attempt to add the cookie.
+
+        Suppress any errors, and simply detect success or failure.
         """
         try:
             self.add_cookie(cookie)
@@ -39,7 +41,8 @@ class DriverMixin(RemoteWebDriver):
         return self.is_cookie_in_driver(cookie)
 
     def ensure_add_cookie(self, cookie: dict[str, Any], override_domain: str | None = None) -> None:
-        """Ensures a cookie gets added to the driver.
+        """
+        Add a cookie to the driver and check to ensure it has been added.
 
         Selenium needs the driver to be currently at the domain of the cookie
         before allowing you to add it, so we need to get through this limitation.
@@ -89,7 +92,8 @@ class DriverMixin(RemoteWebDriver):
                 raise WebDriverException(msg)
 
     def is_cookie_in_driver(self, cookie: dict[str, Any]) -> bool:
-        """We check that the cookie is correctly added to the driver.
+        """
+        We check that the cookie is correctly added to the driver.
 
         We only compare name, value and domain, as the rest can produce false negatives.
         We are a bit lenient when comparing domains.
@@ -127,7 +131,8 @@ class DriverMixin(RemoteWebDriver):
         return self.ensure_element(By.CSS_SELECTOR, selector, state, timeout)
 
     def ensure_element(self, locator: str, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
-        """This method allows us to wait till an element appears or disappears in the browser.
+        """
+        Wait until an element appears or disappears in the browser.
 
         The webdriver runs in parallel with our scripts, so we must wait for it everytime it
         runs javascript. Selenium automatically waits till a page loads when GETing it,
@@ -190,7 +195,8 @@ class DriverMixin(RemoteWebDriver):
 
     @property
     def selector(self) -> Selector:
-        """Returns the current state of the browser in a Selector.
+        """
+        Returns the current state of the browser in a Selector.
 
         We re-parse the site on each xpath, css, re call because we are running a web browser
         and the site may change between calls
@@ -211,7 +217,8 @@ class DriverMixin(RemoteWebDriver):
 
 
 def _ensure_click(self: WebElement) -> None:
-    """Ensures a click gets made, because Selenium can be a bit buggy about clicks.
+    """
+    Ensure a click gets made, because Selenium can be a bit buggy about clicks.
 
     This method gets added to the selenium element returned in '__ensure_element_by_xpath'.
     We should probably add it to more selenium methods, such as all the 'find**' methods though.

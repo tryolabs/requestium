@@ -14,7 +14,8 @@ class RequestiumResponse(requests.Response):
 
     @property
     def selector(self) -> Selector:
-        """Returns the response text in a Selector.
+        """
+        Returns the response text in a Selector.
 
         We re-parse the text on each xpath, css, re call in case the encoding has changed.
         """
