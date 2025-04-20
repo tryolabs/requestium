@@ -113,7 +113,8 @@ class Session(requests.Session):
         """
         if not domain and self._last_requests_url:
             domain = tldextract.extract(self._last_requests_url).registered_domain
-        elif not domain and not self._last_requests_url:
+
+        if not domain:
             raise InvalidCookieDomainException(
                 "Trying to transfer cookies to selenium without specifying a domain and without having visited any page in the current session"
             )
