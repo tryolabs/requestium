@@ -67,8 +67,8 @@ class DriverMixin(RemoteWebDriver):
         except AttributeError:
             browser_domain = ""
         if cookie_domain not in browser_domain:
-            # TODO Check if hardcoding 'http' causes trouble
-            # TODO Consider using a new proxy for this next request to not cause an anomalous
+            # TODO Check if hardcoding 'http' causes trouble  # noqa: FIX002
+            # TODO Consider using a new proxy for this next request to not cause an anomalous  # noqa: FIX002
             #      request. This way their server sees our ip address as continuously having the
             #      same cookies and not have a request mid-session with no cookies
             self.get("http://" + cookie_domain)

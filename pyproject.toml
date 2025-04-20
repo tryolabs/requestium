@@ -78,6 +78,7 @@ extend-select = [
     "EXE",  # flake8-executable (EXE)
     "F",  # Pyflakes (F)
     "FBT",  # flake8-boolean-trap (FBT)
+    "FIX",  # flake8-fixme (FIX)
     "G",  # flake8-logging-format (G)
     "I",  # isort (I)
     "ICN",  # flake8-import-conventions (ICN)
