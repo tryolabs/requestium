@@ -6,7 +6,7 @@ from requests import Response
 
 
 class RequestiumResponse(requests.Response):
-    """Adds xpath, css, and regex methods to a normal requests response object"""
+    """Adds xpath, css, and regex methods to a normal requests response object."""
 
     def __init__(self, response: Response) -> None:
         super().__init__()
@@ -14,7 +14,7 @@ class RequestiumResponse(requests.Response):
 
     @property
     def selector(self) -> Selector:
-        """Returns the response text in a Selector
+        """Returns the response text in a Selector.
 
         We re-parse the text on each xpath, css, re call in case the encoding has changed.
         """

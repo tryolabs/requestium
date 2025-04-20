@@ -1,5 +1,5 @@
 def test_copy_user_agent_from_driver(session) -> None:
-    """Ensure that requests user-agent header has been changed after calling session.copy_user_agent_from_driver()"""
+    """Ensure that requests user-agent header has been changed after calling session.copy_user_agent_from_driver()."""
     pre_copy_requests_useragent = session.headers["user-agent"]
     assert pre_copy_requests_useragent and pre_copy_requests_useragent != ""
 

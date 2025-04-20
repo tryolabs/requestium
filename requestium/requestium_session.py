@@ -13,7 +13,7 @@ from .requestium_response import RequestiumResponse
 
 
 class Session(requests.Session):
-    """Class that adds a Selenium Webdriver and helper methods to a  Requests Session
+    """Class that adds a Selenium Webdriver and helper methods to a  Requests Session.
 
     This session class is a normal Requests Session that has the ability to switch back
     and forth between this session and a webdriver, allowing us to run js when needed.
@@ -105,7 +105,7 @@ class Session(requests.Session):
         return RequestiumChrome(service=service, options=chrome_options, default_timeout=self.default_timeout)
 
     def transfer_session_cookies_to_driver(self, domain: Optional[str] = None) -> None:
-        """Copies the Session's cookies into the webdriver
+        """Copies the Session's cookies into the webdriver.
 
         Using the 'domain' parameter we choose the cookies we wish to transfer, we only
         transfer the cookies which belong to that domain. The domain defaults to our last visited
@@ -148,7 +148,7 @@ class Session(requests.Session):
         return RequestiumResponse(resp)
 
     def copy_user_agent_from_driver(self) -> None:
-        """Updates requests' session user-agent with the driver's user agent
+        """Updates requests' session user-agent with the driver's user agent.
 
         This method will start the browser process if its not already running.
         """
