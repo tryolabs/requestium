@@ -1,39 +1,48 @@
+from __future__ import annotations
+
 import functools
 import time
 import warnings
-from typing import Optional
+from typing import TYPE_CHECKING, Any
 
 import tldextract
 from parsel.selector import Selector, SelectorList
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webelement import WebElement
+
+
+DEFAULT_TIMEOUT: float = 0.5
+
 
 class DriverMixin(RemoteWebDriver):
-    """Provides helper methods to our driver classes"""
+    """Provides helper methods to our driver classes."""
 
     def __init__(self, *args, **kwargs) -> None:
-        self.default_timeout = kwargs.pop("default_timeout", None)
+        self.default_timeout = kwargs.pop("default_timeout", DEFAULT_TIMEOUT)
         super().__init__(*args, **kwargs)
 
-    def try_add_cookie(self, cookie) -> bool:
-        """Attempt to add the cookie. Suppress any errors, and simply
-        detect success or failure if the cookie was actually added.
+    def try_add_cookie(self, cookie: dict[str, Any]) -> bool:
+        """
+        Attempt to add the cookie.
+
+        Suppress any errors, and simply detect success or failure.
         """
         try:
             self.add_cookie(cookie)
         except WebDriverException as e:
             if e.msg and not e.msg.__contains__("Couldn't add the following cookie to the webdriver"):
                 raise WebDriverException from e
-            pass
         return self.is_cookie_in_driver(cookie)
 
-    def ensure_add_cookie(self, cookie, override_domain=None) -> None:
-        """Ensures a cookie gets added to the driver
+    def ensure_add_cookie(self, cookie: dict[str, Any], override_domain: str | None = None) -> None:
+        """
+        Add a cookie to the driver and check to ensure it has been added.
 
         Selenium needs the driver to be currently at the domain of the cookie
         before allowing you to add it, so we need to get through this limitation.
@@ -65,10 +74,11 @@ class DriverMixin(RemoteWebDriver):
         except AttributeError:
             browser_domain = ""
         if cookie_domain not in browser_domain:
-            # TODO Check if hardcoding 'http' causes trouble
-            # TODO Consider using a new proxy for this next request to not cause an anomalous
-            #      request. This way their server sees our ip address as continuously having the
-            #      same cookies and not have a request mid-session with no cookies
+            # TODO @joaqo: Check if hardcoding 'http' causes trouble.
+            # https://github.com/tryolabs/requestium/issues/97
+            # Consider using a new proxy for this next request to not cause an anomalous
+            # request. This way their server sees our ip address as continuously having the
+            # same cookies and not have a request mid-session with no cookies
             self.get("http://" + cookie_domain)
 
         cookie_added = self.try_add_cookie(cookie)
@@ -78,10 +88,12 @@ class DriverMixin(RemoteWebDriver):
             cookie["domain"] = tldextract.extract(cookie["domain"]).registered_domain
             cookie_added = self.try_add_cookie(cookie)
             if not cookie_added:
-                raise WebDriverException(f"Couldn't add the following cookie to the webdriver: {cookie}")
+                msg = f"Couldn't add the following cookie to the webdriver: {cookie}"
+                raise WebDriverException(msg)
 
-    def is_cookie_in_driver(self, cookie) -> bool:
-        """We check that the cookie is correctly added to the driver
+    def is_cookie_in_driver(self, cookie: dict[str, Any]) -> bool:
+        """
+        We check that the cookie is correctly added to the driver.
 
         We only compare name, value and domain, as the rest can produce false negatives.
         We are a bit lenient when comparing domains.
@@ -94,32 +106,33 @@ class DriverMixin(RemoteWebDriver):
                 return True
         return False
 
-    def ensure_element_by_id(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_id(self, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
         return self.ensure_element(By.ID, selector, state, timeout)
 
-    def ensure_element_by_name(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_name(self, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
         return self.ensure_element(By.NAME, selector, state, timeout)
 
-    def ensure_element_by_xpath(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_xpath(self, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
         return self.ensure_element(By.XPATH, selector, state, timeout)
 
-    def ensure_element_by_link_text(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_link_text(self, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
         return self.ensure_element(By.LINK_TEXT, selector, state, timeout)
 
-    def ensure_element_by_partial_link_text(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_partial_link_text(self, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
         return self.ensure_element(By.PARTIAL_LINK_TEXT, selector, state, timeout)
 
-    def ensure_element_by_tag_name(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_tag_name(self, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
         return self.ensure_element(By.TAG_NAME, selector, state, timeout)
 
-    def ensure_element_by_class_name(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_class_name(self, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
         return self.ensure_element(By.CLASS_NAME, selector, state, timeout)
 
-    def ensure_element_by_css_selector(self, selector, state="present", timeout=None) -> Optional[WebElement]:
+    def ensure_element_by_css_selector(self, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
         return self.ensure_element(By.CSS_SELECTOR, selector, state, timeout)
 
-    def ensure_element(self, locator: str, selector: str, state: str = "present", timeout=None) -> Optional[WebElement]:
-        """This method allows us to wait till an element appears or disappears in the browser
+    def ensure_element(self, locator: str, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
+        """
+        Wait until an element appears or disappears in the browser.
 
         The webdriver runs in parallel with our scripts, so we must wait for it everytime it
         runs javascript. Selenium automatically waits till a page loads when GETing it,
@@ -158,7 +171,7 @@ class DriverMixin(RemoteWebDriver):
             locator = locators_compatibility[locator]
 
         if not timeout:
-            timeout = self.default_timeout
+            timeout = self.default_timeout or DEFAULT_TIMEOUT
 
         if state == "visible":
             element = WebDriverWait(self, timeout).until(expected_conditions.visibility_of_element_located((locator, selector)))
@@ -170,7 +183,8 @@ class DriverMixin(RemoteWebDriver):
             WebDriverWait(self, timeout).until(expected_conditions.invisibility_of_element_located((locator, selector)))
             element = None
         else:
-            raise ValueError(f"The 'state' argument must be 'visible', 'clickable', 'present' or 'invisible', not '{state}'")
+            msg = f"The 'state' argument must be 'visible', 'clickable', 'present' or 'invisible', not '{state}'"
+            raise ValueError(msg)
 
         # We add this method to our element to provide a more robust click. Chromedriver
         # sometimes needs some time before it can click an item, specially if it needs to
@@ -181,10 +195,12 @@ class DriverMixin(RemoteWebDriver):
 
     @property
     def selector(self) -> Selector:
-        """Returns the current state of the browser in a Selector
+        """
+        Returns the current state of the browser in a Selector.
 
         We re-parse the site on each xpath, css, re call because we are running a web browser
-        and the site may change between calls"""
+        and the site may change between calls
+        """
         return Selector(text=self.page_source)
 
     def xpath(self, *args, **kwargs) -> SelectorList[Selector]:
@@ -196,12 +212,13 @@ class DriverMixin(RemoteWebDriver):
     def re(self, *args, **kwargs) -> list[str]:
         return self.selector.re(*args, **kwargs)
 
-    def re_first(self, *args, **kwargs) -> Optional[str]:
+    def re_first(self, *args, **kwargs) -> str | None:
         return self.selector.re_first(*args, **kwargs)
 
 
-def _ensure_click(self) -> None:
-    """Ensures a click gets made, because Selenium can be a bit buggy about clicks
+def _ensure_click(self: WebElement) -> None:
+    """
+    Ensure a click gets made, because Selenium can be a bit buggy about clicks.
 
     This method gets added to the selenium element returned in '__ensure_element_by_xpath'.
     We should probably add it to more selenium methods, such as all the 'find**' methods though.
@@ -213,7 +230,6 @@ def _ensure_click(self) -> None:
     before clicking it. I tried SEVERAL more 'correct' methods to get around this, but none of them
     worked 100% of the time (waiting for the element to be 'clickable' does not work).
     """
-
     # We ensure the element is scrolled into the middle of the viewport to ensure that
     # it is clickable. There are two main ways an element may not be clickable:
     #   - It is outside of the viewport
@@ -235,4 +251,5 @@ def _ensure_click(self) -> None:
         except WebDriverException as e:
             exception_message = str(e)
             time.sleep(0.2)
-    raise WebDriverException(f"Couldn't click item after trying 10 times, got error message: \n{exception_message}")
+    msg = f"Couldn't click item after trying 10 times, got error message: \n{exception_message}"
+    raise WebDriverException(msg)

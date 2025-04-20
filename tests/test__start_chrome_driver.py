@@ -2,10 +2,10 @@ import time
 
 import pytest
 
-import requestium
+import requestium.requestium
 
 
-def test__start_chrome_driver(session) -> None:
+def test__start_chrome_driver(session: requestium.Session) -> None:
     session._start_chrome_browser()
     session.driver.get("http://the-internet.herokuapp.com")
     time.sleep(1)
