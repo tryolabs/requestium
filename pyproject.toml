@@ -63,6 +63,49 @@ include = [
     "tests/**/*.py",
 ]
 
+[tool.ruff.lint]
+extend-select = [
+    "A",  # flake8-builtins (A)
+    "ANN",  # flake8-annotations (ANN)
+    "ARG",  # flake8-unused-arguments (ARG)
+    "B",  # flake8-bugbear (B)
+    "BLE",  # flake8-blind-except (BLE)
+    "C4",  # flake8-comprehensions (C4)
+    "C90",  # mccabe (C90)
+    "DTZ",  # flake8-datetimez (DTZ)
+    "E",  # pycodestyle-error (E)
+    "EM",  # flake8-errmsg (EM)
+    "F",  # Pyflakes (F)
+    "FBT",  # flake8-boolean-trap (FBT)
+    "G",  # flake8-logging-format (G)
+    "I",  # isort (I)
+    "ICN",  # flake8-import-conventions (ICN)
+    "ISC",  # flake8-implicit-str-concat (ISC)
+    "LOG",  # flake8-logging (LOG)
+    "N",  # pep8-naming (N)
+    "PT",  # flake8-pytest-style (PT)
+    "PTH",  # flake8-use-pathlib (PTH)
+    "Q",  # flake8-quotes (Q)
+    "RET",  # flake8-return (RET)
+    "RSE",  # flake8-raise (RSE)
+    "RUF",  # Ruff-specific rules (RUF)
+    "SIM",  # flake8-simplify (SIM)
+    "SLF",  # flake8-self (SLF)
+    "T20",  # flake8-print (T20)
+    "TC",  # flake8-type-checking (TC)
+    "TID",  # flake8-tidy-imports (TID)
+    "UP",  # pyupgrade (UP)
+    "W",  # pycodestyle-warning (W)
+    "YTT",  # flake8-2020 (YTT)
+]
+ignore = [
+    "ANN002",
+    "ANN003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/{tests,docs}/*" = ["SLF001"]
+
 [tool.pytest.ini_options]
 addopts = "--cov=requestium -n auto"
 testpaths = [
