@@ -77,6 +77,7 @@ extend-select = [
     "EM",  # flake8-errmsg (EM)
     "EXE",  # flake8-executable (EXE)
     "F",  # Pyflakes (F)
+    "FA",  # flake8-future-annotations (FA)
     "FBT",  # flake8-boolean-trap (FBT)
     "FIX",  # flake8-fixme (FIX)
     "G",  # flake8-logging-format (G)

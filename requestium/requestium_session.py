@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import functools
 import types
-from typing import Any, Optional
+from typing import Any
 
 import requests
 import tldextract
@@ -29,11 +31,11 @@ class Session(requests.Session):
 
     def __init__(
         self,
-        webdriver_path: Optional[str] = None,
-        headless: Optional[bool] = None,
+        webdriver_path: str | None = None,
+        headless: bool | None = None,
         default_timeout: float = 5,
-        webdriver_options: Optional[dict[str, Any]] = None,
-        driver: Optional[DriverMixin] = None,
+        webdriver_options: dict[str, Any] | None = None,
+        driver: DriverMixin | None = None,
     ) -> None:
         super().__init__()
 
@@ -44,7 +46,7 @@ class Session(requests.Session):
         self.default_timeout = default_timeout
         self.webdriver_options = webdriver_options
         self._driver = driver
-        self._last_requests_url: Optional[str] = None
+        self._last_requests_url: str | None = None
 
         if not self._driver:
             self._driver_initializer = functools.partial(self._start_chrome_browser, headless=headless)
@@ -64,7 +66,7 @@ class Session(requests.Session):
             self._driver = self._driver_initializer()
         return self._driver
 
-    def _start_chrome_browser(self, headless: Optional[bool] = False):  # noqa C901
+    def _start_chrome_browser(self, headless: bool | None = False):  # noqa C901
         # TODO transfer of proxies and headers: Not supported by chromedriver atm.  # noqa: FIX002
         # Choosing not to use plug-ins for this as I don't want to worry about the
         # extra dependencies and plug-ins don't work in headless mode. :-(
@@ -104,7 +106,7 @@ class Session(requests.Session):
         service = ChromeService(executable_path=self.webdriver_path)
         return RequestiumChrome(service=service, options=chrome_options, default_timeout=self.default_timeout)
 
-    def transfer_session_cookies_to_driver(self, domain: Optional[str] = None) -> None:
+    def transfer_session_cookies_to_driver(self, domain: str | None = None) -> None:
         """Copies the Session's cookies into the webdriver.
 
         Using the 'domain' parameter we choose the cookies we wish to transfer, we only
@@ -124,7 +126,7 @@ class Session(requests.Session):
 
             self.driver.ensure_add_cookie({k: v for k, v in cookie.items() if v is not None})
 
-    def transfer_driver_cookies_to_session(self, *, copy_user_agent: Optional[bool] = True) -> None:
+    def transfer_driver_cookies_to_session(self, *, copy_user_agent: bool | None = True) -> None:
         if copy_user_agent:
             self.copy_user_agent_from_driver()
 
