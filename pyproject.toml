@@ -51,7 +51,7 @@ dev = [
     "pytest-cov==6.1.1",
     "pytest-xdist==3.6.1",
     "pytest==8.3.5",
-    "ruff==0.11.6",
+    "ruff==0.11.7",
     "types-requests==2.32.0.20250328",
 ]
 
