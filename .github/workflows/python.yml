@@ -261,7 +261,7 @@ jobs:
 
       - name: Coverage comment
         id: coverage_comment
-        uses: py-cov-action/python-coverage-comment-action@d1ff8fbb5ff80feedb3faa0f6d7b424f417ad0e1
+        uses: py-cov-action/python-coverage-comment-action@fb02115d6115e7b3325dc3295fe1dcfb1919248a
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MERGE_COVERAGE_FILES: true
