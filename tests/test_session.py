@@ -1,7 +1,9 @@
 from selenium.webdriver.common.by import By
 
+import requestium.requestium
 
-def test_simple_page_load(session) -> None:
+
+def test_simple_page_load(session: requestium.Session) -> None:
     session.driver.get("http://the-internet.herokuapp.com")
     session.driver.ensure_element(By.ID, "content")
 

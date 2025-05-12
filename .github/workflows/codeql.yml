@@ -27,7 +27,7 @@ jobs:
           - python
 
     steps:
-      - uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+      - uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0
         with:
           disable-sudo: true
           egress-policy: block
@@ -39,12 +39,12 @@ jobs:
 
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - uses: github/codeql-action/init@45775bd8235c68ba998cffa5171334d58593da47
+      - uses: github/codeql-action/init@60168efe1c415ce0f5521ea06d5c2062adbeed1b
         with:
           languages: ${{ matrix.language }}
 
-      - uses: github/codeql-action/autobuild@45775bd8235c68ba998cffa5171334d58593da47
+      - uses: github/codeql-action/autobuild@60168efe1c415ce0f5521ea06d5c2062adbeed1b
 
-      - uses: github/codeql-action/analyze@45775bd8235c68ba998cffa5171334d58593da47
+      - uses: github/codeql-action/analyze@60168efe1c415ce0f5521ea06d5c2062adbeed1b
         with:
           category: /language:${{matrix.language}}

@@ -46,11 +46,13 @@ issues = "https://github.com/tryolabs/requestium/issues"
 dev = [
     "bandit[sarif]==1.8.3",
     "coverage==7.8.0",
+    "mypy==1.15.0",
     "pre-commit==4.2.0",
     "pytest-cov==6.1.1",
     "pytest-xdist==3.6.1",
     "pytest==8.3.5",
     "ruff==0.11.9",
+    "types-requests==2.32.0.20250328",
 ]
 
 [tool.ruff]
@@ -60,6 +62,66 @@ include = [
     "requestium/**/*.py",
     "tests/**/*.py",
 ]
+
+[tool.ruff.lint]
+extend-select = [
+    "A",  # flake8-builtins (A)
+    "ANN",  # flake8-annotations (ANN)
+    "ARG",  # flake8-unused-arguments (ARG)
+    "B",  # flake8-bugbear (B)
+    "BLE",  # flake8-blind-except (BLE)
+    "C4",  # flake8-comprehensions (C4)
+    "C90",  # mccabe (C90)
+    "D",  # pydocstyle (D)
+    "DTZ",  # flake8-datetimez (DTZ)
+    "E",  # pycodestyle-error (E)
+    "EM",  # flake8-errmsg (EM)
+    "EXE",  # flake8-executable (EXE)
+    "F",  # Pyflakes (F)
+    "FA",  # flake8-future-annotations (FA)
+    "FBT",  # flake8-boolean-trap (FBT)
+    "FIX",  # flake8-fixme (FIX)
+    "G",  # flake8-logging-format (G)
+    "I",  # isort (I)
+    "ICN",  # flake8-import-conventions (ICN)
+    "INP",  # flake8-no-pep420 (INP)
+    "INT",  # flake8-gettext (INT)
+    "ISC",  # flake8-implicit-str-concat (ISC)
+    "LOG",  # flake8-logging (LOG)
+    "N",  # pep8-naming (N)
+    "PIE",  # flake8-pie (PIE)
+    "PT",  # flake8-pytest-style (PT)
+    "PTH",  # flake8-use-pathlib (PTH)
+    "Q",  # flake8-quotes (Q)
+    "RET",  # flake8-return (RET)
+    "RSE",  # flake8-raise (RSE)
+    "RUF",  # Ruff-specific rules (RUF)
+    "SIM",  # flake8-simplify (SIM)
+    "SLF",  # flake8-self (SLF)
+    "T10",  # flake8-debugger (T10)
+    "T20",  # flake8-print (T20)
+    "TC",  # flake8-type-checking (TC)
+    "TD",  # flake8-todos (TD)
+    "TID",  # flake8-tidy-imports (TID)
+    "UP",  # pyupgrade (UP)
+    "W",  # pycodestyle-warning (W)
+    "YTT",  # flake8-2020 (YTT)
+]
+ignore = [
+    "ANN002",  # missing-type-args (ANN002)
+    "ANN003",  # missing-type-kwargs (ANN003)
+    "D100",  # undocumented-public-module (D100)
+    "D102",  # undocumented-public-method (D102)
+    "D103",  # undocumented-public-function (D103)
+    "D104",  # undocumented-public-package (D104)
+    "D107",  # undocumented-public-init (D107)
+    "D203",  # incorrect-blank-line-before-class (D203)
+    "D212",  # multi-line-summary-first-line (D212)
+    "FIX002",  # line-contains-todo (FIX002)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/{tests,docs}/*" = ["SLF001"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=requestium -n auto"

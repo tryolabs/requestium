@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 import requests
 from parsel.selector import Selector, SelectorList
@@ -6,7 +6,7 @@ from requests import Response
 
 
 class RequestiumResponse(requests.Response):
-    """Adds xpath, css, and regex methods to a normal requests response object"""
+    """Adds xpath, css, and regex methods to a normal requests response object."""
 
     def __init__(self, response: Response) -> None:
         super().__init__()
@@ -14,7 +14,8 @@ class RequestiumResponse(requests.Response):
 
     @property
     def selector(self) -> Selector:
-        """Returns the response text in a Selector
+        """
+        Returns the response text in a Selector.
 
         We re-parse the text on each xpath, css, re call in case the encoding has changed.
         """
@@ -29,5 +30,5 @@ class RequestiumResponse(requests.Response):
     def re(self, *args, **kwargs) -> list[str]:
         return self.selector.re(*args, **kwargs)
 
-    def re_first(self, *args, **kwargs) -> Optional[str]:
+    def re_first(self, *args, **kwargs) -> str | None:
         return self.selector.re_first(*args, **kwargs)
