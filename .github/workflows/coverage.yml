@@ -31,6 +31,11 @@ jobs:
         steps:
             # DO NOT run actions/checkout here, for security reasons
             # For details, refer to https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+            - uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0
+              with:
+                disable-sudo: false
+                egress-policy: audit
+            
             - name: Post comment
               uses: py-cov-action/python-coverage-comment-action@fb02115d6115e7b3325dc3295fe1dcfb1919248a  # v3.32
               with:
