@@ -15,7 +15,7 @@ dependencies = [
     "parsel>=1.0",
     "requests>=2.0",
     "selenium>=4.0",
-    "tldextract>=5.0",
+    "tldextract>=5.3",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",

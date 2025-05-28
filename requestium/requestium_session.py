@@ -118,7 +118,7 @@ class Session(requests.Session):
         site if not provided.
         """
         if not domain and self._last_requests_url:
-            domain = tldextract.extract(self._last_requests_url).registered_domain
+            domain = tldextract.extract(self._last_requests_url).top_domain_under_public_suffix
 
         if not domain:
             msg = "Trying to transfer cookies to selenium without specifying a domain and without having visited any page in the current session"
