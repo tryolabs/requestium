@@ -52,7 +52,7 @@ jobs:
       - run: uv pip install --system -e .[dev]
 
       - id: cache-pytest
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
         with:
           path: .pytest_cache
           key: ${{ runner.os }}-pytest-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
@@ -97,7 +97,7 @@ jobs:
       - run: uv pip install --system -e .[dev]
 
       - id: cache-ruff
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
         with:
           path: .ruff_cache
           key: ${{ runner.os }}-ruff-3.13-${{ hashFiles('pyproject.toml') }}
@@ -136,7 +136,7 @@ jobs:
       - run: uv pip install --system -e .[dev]
 
       - id: cache-ruff
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
         with:
           path: .ruff_cache
           key: ${{ runner.os }}-ruff-3.13-${{ hashFiles('pyproject.toml') }}
@@ -183,7 +183,7 @@ jobs:
       - run: uv pip install --system -e .[dev]
 
       - id: cache-mypy
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
         with:
           path: .mypy_cache
           key: ${{ runner.os }}-mypy-3.13-${{ hashFiles('pyproject.toml') }}
@@ -305,7 +305,7 @@ jobs:
       - run: uv pip install --system -e .[dev]
 
       - id: cache-pre-commit
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
         with:
           path: .pre-commit-cache
           key: ${{ runner.os }}-pre-commit-3.13
