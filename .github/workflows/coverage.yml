@@ -37,7 +37,7 @@ jobs:
                 egress-policy: audit
             
             - name: Post comment
-              uses: py-cov-action/python-coverage-comment-action@0abd69a9baf90729d9b2d5b585fc790ec4e6f3dd  # v3.33
+              uses: py-cov-action/python-coverage-comment-action@0544a9c648672334d94ec5dd1add7410b4470ddc  # v3.37
               with:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GITHUB_PR_RUN_ID: ${{ github.event.workflow_run.id }}
