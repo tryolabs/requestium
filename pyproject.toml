@@ -47,7 +47,7 @@ dev = [
     "bandit[sarif]==1.8.3",
     "coverage==7.10.7",
     "mypy==1.18.2",
-    "pre-commit==4.2.0",
+    "pre-commit==4.3.0",
     "pytest-cov==7.0.0",
     "pytest-xdist==3.7.0",
     "pytest==8.4.2",
