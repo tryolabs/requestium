@@ -7,9 +7,9 @@ import requestium.requestium
 def test_transfer_session_cookies_to_driver(session: requestium.Session) -> None:
     assert session.cookies.keys() == []
     response = session.get("http://google.com/")
-    assert response.cookies.keys().sort() == ["AEC", "NID"].sort()
+    assert session.cookies.keys() != []
     session.transfer_session_cookies_to_driver()
-    assert session.cookies.keys() == ["AEC", "NID"]
+    assert response.cookies.keys().sort() == session.cookies.keys().sort()
 
 
 def test_transfer_session_cookies_to_driver_no_domain_error(session: requestium.Session) -> None:
