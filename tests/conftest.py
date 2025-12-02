@@ -57,3 +57,5 @@ def session(request):  # noqa: ANN001, ANN201
 
     with requestium.Session(driver=cast("DriverMixin", driver)) as session:
         yield session
+
+    driver.close()
