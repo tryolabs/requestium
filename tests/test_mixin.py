@@ -1,3 +1,5 @@
+import pytest
+from selenium.webdriver.common.by import By, ByType
 from selenium.webdriver.remote.webelement import WebElement
 
 import requestium.requestium
@@ -65,6 +67,41 @@ def test_ensure_element_by_css_selector(session: requestium.Session, example_htm
     element = session.driver.ensure_element_by_css_selector(".body-text")
     assert isinstance(element, WebElement)
     assert element.text == "Test Paragraph 1"
+
+
+@pytest.mark.parametrize(
+    ("locator", "selector", "result"),
+    [
+        (By.ID, "test-header", "Test Header 2"),
+        (By.NAME, "link-paragraph", "Test Link 1"),
+        (By.XPATH, "//a[text()='Test Link 2']", "Test Link 2"),
+        (By.LINK_TEXT, "Test Link 1", "Test Link 1"),
+        (By.PARTIAL_LINK_TEXT, "Link 2", "Test Link 2"),
+        (By.TAG_NAME, "h1", "Test Header 1"),
+        (By.CLASS_NAME, "body-text", "Test Paragraph 1"),
+        (By.CSS_SELECTOR, ".body-text", "Test Paragraph 1"),
+        (By.CSS_SELECTOR, "#test-header", "Test Header 2"),
+    ],
+    ids=["id", "name", "xpath", "link_text", "partial_link_text", "tag_name", "class_name", "css_selector_class", "css_selector_id"],
+)
+def test_ensure_element(session: requestium.Session, example_html: str, locator: ByType, selector: str, result: str) -> None:
+    session.driver.get(f"data:text/html,{example_html}")
+
+    element = session.driver.ensure_element(locator=locator, selector=selector)
+    assert isinstance(element, WebElement)
+    assert element.text == result
+
+    element = session.driver.ensure_element(locator, selector)
+    assert isinstance(element, WebElement)
+    assert element.text == result
+
+
+def test_deprecation_warning_for_ensure_element_locators_with_underscores(session: requestium.Session, example_html: str) -> None:
+    session.driver.get(f"data:text/html,{example_html}")
+    with pytest.warns(DeprecationWarning, match="Support for locator strategy names with underscores is deprecated"):
+        session.driver.ensure_element(locator="tag_name", selector="h1")
+    with pytest.warns(DeprecationWarning, match="Support for locator strategy names with underscores is deprecated"):
+        session.driver.ensure_element("tag_name", "h1")
 
 
 def test_simple_page_load(session: requestium.Session, example_html: str) -> None:
