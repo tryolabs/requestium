@@ -1,5 +1,3 @@
-# import os
-# import shutil
 import contextlib
 import os
 from typing import TYPE_CHECKING, cast
@@ -35,7 +33,6 @@ def example_html() -> str:
     params=[
         "chrome-headless",
         "chrome",
-        # "chrome-custom-path",
         "firefox-headless",
         pytest.param("firefox", marks=pytest.mark.skipif(os.getenv("CI") == "true", reason="Non-headless Firefox unreliable in CI")),
     ]
@@ -46,15 +43,14 @@ def session(request):  # noqa: ANN001, ANN201
     if driver_type == "chrome-headless":
         options = webdriver.ChromeOptions()
         options.add_argument("--headless=new")
+        options.add_argument("--no-sandbox")  # Helps when running on Github Actions
+        options.add_argument("--disable-dev-shm-usage")  # Helps when running on Github Actions
         driver = webdriver.Chrome(options=options)
     elif driver_type == "chrome":
-        driver = webdriver.Chrome()
-    # elif driver_type == "chrome-custom-path":
-    #     chromedriver_name = "chromedriver"
-    #     custom_path = shutil.which(chromedriver_name)
-    #     assert custom_path, f"'{chromedriver_name}' not found in PATH."
-    #     assert os.path.exists(custom_path), f"Custom chromedriver not found at {custom_path}."
-    #     driver = webdriver.Chrome(service=webdriver.ChromeService(executable_path=custom_path))
+        options = webdriver.ChromeOptions()
+        options.add_argument("--no-sandbox")  # Helps when running on Github Actions
+        options.add_argument("--disable-dev-shm-usage")  # Helps when running on Github Actions
+        driver = webdriver.Chrome(options=options)
     elif driver_type == "firefox-headless":
         options = webdriver.FirefoxOptions()
         options.add_argument("--headless")
