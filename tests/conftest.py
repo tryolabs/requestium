@@ -11,6 +11,16 @@ if TYPE_CHECKING:
     from requestium.requestium_mixin import DriverMixin
 
 
+@pytest.fixture
+def example_html() -> str:
+    return """
+    <html>
+        <head><title>The Internet</title></head>
+        <body><h1>Test Page</h1></body>
+    </html>
+    """
+
+
 @pytest.fixture(
     params=[
         "chrome-headless",
