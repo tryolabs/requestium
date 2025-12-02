@@ -1,16 +1,27 @@
+
 import pytest
+from selenium.webdriver.common.by import By
 
 import requestium.requestium
 
 
-def test__start_chrome_driver(session: requestium.Session, example_html: str) -> None:
-    session._start_chrome_browser()
+@pytest.mark.parametrize(
+    "headless",
+    [
+        False,
+        True,
+    ],
+    ids=["headless=false", "headless=true"],
+)
+def test__start_chrome_driver(session: requestium.Session, example_html: str, headless: bool) -> None:  # noqa: FBT001
+    session._start_chrome_browser(headless=headless)
     session.driver.get(f"data:text/html,{example_html}")
-    title = session.driver.title
-    assert title == "The Internet"
+    session.driver.ensure_element(By.TAG_NAME, "h1")
+
+    assert session.driver.title == "The Internet"
 
 
-def test__start_chrome_driver_options_typeerror() -> None:
+def test__start_chrome_driver_webdriver_options_typeerror() -> None:
     invalid_webdriver_options = {"arguments": "invalid_string"}
     with (
         requestium.Session(webdriver_options=invalid_webdriver_options) as session,
