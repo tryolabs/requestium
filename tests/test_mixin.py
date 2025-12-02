@@ -107,5 +107,6 @@ def test_deprecation_warning_for_ensure_element_locators_with_underscores(sessio
 def test_simple_page_load(session: requestium.Session, example_html: str) -> None:
     session.driver.get(f"data:text/html,{example_html}")
 
+    session.driver.ensure_element_by_tag_name("h1")  # wait for page load
     title = session.driver.title
     assert title == "The Internet"
