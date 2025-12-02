@@ -1,6 +1,7 @@
 # import os
 # import shutil
 import contextlib
+import os
 from typing import TYPE_CHECKING, cast
 
 import pytest
@@ -36,7 +37,7 @@ def example_html() -> str:
         "chrome",
         # "chrome-custom-path",
         "firefox-headless",
-        "firefox",
+        pytest.param("firefox", marks=pytest.mark.skipif(os.getenv("CI") == "true", reason="Non-headless Firefox unreliable in CI")),
     ]
 )
 def session(request):  # noqa: ANN001, ANN201
