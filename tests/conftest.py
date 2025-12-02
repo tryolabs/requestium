@@ -21,7 +21,14 @@ def example_html() -> str:
     return """
     <html>
         <head><title>The Internet</title></head>
-        <body><h1>Test Page</h1></body>
+        <body>
+            <h1>Test Header 1</h1>
+            <h2 id="test-header">Test Header 2</h2>
+            <h3 class="test-header-3">Test Header 3</h3>
+            <p class="body-text">Test Paragraph 1</p>
+            <p><a href="example.com" name="link-paragraph">Test Link 1</a></p>
+            <p><a href="example.com">Test Link 2</a></p>
+        </body>
     </html>
     """
 
