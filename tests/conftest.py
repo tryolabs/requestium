@@ -31,42 +31,46 @@ def example_html() -> str:
     """
 
 
+def _create_chrome_driver(headless: bool) -> webdriver.Chrome:
+    options = webdriver.ChromeOptions()
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    if headless:
+        options.add_argument("--headless=new")
+    return webdriver.Chrome(options=options)
+
+
+def _create_firefox_driver(headless: bool) -> webdriver.Firefox:
+    options = webdriver.FirefoxOptions()
+    options.set_preference("browser.cache.disk.enable", False)
+    options.set_preference("browser.cache.memory.enable", False)
+    options.set_preference("browser.cache.offline.enable", False)
+    options.set_preference("network.http.use-cache", False)
+    if headless:
+        options.add_argument("--headless")
+    return webdriver.Firefox(options=options)
+
+
 @pytest.fixture(
-    params=[
-        "chrome-headless",
-        "chrome",
-        "firefox-headless",
-        "firefox",
-    ],
+    params=["chrome-headless", "chrome", "firefox-headless", "firefox"],
     scope="module",
 )
-def session(request) -> Generator[requestium.Session]:  # noqa: ANN001
+def session(request) -> Generator[requestium.Session, None, None]:
     driver_type = request.param
+    browser, _, mode = driver_type.partition("-")
+    headless = mode == "headless"
 
     driver: webdriver.Chrome | webdriver.Firefox
-    if "chrome" in driver_type:
-        chrome_options: webdriver.ChromeOptions = webdriver.ChromeOptions()
-        chrome_options.add_argument("--no-sandbox")  # Helps when running on Github Actions
-        chrome_options.add_argument("--disable-dev-shm-usage")  # Helps when running on Github Actions
-        if driver_type == "chrome-headless":
-            chrome_options.add_argument("--headless=new")
-        driver = webdriver.Chrome(options=chrome_options)
-    elif "firefox" in driver_type:
-        firefox_options: webdriver.FirefoxOptions = webdriver.FirefoxOptions()
-        firefox_options.set_preference("browser.cache.disk.enable", False)
-        firefox_options.set_preference("browser.cache.memory.enable", False)
-        firefox_options.set_preference("browser.cache.offline.enable", False)
-        firefox_options.set_preference("network.http.use-cache", False)
-        if driver_type == "firefox-headless":
-            firefox_options.add_argument("--headless")
-        driver = webdriver.Firefox(options=firefox_options)
+    if browser == "chrome":
+        driver = _create_chrome_driver(headless)
+    elif browser == "firefox":
+        driver = _create_firefox_driver(headless)
     else:
-        msg = f"Unknown driver type: {driver_type}"
+        msg = f"Unknown driver type: {browser}"
         raise ValueError(msg)
 
     session = requestium.Session(driver=cast("DriverMixin", driver))
     yield session
 
-    # Close all windows and end the session
     with contextlib.suppress(WebDriverException, OSError):
         driver.quit()
