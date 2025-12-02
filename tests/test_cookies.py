@@ -10,6 +10,7 @@ import requestium.requestium
         {"name": "user_token", "value": "xyz789", "domain": "example.com", "path": "/"},
     ],
     ids=["session_id", "user_token"],
+    scope="module",
 )
 def cookie_data(request) -> dict[str, str]:  # noqa: ANN001
     return request.param
@@ -17,8 +18,10 @@ def cookie_data(request) -> dict[str, str]:  # noqa: ANN001
 
 def test_transfer_driver_cookies_to_session(session: requestium.Session, cookie_data: dict[str, str]) -> None:
     session.driver.get(f"https://{cookie_data['domain']}")
+    session.driver.delete_all_cookies()
     session.driver.add_cookie(cookie_data)
 
+    session.cookies.clear()
     assert session.cookies.keys() == []
     session.transfer_driver_cookies_to_session()
     assert session.cookies.keys() == [cookie_data["name"]]
@@ -26,8 +29,10 @@ def test_transfer_driver_cookies_to_session(session: requestium.Session, cookie_
 
 def test_transfer_session_cookies_to_driver(session: requestium.Session, cookie_data: dict[str, str]) -> None:
     session.get(f"http://{cookie_data['domain']}")
+    session.cookies.clear()
     session.cookies.set(name=cookie_data["name"], value=cookie_data["value"], domain=cookie_data["domain"], path=cookie_data["path"])
 
+    session.driver.delete_all_cookies()
     assert session.driver.get_cookies() == []
     session.transfer_session_cookies_to_driver()
     driver_cookies = session.driver.get_cookies()
@@ -40,9 +45,11 @@ def test_transfer_session_cookies_to_driver(session: requestium.Session, cookie_
 
 def test_transfer_session_cookies_to_driver_domain_filter(session: requestium.Session, cookie_data: dict[str, str]) -> None:
     session.get(f"http://{cookie_data['domain']}")
+    session.cookies.clear()
     session.cookies.set(name="junk_cookie", value="sfkjn782", domain="google.com", path=cookie_data["path"])
     session.cookies.set(name=cookie_data["name"], value=cookie_data["value"], domain=cookie_data["domain"], path=cookie_data["path"])
 
+    session.driver.delete_all_cookies()
     assert session.driver.get_cookies() == []
     session.transfer_session_cookies_to_driver(domain=cookie_data["domain"])
     driver_cookies = session.driver.get_cookies()
@@ -54,6 +61,9 @@ def test_transfer_session_cookies_to_driver_domain_filter(session: requestium.Se
 
 
 def test_transfer_session_cookies_to_driver_no_domain_error(session: requestium.Session) -> None:
+    session.cookies.clear()
+    session.driver.delete_all_cookies()
+    session._last_requests_url = None
     with (
         pytest.raises(
             InvalidCookieDomainException,

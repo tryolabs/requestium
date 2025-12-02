@@ -1,5 +1,5 @@
 import contextlib
-import os
+from collections.abc import Generator
 from typing import TYPE_CHECKING, cast
 
 import pytest
@@ -11,8 +11,10 @@ import requestium
 if TYPE_CHECKING:
     from requestium.requestium_mixin import DriverMixin
 
+# ruff: noqa FBT003
 
-@pytest.fixture
+
+@pytest.fixture(scope="module")
 def example_html() -> str:
     return """
     <html>
@@ -34,29 +36,30 @@ def example_html() -> str:
         "chrome-headless",
         "chrome",
         "firefox-headless",
-        pytest.param("firefox", marks=pytest.mark.skipif(os.getenv("CI") == "true", reason="Non-headless Firefox unreliable in CI")),
-    ]
+        "firefox",
+    ],
+    scope="module",
 )
-def session(request):  # noqa: ANN001, ANN201
+def session(request) -> Generator[requestium.Session]:  # noqa: ANN001
     driver_type = request.param
 
-    if driver_type == "chrome-headless":
-        options = webdriver.ChromeOptions()
-        options.add_argument("--headless=new")
-        options.add_argument("--no-sandbox")  # Helps when running on Github Actions
-        options.add_argument("--disable-dev-shm-usage")  # Helps when running on Github Actions
-        driver = webdriver.Chrome(options=options)
-    elif driver_type == "chrome":
-        options = webdriver.ChromeOptions()
-        options.add_argument("--no-sandbox")  # Helps when running on Github Actions
-        options.add_argument("--disable-dev-shm-usage")  # Helps when running on Github Actions
-        driver = webdriver.Chrome(options=options)
-    elif driver_type == "firefox-headless":
-        options = webdriver.FirefoxOptions()
-        options.add_argument("--headless")
-        driver = webdriver.Firefox(options=options)
-    elif driver_type == "firefox":
-        driver = webdriver.Firefox()
+    driver: webdriver.Chrome | webdriver.Firefox
+    if "chrome" in driver_type:
+        chrome_options: webdriver.ChromeOptions = webdriver.ChromeOptions()
+        chrome_options.add_argument("--no-sandbox")  # Helps when running on Github Actions
+        chrome_options.add_argument("--disable-dev-shm-usage")  # Helps when running on Github Actions
+        if driver_type == "chrome-headless":
+            chrome_options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=chrome_options)
+    elif "firefox" in driver_type:
+        firefox_options: webdriver.FirefoxOptions = webdriver.FirefoxOptions()
+        firefox_options.set_preference("browser.cache.disk.enable", False)
+        firefox_options.set_preference("browser.cache.memory.enable", False)
+        firefox_options.set_preference("browser.cache.offline.enable", False)
+        firefox_options.set_preference("network.http.use-cache", False)
+        if driver_type == "firefox-headless":
+            firefox_options.add_argument("--headless")
+        driver = webdriver.Firefox(options=firefox_options)
     else:
         msg = f"Unknown driver type: {driver_type}"
         raise ValueError(msg)
