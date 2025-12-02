@@ -1,9 +1,11 @@
 # import os
 # import shutil
+import contextlib
 from typing import TYPE_CHECKING, cast
 
 import pytest
 from selenium import webdriver
+from selenium.common import WebDriverException
 
 import requestium
 
@@ -55,7 +57,9 @@ def session(request):  # noqa: ANN001, ANN201
         msg = f"Unknown driver type: {driver_type}"
         raise ValueError(msg)
 
-    with requestium.Session(driver=cast("DriverMixin", driver)) as session:
-        yield session
+    session = requestium.Session(driver=cast("DriverMixin", driver))
+    yield session
 
-    driver.close()
+    # Close all windows and end the session
+    with contextlib.suppress(WebDriverException, OSError):
+        driver.quit()
