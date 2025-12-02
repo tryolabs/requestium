@@ -15,6 +15,15 @@ def cookie_data(request) -> dict[str, str]:  # noqa: ANN001
     return request.param
 
 
+def test_transfer_driver_cookies_to_session(session: requestium.Session, cookie_data: dict[str, str]) -> None:
+    session.driver.get(f"https://{cookie_data['domain']}")
+    session.driver.add_cookie(cookie_data)
+
+    assert session.cookies.keys() == []
+    session.transfer_driver_cookies_to_session()
+    assert session.cookies.keys() == [cookie_data["name"]]
+
+
 def test_transfer_session_cookies_to_driver(session: requestium.Session, cookie_data: dict[str, str]) -> None:
     session.get(f"http://{cookie_data['domain']}")
     session.cookies.set(name=cookie_data["name"], value=cookie_data["value"], domain=cookie_data["domain"], path=cookie_data["path"])
