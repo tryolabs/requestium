@@ -1,11 +1,14 @@
 # import os
 # import shutil
+from __future__ import annotations
+
 import contextlib
+import time
 from typing import TYPE_CHECKING, cast
 
 import pytest
 from selenium import webdriver
-from selenium.common import WebDriverException
+from selenium.common.exceptions import WebDriverException
 
 import requestium
 
@@ -21,6 +24,23 @@ def example_html() -> str:
         <body><h1>Test Page</h1></body>
     </html>
     """
+
+
+def create_firefox_driver(*, headless: bool = False, max_retries: int = 3) -> webdriver.Firefox | None:
+    """Create Firefox driver with retry logic."""
+    for attempt in range(max_retries):
+        try:
+            options = webdriver.FirefoxOptions()
+            if headless:
+                options.add_argument("--headless")
+
+            service = webdriver.FirefoxService(timeout=300)
+            return webdriver.Firefox(options=options, service=service)
+        except (WebDriverException, TimeoutError) as e:
+            if attempt == max_retries - 1:
+                raise e
+            time.sleep(2)  # Brief delay before retry
+    return None
 
 
 @pytest.fixture(
@@ -52,7 +72,7 @@ def session(request):  # noqa: ANN001, ANN201
         options.add_argument("--headless")
         driver = webdriver.Firefox(options=options)
     elif driver_type == "firefox":
-        driver = webdriver.Firefox()
+        driver = create_firefox_driver(headless=False)
     else:
         msg = f"Unknown driver type: {driver_type}"
         raise ValueError(msg)
