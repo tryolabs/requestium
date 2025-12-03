@@ -110,3 +110,11 @@ def test_simple_page_load(session: requestium.Session, example_html: str) -> Non
     session.driver.ensure_element_by_tag_name("h1")  # wait for page load
     title = session.driver.title
     assert title == "The Internet"
+
+
+def test_ensure_click(session: requestium.Session, example_html: str) -> None:
+    session.driver.get(f"data:text/html,{example_html}")
+
+    element = session.driver.ensure_element_by_tag_name("button")
+    assert isinstance(element, WebElement)
+    requestium.requestium._ensure_click(element)
