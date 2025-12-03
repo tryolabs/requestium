@@ -5,68 +5,66 @@ from selenium.webdriver.remote.webelement import WebElement
 import requestium.requestium
 
 
+def assert_webelement_text_exact_match(element: WebElement, expected: str) -> None:
+    """Verify the provided element is a WebElement with matching text."""
+    assert isinstance(element, WebElement)
+    assert element.text == expected
+
+
 def test_ensure_element_by_id(session: requestium.Session, example_html: str) -> None:
     session.driver.get(f"data:text/html,{example_html}")
 
     element = session.driver.ensure_element_by_id("test-header")
-    assert isinstance(element, WebElement)
-    assert element.text == "Test Header 2"
+    assert_webelement_text_exact_match(element, "Test Header 2")
 
 
 def test_ensure_element_by_name(session: requestium.Session, example_html: str) -> None:
     session.driver.get(f"data:text/html,{example_html}")
 
     element = session.driver.ensure_element_by_name("link-paragraph")
-    assert isinstance(element, WebElement)
-    assert element.text == "Test Link 1"
+    assert_webelement_text_exact_match(element, "Test Link 1")
 
 
 def test_ensure_element_by_xpath(session: requestium.Session, example_html: str) -> None:
     session.driver.get(f"data:text/html,{example_html}")
 
     element = session.driver.ensure_element_by_xpath("//a[text()='Test Link 2']")
-    assert isinstance(element, WebElement)
-    assert element.text == "Test Link 2"
+    assert_webelement_text_exact_match(element, "Test Link 2")
 
 
 def test_ensure_element_by_link_text(session: requestium.Session, example_html: str) -> None:
     session.driver.get(f"data:text/html,{example_html}")
 
     element = session.driver.ensure_element_by_link_text("Test Link 1")
-    assert isinstance(element, WebElement)
-    assert element.text == "Test Link 1"
+    assert_webelement_text_exact_match(element, "Test Link 1")
 
 
 def test_ensure_element_by_partial_link_text(session: requestium.Session, example_html: str) -> None:
     session.driver.get(f"data:text/html,{example_html}")
 
     element = session.driver.ensure_element_by_partial_link_text("Link 2")
-    assert isinstance(element, WebElement)
-    assert element.text == "Test Link 2"
+    assert_webelement_text_exact_match(element, "Test Link 2")
 
 
 def test_ensure_element_by_tag_name(session: requestium.Session, example_html: str) -> None:
     session.driver.get(f"data:text/html,{example_html}")
 
     element = session.driver.ensure_element_by_tag_name("h1")
-    assert isinstance(element, WebElement)
-    assert element.text == "Test Header 1"
+    assert_webelement_text_exact_match(element, "Test Header 1")
 
 
 def test_ensure_element_by_class_name(session: requestium.Session, example_html: str) -> None:
     session.driver.get(f"data:text/html,{example_html}")
 
     element = session.driver.ensure_element_by_class_name("body-text")
-    assert isinstance(element, WebElement)
-    assert element.text == "Test Paragraph 1"
+    assert_webelement_text_exact_match(element, "Test Paragraph 1")
 
 
 def test_ensure_element_by_css_selector(session: requestium.Session, example_html: str) -> None:
     session.driver.get(f"data:text/html,{example_html}")
 
     element = session.driver.ensure_element_by_css_selector(".body-text")
-    assert isinstance(element, WebElement)
-    assert element.text == "Test Paragraph 1"
+    assert_webelement_text_exact_match(element, "Test Paragraph 1")
 
 
 @pytest.mark.parametrize(
@@ -88,12 +86,10 @@ def test_ensure_element(session: requestium.Session, example_html: str, locator:
     session.driver.get(f"data:text/html,{example_html}")
 
     element = session.driver.ensure_element(locator=locator, selector=selector)
-    assert isinstance(element, WebElement)
-    assert element.text == result
+    assert_webelement_text_exact_match(element, result)
 
     element = session.driver.ensure_element(locator, selector)
-    assert isinstance(element, WebElement)
-    assert element.text == result
+    assert_webelement_text_exact_match(element, result)
 
 
 def test_deprecation_warning_for_ensure_element_locators_with_underscores(session: requestium.Session, example_html: str) -> None:
