@@ -3,6 +3,7 @@ from collections.abc import Generator
 from typing import TYPE_CHECKING, cast
 
 import pytest
+from _pytest.fixtures import FixtureRequest
 from selenium import webdriver
 from selenium.common import WebDriverException
 
@@ -55,7 +56,7 @@ def _create_firefox_driver(headless: bool) -> webdriver.Firefox:
     params=["chrome-headless", "chrome", "firefox-headless", "firefox"],
     scope="module",
 )
-def session(request) -> Generator[requestium.Session, None, None]:
+def session(request: FixtureRequest) -> Generator[requestium.Session, None, None]:
     driver_type = request.param
     browser, _, mode = driver_type.partition("-")
     headless = mode == "headless"
