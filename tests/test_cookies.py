@@ -19,10 +19,21 @@ def cookie_data(request: FixtureRequest) -> dict[str, str]:
 
 @pytest.fixture
 def clean_session(session: requestium.Session) -> requestium.Session:
-    """Fixture that ensures cookies are cleared before each test."""
+    """Ensure cookies are cleared before each test."""
     session.cookies.clear()
     session.driver.delete_all_cookies()
     return session
+
+
+def assert_first_cookie_matches(driver_cookies: list[dict], expected: dict[str, str]) -> None:
+    """Verify the first cookie in a list matches expected values."""
+    assert len(driver_cookies) == 1
+
+    cookie = driver_cookies[0]
+    assert cookie["name"] == expected["name"]
+    assert cookie["value"] == expected["value"]
+    assert cookie["domain"] in {expected["domain"], f".{expected['domain']}"}
+    assert cookie["path"] == expected["path"]
 
 
 def test_ensure_add_cookie(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
@@ -30,14 +41,7 @@ def test_ensure_add_cookie(clean_session: requestium.Session, cookie_data: dict[
     clean_session.driver.delete_all_cookies()
     clean_session.driver.ensure_add_cookie(cookie_data)
 
-    driver_cookies = clean_session.driver.get_cookies()
-    assert len(driver_cookies) == 1
-
-    cookie = driver_cookies[0]
-    assert cookie["name"] == cookie_data["name"]
-    assert cookie["value"] == cookie_data["value"]
-    assert cookie["domain"] in {cookie_data["domain"], f".{cookie_data['domain']}"}
-    assert cookie["path"] == cookie_data["path"]
+    assert_first_cookie_matches(clean_session.driver.get_cookies(), cookie_data)
 
 
 def test_ensure_add_cookie_domain_override(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
@@ -47,14 +51,8 @@ def test_ensure_add_cookie_domain_override(clean_session: requestium.Session, co
     clean_session.driver.delete_all_cookies()
     clean_session.driver.ensure_add_cookie(cookie_data, override_domain=override_domain)
 
-    driver_cookies = clean_session.driver.get_cookies()
-    assert len(driver_cookies) == 1
-
-    cookie = driver_cookies[0]
-    assert cookie["name"] == cookie_data["name"]
-    assert cookie["value"] == cookie_data["value"]
-    assert cookie["domain"] in {override_domain, f".{override_domain}"}
-    assert cookie["path"] == cookie_data["path"]
+    expected = {**cookie_data, "domain": override_domain}
+    assert_first_cookie_matches(clean_session.driver.get_cookies(), expected)
 
 
 def test_transfer_driver_cookies_to_session(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
@@ -72,15 +70,7 @@ def test_transfer_session_cookies_to_driver(clean_session: requestium.Session, c
 
     assert not clean_session.driver.get_cookies()
     clean_session.transfer_session_cookies_to_driver()
-
-    driver_cookies = clean_session.driver.get_cookies()
-    assert len(driver_cookies) == 1
-
-    cookie = driver_cookies[0]
-    assert cookie["name"] == cookie_data["name"]
-    assert cookie["value"] == cookie_data["value"]
-    assert cookie["domain"] in {cookie_data["domain"], f".{cookie_data['domain']}"}
-    assert cookie["path"] == cookie_data["path"]
+    assert_first_cookie_matches(clean_session.driver.get_cookies(), cookie_data)
 
 
 def test_transfer_session_cookies_to_driver_domain_filter(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
@@ -90,15 +80,7 @@ def test_transfer_session_cookies_to_driver_domain_filter(clean_session: request
 
     assert not clean_session.driver.get_cookies()
     clean_session.transfer_session_cookies_to_driver(domain=cookie_data["domain"])
-
-    driver_cookies = clean_session.driver.get_cookies()
-    assert len(driver_cookies) == 1
-
-    cookie = driver_cookies[0]
-    assert cookie["name"] == cookie_data["name"]
-    assert cookie["value"] == cookie_data["value"]
-    assert cookie["domain"] in {cookie_data["domain"], f".{cookie_data['domain']}"}
-    assert cookie["path"] == cookie_data["path"]
+    assert_first_cookie_matches(clean_session.driver.get_cookies(), cookie_data)
 
 
 def test_transfer_session_cookies_to_driver_no_domain_error(session: requestium.Session) -> None:
