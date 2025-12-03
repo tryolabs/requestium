@@ -25,6 +25,38 @@ def clean_session(session: requestium.Session) -> requestium.Session:
     return session
 
 
+def test_ensure_add_cookie(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
+    clean_session.driver.get("https://google.com")
+    clean_session.driver.delete_all_cookies()
+    clean_session.driver.ensure_add_cookie(cookie_data)
+
+    driver_cookies = clean_session.driver.get_cookies()
+    assert len(driver_cookies) == 1
+
+    cookie = driver_cookies[0]
+    assert cookie["name"] == cookie_data["name"]
+    assert cookie["value"] == cookie_data["value"]
+    assert cookie["domain"] in {cookie_data["domain"], f".{cookie_data['domain']}"}
+    assert cookie["path"] == cookie_data["path"]
+
+
+def test_ensure_add_cookie_domain_override(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
+    override_domain = "example.net"
+
+    clean_session.driver.get("https://google.com")
+    clean_session.driver.delete_all_cookies()
+    clean_session.driver.ensure_add_cookie(cookie_data, override_domain=override_domain)
+
+    driver_cookies = clean_session.driver.get_cookies()
+    assert len(driver_cookies) == 1
+
+    cookie = driver_cookies[0]
+    assert cookie["name"] == cookie_data["name"]
+    assert cookie["value"] == cookie_data["value"]
+    assert cookie["domain"] in {override_domain, f".{override_domain}"}
+    assert cookie["path"] == cookie_data["path"]
+
+
 def test_transfer_driver_cookies_to_session(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
     clean_session.driver.get(f"https://{cookie_data['domain']}")
     clean_session.driver.add_cookie(cookie_data)
