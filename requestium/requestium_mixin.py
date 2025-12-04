@@ -85,7 +85,7 @@ class DriverMixin(RemoteWebDriver):
 
         # If we fail adding the cookie, retry with a more permissive domain
         if not cookie_added:
-            cookie["domain"] = tldextract.extract(cookie["domain"]).registered_domain
+            cookie["domain"] = tldextract.extract(cookie["domain"]).top_domain_under_public_suffix
             cookie_added = self.try_add_cookie(cookie)
             if not cookie_added:
                 msg = f"Couldn't add the following cookie to the webdriver: {cookie}"
