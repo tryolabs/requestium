@@ -6,6 +6,8 @@ import pytest
 from _pytest.fixtures import FixtureRequest
 from selenium import webdriver
 from selenium.common import WebDriverException
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 import requestium
 
@@ -39,7 +41,9 @@ def _create_chrome_driver(headless: bool) -> webdriver.Chrome:
     options.add_argument("--disable-dev-shm-usage")
     if headless:
         options.add_argument("--headless=new")
-    return webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(options=options)
+    WebDriverWait(driver, 5).until(EC.number_of_windows_to_be(1))
+    return driver
 
 
 def _create_firefox_driver(headless: bool) -> webdriver.Firefox:
@@ -50,7 +54,9 @@ def _create_firefox_driver(headless: bool) -> webdriver.Firefox:
     options.set_preference("network.http.use-cache", False)
     if headless:
         options.add_argument("--headless")
-    return webdriver.Firefox(options=options)
+    driver = webdriver.Firefox(options=options)
+    WebDriverWait(driver, 5).until(EC.number_of_windows_to_be(1))
+    return driver
 
 
 @pytest.fixture(
@@ -76,3 +82,19 @@ def session(request: FixtureRequest) -> Generator[requestium.Session, None, None
 
     with contextlib.suppress(WebDriverException, OSError):
         driver.quit()
+
+
+@pytest.fixture(autouse=True)
+def ensure_valid_session(session: requestium.Session) -> None:
+    """Skip test if browser context is discarded."""
+    try:
+        _ = session.driver.current_url
+        _ = session.driver.window_handles
+    except WebDriverException as e:
+        if "Browsing context has been discarded" not in str(e):
+            raise
+
+        try:
+            session.driver.switch_to.new_window("tab")
+        except WebDriverException:
+            pytest.skip("Browser context discarded and cannot be recovered")
