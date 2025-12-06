@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 from selenium.webdriver.common.by import By, ByType
 from selenium.webdriver.remote.webelement import WebElement
@@ -5,7 +7,7 @@ from selenium.webdriver.remote.webelement import WebElement
 import requestium.requestium
 
 
-def assert_webelement_text_exact_match(element: WebElement, expected: str) -> None:
+def assert_webelement_text_exact_match(element: WebElement | None, expected: str) -> None:
     """Verify the provided element is a WebElement with matching text."""
     assert isinstance(element, WebElement)
     assert element.text == expected
