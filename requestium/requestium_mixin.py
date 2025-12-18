@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import tldextract
 from parsel.selector import Selector, SelectorList
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from selenium.webdriver.support import expected_conditions
@@ -71,7 +71,7 @@ class DriverMixin(RemoteWebDriver):
         cookie_domain = cookie["domain"] if cookie["domain"][0] != "." else cookie["domain"][1:]
         try:
             browser_domain = tldextract.extract(self.current_url).fqdn
-        except AttributeError:
+        except (AttributeError, NoSuchWindowException):
             browser_domain = ""
         if cookie_domain not in browser_domain:
             # TODO @joaqo: Check if hardcoding 'http' causes trouble.
