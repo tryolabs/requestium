@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 import tldextract
 from parsel.selector import Selector, SelectorList
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
-from selenium.webdriver.common.by import By
+from selenium.webdriver.common.by import By, ByType
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
@@ -85,7 +85,7 @@ class DriverMixin(RemoteWebDriver):
 
         # If we fail adding the cookie, retry with a more permissive domain
         if not cookie_added:
-            cookie["domain"] = tldextract.extract(cookie["domain"]).registered_domain
+            cookie["domain"] = tldextract.extract(cookie["domain"]).top_domain_under_public_suffix
             cookie_added = self.try_add_cookie(cookie)
             if not cookie_added:
                 msg = f"Couldn't add the following cookie to the webdriver: {cookie}"
@@ -130,7 +130,7 @@ class DriverMixin(RemoteWebDriver):
     def ensure_element_by_css_selector(self, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
         return self.ensure_element(By.CSS_SELECTOR, selector, state, timeout)
 
-    def ensure_element(self, locator: str, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
+    def ensure_element(self, locator: ByType | str, selector: str, state: str | None = "present", timeout: float | None = None) -> WebElement | None:
         """
         Wait until an element appears or disappears in the browser.
 
