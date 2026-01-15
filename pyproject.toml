@@ -51,7 +51,7 @@ dev = [
     "pytest~=9.0.0",
     "ruff==0.14.11",
     "ssort==0.16.0",
-    "types-requests==2.32.4.20250913",
+    "types-requests==2.32.4.20260107",
 ]
 
 [tool]
