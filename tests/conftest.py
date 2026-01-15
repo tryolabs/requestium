@@ -78,8 +78,10 @@ def session(request: FixtureRequest) -> Generator[requestium.Session, None, None
         raise ValueError(msg)
 
     try:
+        assert driver.name in browser
         session = requestium.Session(driver=cast("DriverMixin", driver))
-
+        assert session.driver.name in browser
+        
         yield session
     finally:
         with contextlib.suppress(WebDriverException, OSError):
