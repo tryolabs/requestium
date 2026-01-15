@@ -8,12 +8,13 @@ updates:
   - package-ecosystem: pip
     directory: /
     schedule:
-      interval: monthly
+      interval: quarterly
     ignore:
-      - dependency-name: ruff
       - dependency-name: bandit
+      - dependency-name: ruff
+      - dependency-name: ssort
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: quarterly
