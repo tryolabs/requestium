@@ -9,13 +9,6 @@ authors = [
 ]
 maintainers = [
     { name = "Judson Neer", email = "jkudson.neer@gmail.com" },
-    { name = "Wil T", email = "wil.t.me@pm.me" },
-]
-dependencies = [
-    "parsel>=1.0",
-    "requests>=2.0",
-    "selenium>=4.0",
-    "tldextract>=5.3",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -35,6 +28,12 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Software Development :: Testing",
+]
+dependencies = [
+    "parsel>=1.7",
+    "requests>=2.27",
+    "selenium>=4.32",
+    "tldextract>=5.3",
 ]
 
 [project.urls]
