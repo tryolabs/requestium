@@ -77,11 +77,13 @@ def session(request: FixtureRequest) -> Generator[requestium.Session, None, None
         msg = f"Unknown driver type: {browser}"
         raise ValueError(msg)
 
-    session = requestium.Session(driver=cast("DriverMixin", driver))
-    yield session
+    try:
+        session = requestium.Session(driver=cast("DriverMixin", driver))
 
-    with contextlib.suppress(WebDriverException, OSError):
-        driver.quit()
+        yield session
+    finally:
+        with contextlib.suppress(WebDriverException, OSError):
+            driver.quit()
 
 
 @pytest.fixture(autouse=True)
