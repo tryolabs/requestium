@@ -32,6 +32,7 @@ class Session(requests.Session):
 
     def __init__(
         self,
+        *,
         webdriver_path: str | None = None,
         headless: bool | None = None,
         default_timeout: float = 5,
