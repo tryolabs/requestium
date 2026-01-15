@@ -20,6 +20,45 @@ if TYPE_CHECKING:
 DEFAULT_TIMEOUT: float = 0.5
 
 
+def _ensure_click(self: WebElement) -> None:
+    """
+    Ensure a click gets made, because Selenium can be a bit buggy about clicks.
+
+    This method gets added to the selenium element returned in '__ensure_element_by_xpath'.
+    We should probably add it to more selenium methods, such as all the 'find**' methods though.
+
+    I wrote this method out of frustration with chromedriver and its problems with clicking
+    items that need to be scrolled to in order to be clickable. In '__ensure_element_by_xpath' we
+    scroll to the item before returning it, but chrome has some problems if it doesn't get some
+    time to scroll to the item. This method ensures chromes gets enough time to scroll to the item
+    before clicking it. I tried SEVERAL more 'correct' methods to get around this, but none of them
+    worked 100% of the time (waiting for the element to be 'clickable' does not work).
+    """
+    # We ensure the element is scrolled into the middle of the viewport to ensure that
+    # it is clickable. There are two main ways an element may not be clickable:
+    #   - It is outside of the viewport
+    #   - It is under a banner or toolbar
+    # This script solves both cases
+    script = (
+        "var viewPortHeight = Math.max("
+        "document.documentElement.clientHeight, window.innerHeight || 0);"
+        "var elementTop = arguments[0].getBoundingClientRect().top;"
+        "window.scrollBy(0, elementTop-(viewPortHeight/2));"
+    )
+    self.parent.execute_script(script, self)  # parent = the webdriver
+
+    exception_message = ""
+    for _ in range(10):
+        try:
+            self.click()
+            return
+        except WebDriverException as e:
+            exception_message = str(e)
+            time.sleep(0.2)
+    msg = f"Couldn't click item after trying 10 times, got error message: \n{exception_message}"
+    raise WebDriverException(msg)
+
+
 class DriverMixin(RemoteWebDriver):
     """Provides helper methods to our driver classes."""
 
@@ -214,42 +253,3 @@ class DriverMixin(RemoteWebDriver):
 
     def re_first(self, *args, **kwargs) -> str | None:
         return self.selector.re_first(*args, **kwargs)
-
-
-def _ensure_click(self: WebElement) -> None:
-    """
-    Ensure a click gets made, because Selenium can be a bit buggy about clicks.
-
-    This method gets added to the selenium element returned in '__ensure_element_by_xpath'.
-    We should probably add it to more selenium methods, such as all the 'find**' methods though.
-
-    I wrote this method out of frustration with chromedriver and its problems with clicking
-    items that need to be scrolled to in order to be clickable. In '__ensure_element_by_xpath' we
-    scroll to the item before returning it, but chrome has some problems if it doesn't get some
-    time to scroll to the item. This method ensures chromes gets enough time to scroll to the item
-    before clicking it. I tried SEVERAL more 'correct' methods to get around this, but none of them
-    worked 100% of the time (waiting for the element to be 'clickable' does not work).
-    """
-    # We ensure the element is scrolled into the middle of the viewport to ensure that
-    # it is clickable. There are two main ways an element may not be clickable:
-    #   - It is outside of the viewport
-    #   - It is under a banner or toolbar
-    # This script solves both cases
-    script = (
-        "var viewPortHeight = Math.max("
-        "document.documentElement.clientHeight, window.innerHeight || 0);"
-        "var elementTop = arguments[0].getBoundingClientRect().top;"
-        "window.scrollBy(0, elementTop-(viewPortHeight/2));"
-    )
-    self.parent.execute_script(script, self)  # parent = the webdriver
-
-    exception_message = ""
-    for _ in range(10):
-        try:
-            self.click()
-            return
-        except WebDriverException as e:
-            exception_message = str(e)
-            time.sleep(0.2)
-    msg = f"Couldn't click item after trying 10 times, got error message: \n{exception_message}"
-    raise WebDriverException(msg)
