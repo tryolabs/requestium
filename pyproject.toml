@@ -49,7 +49,7 @@ dev = [
     "pytest-cov~=7.0.0",
     "pytest-xdist~=3.8.0",
     "pytest~=9.0.0",
-    "ruff==0.14.7",
+    "ruff==0.14.11",
     "ssort==0.15.0",
     "types-requests==2.32.4.20250913",
 ]
