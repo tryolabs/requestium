@@ -54,6 +54,8 @@ dev = [
     "types-requests==2.32.4.20250913",
 ]
 
+[tool]
+
 [tool.ruff]
 line-length = 160
 include = [
@@ -120,28 +122,24 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**/{tests,docs}/*" = ["SLF001"]
-
-[tool.pytest.ini_options]
-addopts = "--cov=requestium -n auto"
-testpaths = [
-    "tests/",
+"**/{tests,docs}/*" = [
+    "SLF001",  # private-member-access (SLF001)
+    "PLR2004",  # magic-value-comparison (PLR2004)
 ]
+
+[tool.pytest]
+addopts = ["-n", "auto", "--cov=requestium", "--no-cov-on-fail"]
+testpaths = [
+    "tests",
+]
+
+[tool.coverage]
 
 [tool.coverage.run]
 branch = true
 relative_files = true
-command_line = "-m pytest"
-
-[tool.coverage.paths]
-source = [
-    "requestium/",
-]
-omit = [
-    "tests/",
-]
 
 [tool.coverage.report]
 exclude_also = [
-    "logger.",
+    "logger\\.",
 ]
