@@ -89,6 +89,7 @@ extend-select = [
     "LOG",  # flake8-logging (LOG)
     "N",  # pep8-naming (N)
     "PIE",  # flake8-pie (PIE)
+    "PL",  # Pylint (PL)
     "PT",  # flake8-pytest-style (PT)
     "PTH",  # flake8-use-pathlib (PTH)
     "Q",  # flake8-quotes (Q)
