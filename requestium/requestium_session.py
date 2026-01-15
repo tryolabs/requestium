@@ -30,44 +30,6 @@ class Session(requests.Session):
     Some useful helper methods and object wrappings have been added.
     """
 
-    def __init__(
-        self,
-        *,
-        webdriver_path: str | None = None,
-        headless: bool | None = None,
-        default_timeout: float = 5,
-        webdriver_options: dict[str, Any] | None = None,
-        driver: DriverMixin | None = None,
-    ) -> None:
-        super().__init__()
-
-        if webdriver_options is None:
-            webdriver_options = {}
-
-        self.webdriver_path = webdriver_path
-        self.default_timeout = default_timeout
-        self.webdriver_options = webdriver_options
-        self._driver = driver
-        self._last_requests_url: str | None = None
-
-        if not self._driver:
-            self._driver_initializer = functools.partial(self._start_chrome_browser, headless=headless)
-        else:
-            for name in DriverMixin.__dict__:
-                name_private = name.startswith("__") and name.endswith("__")
-                name_function = isinstance(DriverMixin.__dict__[name], types.FunctionType)
-                name_in_driver = name in dir(self._driver)
-                if name_private or not name_function or name_in_driver:
-                    continue
-                self._driver.__dict__[name] = DriverMixin.__dict__[name].__get__(self._driver)
-            self._driver.default_timeout = self.default_timeout
-
-    @property
-    def driver(self) -> DriverMixin:
-        if self._driver is None:
-            self._driver = self._driver_initializer()
-        return self._driver
-
     def _start_chrome_browser(self, headless: bool | None = False):  # noqa C901
         # TODO @joaqo: Transfer of proxies and headers.
         # https://github.com/tryolabs/requestium/issues/96
@@ -109,6 +71,44 @@ class Session(requests.Session):
         # when passed into webdriver.Chrome in super(DriverMixin, self).__init__(*args, **kwargs)
         service = ChromeService(executable_path=self.webdriver_path)
         return RequestiumChrome(service=service, options=chrome_options, default_timeout=self.default_timeout)
+
+    def __init__(
+        self,
+        *,
+        webdriver_path: str | None = None,
+        headless: bool | None = None,
+        default_timeout: float = 5,
+        webdriver_options: dict[str, Any] | None = None,
+        driver: DriverMixin | None = None,
+    ) -> None:
+        super().__init__()
+
+        if webdriver_options is None:
+            webdriver_options = {}
+
+        self.webdriver_path = webdriver_path
+        self.default_timeout = default_timeout
+        self.webdriver_options = webdriver_options
+        self._driver = driver
+        self._last_requests_url: str | None = None
+
+        if not self._driver:
+            self._driver_initializer = functools.partial(self._start_chrome_browser, headless=headless)
+        else:
+            for name in DriverMixin.__dict__:
+                name_private = name.startswith("__") and name.endswith("__")
+                name_function = isinstance(DriverMixin.__dict__[name], types.FunctionType)
+                name_in_driver = name in dir(self._driver)
+                if name_private or not name_function or name_in_driver:
+                    continue
+                self._driver.__dict__[name] = DriverMixin.__dict__[name].__get__(self._driver)
+            self._driver.default_timeout = self.default_timeout
+
+    @property
+    def driver(self) -> DriverMixin:
+        if self._driver is None:
+            self._driver = self._driver_initializer()
+        return self._driver
 
     def transfer_session_cookies_to_driver(self, domain: str | None = None) -> None:
         """
