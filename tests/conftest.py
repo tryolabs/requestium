@@ -6,15 +6,13 @@ import pytest
 from _pytest.fixtures import FixtureRequest
 from selenium import webdriver
 from selenium.common import WebDriverException
+from selenium.webdriver.support import expected_conditions as EC  # noqa: N812
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 import requestium
 
 if TYPE_CHECKING:
     from requestium.requestium_mixin import DriverMixin
-
-# ruff: noqa FBT003
 
 
 @pytest.fixture(scope="module")
@@ -35,7 +33,7 @@ def example_html() -> str:
     """
 
 
-def _create_chrome_driver(headless: bool) -> webdriver.Chrome:
+def _create_chrome_driver(*, headless: bool) -> webdriver.Chrome:
     options = webdriver.ChromeOptions()
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
@@ -46,12 +44,12 @@ def _create_chrome_driver(headless: bool) -> webdriver.Chrome:
     return driver
 
 
-def _create_firefox_driver(headless: bool) -> webdriver.Firefox:
+def _create_firefox_driver(*, headless: bool) -> webdriver.Firefox:
     options = webdriver.FirefoxOptions()
-    options.set_preference("browser.cache.disk.enable", False)
-    options.set_preference("browser.cache.memory.enable", False)
-    options.set_preference("browser.cache.offline.enable", False)
-    options.set_preference("network.http.use-cache", False)
+    options.set_preference("browser.cache.disk.enable", value=False)
+    options.set_preference("browser.cache.memory.enable", value=False)
+    options.set_preference("browser.cache.offline.enable", value=False)
+    options.set_preference("network.http.use-cache", value=False)
     if headless:
         options.add_argument("--headless")
     driver = webdriver.Firefox(options=options)
@@ -70,9 +68,9 @@ def session(request: FixtureRequest) -> Generator[requestium.Session, None, None
 
     driver: webdriver.Chrome | webdriver.Firefox
     if browser == "chrome":
-        driver = _create_chrome_driver(headless)
+        driver = _create_chrome_driver(headless=headless)
     elif browser == "firefox":
-        driver = _create_firefox_driver(headless)
+        driver = _create_firefox_driver(headless=headless)
     else:
         msg = f"Unknown driver type: {browser}"
         raise ValueError(msg)
