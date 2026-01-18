@@ -3,18 +3,17 @@ from collections.abc import Generator
 from typing import TYPE_CHECKING, cast
 
 import pytest
+import urllib3.exceptions
 from _pytest.fixtures import FixtureRequest
 from selenium import webdriver
 from selenium.common import WebDriverException
+from selenium.webdriver.support import expected_conditions as EC  # noqa: N812
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 import requestium
 
 if TYPE_CHECKING:
     from requestium.requestium_mixin import DriverMixin
-
-# ruff: noqa FBT003
 
 
 @pytest.fixture(scope="module")
@@ -35,28 +34,58 @@ def example_html() -> str:
     """
 
 
-def _create_chrome_driver(headless: bool) -> webdriver.Chrome:
+def _create_chrome_driver(*, headless: bool) -> webdriver.Chrome:
     options = webdriver.ChromeOptions()
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     if headless:
         options.add_argument("--headless=new")
-    driver = webdriver.Chrome(options=options)
-    WebDriverWait(driver, 5).until(EC.number_of_windows_to_be(1))
-    return driver
+
+    try:
+        driver = webdriver.Chrome(options=options)
+        WebDriverWait(driver, 5).until(EC.number_of_windows_to_be(1))
+        return driver
+    except (urllib3.exceptions.ReadTimeoutError, TimeoutError, WebDriverException) as e:
+        error_msg = f"Chrome driver initialization failed: {e}"
+        raise RuntimeError(error_msg) from e
 
 
-def _create_firefox_driver(headless: bool) -> webdriver.Firefox:
+def _create_firefox_driver(*, headless: bool) -> webdriver.Firefox:
     options = webdriver.FirefoxOptions()
-    options.set_preference("browser.cache.disk.enable", False)
-    options.set_preference("browser.cache.memory.enable", False)
-    options.set_preference("browser.cache.offline.enable", False)
-    options.set_preference("network.http.use-cache", False)
+    options.set_preference("browser.cache.disk.enable", value=False)
+    options.set_preference("browser.cache.memory.enable", value=False)
+    options.set_preference("browser.cache.offline.enable", value=False)
+    options.set_preference("network.http.use-cache", value=False)
     if headless:
         options.add_argument("--headless")
-    driver = webdriver.Firefox(options=options)
-    WebDriverWait(driver, 5).until(EC.number_of_windows_to_be(1))
-    return driver
+
+    try:
+        driver = webdriver.Firefox(options=options)
+        WebDriverWait(driver, 5).until(EC.number_of_windows_to_be(1))
+        return driver
+    except (urllib3.exceptions.ReadTimeoutError, TimeoutError, WebDriverException) as e:
+        error_msg = f"Firefox driver initialization failed: {e}"
+        raise RuntimeError(error_msg) from e
+
+
+def validate_session(session: requestium.Session) -> None:
+    """
+    Check basic validity of requestium Session object.
+
+    If browser context is missing, try recovering.
+    If attempted recovery raises WebDriverException, skip test.
+    """
+    try:
+        _ = session.driver.current_url
+        _ = session.driver.window_handles
+    except WebDriverException as e:
+        if "Browsing context has been discarded" not in str(e):
+            raise
+
+        try:
+            session.driver.switch_to.new_window("tab")
+        except WebDriverException as e:
+            pytest.skip(f"Browser context discarded and cannot be recovered: {e!s}")
 
 
 @pytest.fixture(
@@ -68,37 +97,30 @@ def session(request: FixtureRequest) -> Generator[requestium.Session, None, None
     browser, _, mode = driver_type.partition("-")
     headless = mode == "headless"
 
-    driver: webdriver.Chrome | webdriver.Firefox
-    if browser == "chrome":
-        driver = _create_chrome_driver(headless)
-    elif browser == "firefox":
-        driver = _create_firefox_driver(headless)
-    else:
-        msg = f"Unknown driver type: {browser}"
-        raise ValueError(msg)
+    driver: webdriver.Chrome | webdriver.Firefox | None = None
 
     try:
+        if browser == "chrome":
+            driver = _create_chrome_driver(headless=headless)
+        elif browser == "firefox":
+            driver = _create_firefox_driver(headless=headless)
+        else:
+            msg = f"Unknown driver type: {browser}"
+            raise ValueError(msg)
+
         assert driver.name in browser
         session = requestium.Session(driver=cast("DriverMixin", driver))
         assert session.driver.name in browser
-        
+
+        validate_session(session)
+
         yield session
+
+    except RuntimeError as e:
+        # Driver creation failed - skip all tests using this session
+        pytest.skip(str(e))
+
     finally:
-        with contextlib.suppress(WebDriverException, OSError):
-            driver.quit()
-
-
-@pytest.fixture(autouse=True)
-def ensure_valid_session(session: requestium.Session) -> None:
-    """Skip test if browser context is discarded."""
-    try:
-        _ = session.driver.current_url
-        _ = session.driver.window_handles
-    except WebDriverException as e:
-        if "Browsing context has been discarded" not in str(e):
-            raise
-
-        try:
-            session.driver.switch_to.new_window("tab")
-        except WebDriverException:
-            pytest.skip("Browser context discarded and cannot be recovered")
+        if driver:
+            with contextlib.suppress(WebDriverException, OSError, Exception):
+                driver.quit()

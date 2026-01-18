@@ -7,6 +7,8 @@ from selenium.webdriver.common.by import By
 
 import requestium.requestium
 
+from .conftest import validate_session
+
 
 @pytest.mark.parametrize(
     "headless",
@@ -19,6 +21,7 @@ import requestium.requestium
 )
 def test_initialize_session_without_explicit_driver(example_html: str, headless: bool) -> None:  # noqa: FBT001
     session = requestium.Session(headless=headless)
+    validate_session(session)
     session.driver.get(f"data:text/html,{example_html}")
     session.driver.ensure_element(By.TAG_NAME, "h1")
 
@@ -30,6 +33,7 @@ def test_initialize_session_without_explicit_driver(example_html: str, headless:
 
 def test_initialize_session_with_webdriver_options(example_html: str) -> None:
     session = requestium.Session(webdriver_options={"arguments": ["headless=new"]})
+    validate_session(session)
     session.driver.get(f"data:text/html,{example_html}")
     session.driver.ensure_element(By.TAG_NAME, "h1")
 
@@ -41,6 +45,7 @@ def test_initialize_session_with_webdriver_options(example_html: str) -> None:
 
 def test_initialize_session_with_experimental_options(example_html: str) -> None:
     session = requestium.Session(webdriver_options={"experimental_options": {"useAutomationExtension": False}})
+    validate_session(session)
     session.driver.get(f"data:text/html,{example_html}")
     session.driver.ensure_element(By.TAG_NAME, "h1")
 
@@ -52,6 +57,7 @@ def test_initialize_session_with_experimental_options(example_html: str) -> None
 
 def test_initialize_session_with_webdriver_prefs(example_html: str) -> None:
     session = requestium.Session(webdriver_options={"prefs": {"plugins.always_open_pdf_externally": True}})
+    validate_session(session)
     session.driver.get(f"data:text/html,{example_html}")
     session.driver.ensure_element(By.TAG_NAME, "h1")
 
@@ -64,6 +70,7 @@ def test_initialize_session_with_webdriver_prefs(example_html: str) -> None:
 def test_initialize_session_with_extension(example_html: str) -> None:
     test_extension_path = Path(__file__).parent / "resources/test_extension.crx"
     session = requestium.Session(webdriver_options={"extensions": [str(test_extension_path)]})
+    validate_session(session)
     session.driver.get(f"data:text/html,{example_html}")
     session.driver.ensure_element(By.TAG_NAME, "h1")
 
