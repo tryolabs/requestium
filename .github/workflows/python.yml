@@ -52,6 +52,9 @@ jobs:
 
       - uses: install-pinned/uv@9f8c76e6929eb07a49a7c681bf82edb9936cbdad
 
+      - run: uv pip install --system pytest-xvfb
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+
       - run: uv pip install --system --resolution ${{ matrix.resolution }} -e .[dev]
 
       - id: cache-pytest
@@ -60,12 +63,10 @@ jobs:
           path: .pytest_cache
           key: ${{ matrix.os }}-pytest-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
-      - uses: GabrielBB/xvfb-action@5bcda06da84ba084708898801da79736b88e00a9
+      - run: pytest
         env:
           SE_AUTO_UPDATE: true # opt-in to selenium 5 behavior
           COVERAGE_FILE: .coverage.${{ matrix.os }}.${{ matrix.python-version }}.${{ matrix.resolution }}
-        with:
-          run: pytest
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
