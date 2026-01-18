@@ -68,6 +68,26 @@ def _create_firefox_driver(*, headless: bool) -> webdriver.Firefox:
         raise RuntimeError(error_msg) from e
 
 
+def validate_session(session: requestium.Session) -> None:
+    """
+    Check basic validity of requestium Session object.
+
+    If browser context is missing, try recovering.
+    If attempted recovery raises WebDriverException, skip test.
+    """
+    try:
+        _ = session.driver.current_url
+        _ = session.driver.window_handles
+    except WebDriverException as e:
+        if "Browsing context has been discarded" not in str(e):
+            raise
+
+        try:
+            session.driver.switch_to.new_window("tab")
+        except WebDriverException as e:
+            pytest.skip(f"Browser context discarded and cannot be recovered: {e!s}")
+
+
 @pytest.fixture(
     params=["chrome-headless", "chrome", "firefox-headless", "firefox"],
     scope="module",
@@ -77,7 +97,7 @@ def session(request: FixtureRequest) -> Generator[requestium.Session, None, None
     browser, _, mode = driver_type.partition("-")
     headless = mode == "headless"
 
-    driver: webdriver.Chrome | webdriver.Firefox
+    driver: webdriver.Chrome | webdriver.Firefox | None = None
 
     try:
         if browser == "chrome":
@@ -92,17 +112,7 @@ def session(request: FixtureRequest) -> Generator[requestium.Session, None, None
         session = requestium.Session(driver=cast("DriverMixin", driver))
         assert session.driver.name in browser
 
-        try:
-            _ = session.driver.current_url
-            _ = session.driver.window_handles
-        except WebDriverException as e:
-            if "Browsing context has been discarded" not in str(e):
-                raise
-
-            try:
-                session.driver.switch_to.new_window("tab")
-            except WebDriverException:
-                pytest.skip("Browser context discarded and cannot be recovered")
+        validate_session(session)
 
         yield session
 
@@ -111,5 +121,6 @@ def session(request: FixtureRequest) -> Generator[requestium.Session, None, None
         pytest.skip(str(e))
 
     finally:
-        with contextlib.suppress(WebDriverException, OSError, Exception):
-            driver.quit()
+        if driver:
+            with contextlib.suppress(WebDriverException, OSError, Exception):
+                driver.quit()
