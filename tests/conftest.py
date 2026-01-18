@@ -89,12 +89,13 @@ def session(request: FixtureRequest) -> Generator[requestium.Session, None, None
 
 
 @pytest.fixture(autouse=True)
-def ensure_valid_session(request: FixtureRequest, session: requestium.Session) -> None:
+def ensure_valid_session(request: FixtureRequest) -> None:
     """Skip test if browser context is discarded."""
-    # Only run validation if the test actually uses the session fixture
+    # Only run if the test actually uses the session fixture
     if "session" not in request.fixturenames:
         return
 
+    session = request.getfixturevalue("session")
     try:
         _ = session.driver.current_url
         _ = session.driver.window_handles
