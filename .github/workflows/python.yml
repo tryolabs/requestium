@@ -62,6 +62,7 @@ jobs:
 
       - uses: GabrielBB/xvfb-action@5bcda06da84ba084708898801da79736b88e00a9
         env:
+          SE_AUTO_UPDATE: true # opt-in to selenium 5 behavior
           COVERAGE_FILE: .coverage.${{ matrix.os }}.${{ matrix.python-version }}.${{ matrix.resolution }}
         with:
           run: pytest
