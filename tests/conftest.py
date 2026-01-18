@@ -92,6 +92,18 @@ def session(request: FixtureRequest) -> Generator[requestium.Session, None, None
         session = requestium.Session(driver=cast("DriverMixin", driver))
         assert session.driver.name in browser
 
+    try:
+        _ = session.driver.current_url
+        _ = session.driver.window_handles
+    except WebDriverException as e:
+        if "Browsing context has been discarded" not in str(e):
+            raise
+
+        try:
+            session.driver.switch_to.new_window("tab")
+        except WebDriverException:
+            pytest.skip("Browser context discarded and cannot be recovered")
+
         yield session
 
     except RuntimeError as e:
