@@ -63,7 +63,7 @@ jobs:
           path: .pytest_cache
           key: ${{ matrix.os }}-pytest-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
-      - run: pytest
+      - run: pytest -r A
         env:
           SE_AUTO_UPDATE: true # opt-in to selenium 5 behavior
           COVERAGE_FILE: .coverage.${{ matrix.os }}.${{ matrix.python-version }}.${{ matrix.resolution }}
