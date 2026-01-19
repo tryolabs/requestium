@@ -929,7 +929,7 @@ wheels = [
 
 [[package]]
 name = "requestium"
-version = "1.0.0"
+version = "0.5.1"
 source = { virtual = "." }
 dependencies = [
     { name = "parsel" },
