@@ -46,7 +46,7 @@ dev = [
     "bandit[sarif]==1.9.2",
     "mypy==1.19.1",
     "pre-commit~=4.5.0",
-    "pytest-cov~=7.0.0",
+    "pytest-cov>=7.0,<7.2",
     "pytest-xdist~=3.8.0",
     "pytest~=9.0.0",
     "ruff==0.14.11",
