@@ -16,10 +16,12 @@ jobs:
           disable-sudo: true
           egress-policy: block
           allowed-endpoints: >
-              api.github.com:443
-              api.securityscorecards.dev:443
-              github.com:443
+            api.github.com:443
+            api.securityscorecards.dev:443
+            github.com:443
+            api.deps.dev
+
 
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
 
-      - uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294
