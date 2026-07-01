@@ -40,7 +40,7 @@ jobs:
 
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
 
-      - uses: github/codeql-action/init@cdefb33c0f6224e58673d9004f47f7cb3e328b89
+      - uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e
         with:
           languages: ${{ matrix.language }}
 
