@@ -196,6 +196,10 @@ def chrome_options(server: LocalServer, *, headless: bool, arguments: Sequence[s
     """Chrome options that route non-loopback http traffic (e.g. http://example.com) to the local server."""
     options = webdriver.ChromeOptions()
     options.add_argument(f"--proxy-server={server.proxy_url}")
+    # Chrome may first try http:// navigations over https (a CONNECT through the proxy). Whether it falls back to http
+    # when that fails depends on the version: with balanced HTTPS-First mode auto-enabled (e.g. Chrome 152) it doesn't,
+    # leaving a blank page. Turn both upgrade features off (Chrome honors only one --disable-features argument).
+    options.add_argument("--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable")
     for argument in arguments:
         options.add_argument(argument)
     options.add_argument("--no-sandbox")
