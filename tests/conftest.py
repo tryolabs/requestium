@@ -40,6 +40,12 @@ EXAMPLE_HTML = """
 """
 
 
+# Chrome may first try http:// navigations over https (a CONNECT through the test proxy). Whether it falls back to http
+# when that fails depends on the version: with balanced HTTPS-First mode auto-enabled (e.g. Chrome 152) it doesn't,
+# leaving a blank page. Pass this to any Chrome that browses through the proxy (Chrome honors only one --disable-features).
+DISABLE_HTTPS_UPGRADES = "--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable"
+
+
 class _Handler(BaseHTTPRequestHandler):
     """
     Serves pages and small JSON endpoints, and doubles as an HTTP forward proxy.
@@ -119,6 +125,7 @@ class _Server(ThreadingHTTPServer):
         self.requests: list[tuple[str, str, str]] = []
         if certfile:
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
             context.load_cert_chain(certfile)
             self.socket = context.wrap_socket(self.socket, server_side=True)
 
@@ -196,10 +203,7 @@ def chrome_options(server: LocalServer, *, headless: bool, arguments: Sequence[s
     """Chrome options that route non-loopback http traffic (e.g. http://example.com) to the local server."""
     options = webdriver.ChromeOptions()
     options.add_argument(f"--proxy-server={server.proxy_url}")
-    # Chrome may first try http:// navigations over https (a CONNECT through the proxy). Whether it falls back to http
-    # when that fails depends on the version: with balanced HTTPS-First mode auto-enabled (e.g. Chrome 152) it doesn't,
-    # leaving a blank page. Turn both upgrade features off (Chrome honors only one --disable-features argument).
-    options.add_argument("--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable")
+    options.add_argument(DISABLE_HTTPS_UPGRADES)
     for argument in arguments:
         options.add_argument(argument)
     options.add_argument("--no-sandbox")

@@ -96,14 +96,14 @@ def test_unfixable_cookie_raises_after_retry(chrome: DriverMixin) -> None:
 def test_secure_cookie_navigates_over_https(secure_chrome: DriverMixin, https_server: LocalServer) -> None:
     secure_chrome.ensure_add_cookie({"name": "sec", "value": "1", "domain": "app.secure.com", "secure": True})
 
-    assert secure_chrome.current_url.startswith("https://app.secure.com")
+    assert secure_chrome.current_url == "https://app.secure.com/"
     assert ("GET", "app.secure.com", "/") in https_server.requests()
 
 
 def test_insecure_cookie_navigates_over_http(chrome: DriverMixin, server: LocalServer) -> None:
     chrome.ensure_add_cookie({"name": "plain", "value": "1", "domain": "plain.example.com"})
 
-    assert chrome.current_url.startswith("http://plain.example.com")
+    assert chrome.current_url == "http://plain.example.com/"
     assert ("GET", "plain.example.com", "/") in server.requests()
 
 
@@ -113,7 +113,7 @@ def test_domain_check_is_not_a_substring_match(chrome: DriverMixin, server: Loca
     chrome.ensure_add_cookie({"name": "sub", "value": "1", "domain": "ample.com"})
 
     assert ("GET", "ample.com", "/") in server.requests()
-    assert chrome.current_url.startswith("http://ample.com")
+    assert chrome.current_url == "http://ample.com/"
 
 
 def test_parent_domain_cookie_does_not_navigate(chrome: DriverMixin, server: LocalServer) -> None:
@@ -123,4 +123,4 @@ def test_parent_domain_cookie_does_not_navigate(chrome: DriverMixin, server: Loc
     chrome.ensure_add_cookie({"name": "parent", "value": "1", "domain": ".example.com"})
 
     assert len(server.requests()) == before
-    assert chrome.current_url.startswith("http://sub.example.com")
+    assert chrome.current_url == "http://sub.example.com/"

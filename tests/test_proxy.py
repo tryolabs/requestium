@@ -6,13 +6,13 @@ import pytest
 
 import requestium
 
-from .conftest import LocalServer
+from .conftest import DISABLE_HTTPS_UPGRADES, LocalServer
 
 PROXIED_HOST = "requestium-proxy-test.invalid"
 
 
 def test_proxy_flag_reaches_chrome(server: LocalServer) -> None:
-    session = requestium.Session(headless=True)
+    session = requestium.Session(headless=True, webdriver_options={"arguments": [DISABLE_HTTPS_UPGRADES]})
     try:
         # Set after construction but before the first driver access
         session.proxies = {"http": server.url}
