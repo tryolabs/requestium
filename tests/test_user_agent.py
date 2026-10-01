@@ -4,7 +4,7 @@ import pytest
 
 import requestium.requestium
 
-from .conftest import LocalServer
+from .conftest import LocalServer, own_chrome_session
 
 
 @pytest.fixture
@@ -55,7 +55,7 @@ def test_transfer_driver_cookies_to_session_can_skip_user_agent(reset_session_he
 
 
 def test_custom_user_agent_reaches_chrome() -> None:
-    session = requestium.Session(headless=True)
+    session = own_chrome_session(headless=True)
     session.headers["User-Agent"] = "RequestiumTest/1.0"
     try:
         assert session.driver.execute_script("return navigator.userAgent;") == "RequestiumTest/1.0"
@@ -64,7 +64,7 @@ def test_custom_user_agent_reaches_chrome() -> None:
 
 
 def test_default_user_agent_is_not_forced() -> None:
-    session = requestium.Session(headless=True)
+    session = own_chrome_session(headless=True)
     try:
         user_agent = session.driver.execute_script("return navigator.userAgent;")
         assert "python-requests" not in user_agent
@@ -73,7 +73,7 @@ def test_default_user_agent_is_not_forced() -> None:
 
 
 def test_user_supplied_user_agent_argument_wins() -> None:
-    session = requestium.Session(headless=True, webdriver_options={"arguments": ["--user-agent=FromOptions/2.0"]})
+    session = own_chrome_session(headless=True, arguments=["--user-agent=FromOptions/2.0"])
     session.headers["User-Agent"] = "FromHeaders/1.0"
     try:
         assert session.driver.execute_script("return navigator.userAgent;") == "FromOptions/2.0"

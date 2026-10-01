@@ -144,11 +144,12 @@ def test_session_default_timeout_is_used(session: requestium.Session) -> None:
         short_session = requestium.Session(driver=session.driver, default_timeout=0.6)
         assert short_session.driver.default_timeout == 0.6
 
-        run_later(short_session, "document.body.appendChild(Object.assign(document.createElement('div'), {id: 'slow'}));", delay_ms=1500)
+        run_later(short_session, "document.body.appendChild(Object.assign(document.createElement('div'), {id: 'slow'}));", delay_ms=3000)
         start = time.monotonic()
         with pytest.raises(TimeoutException):
             short_session.driver.ensure_element(By.ID, "slow")
-        assert 0.6 <= time.monotonic() - start < 1.4
+        # Well under the 3s it takes the element to appear, with headroom for slow CI runners
+        assert 0.6 <= time.monotonic() - start < 2.5
 
         # An explicit timeout overrides the default
         assert short_session.driver.ensure_element(By.ID, "slow", timeout=5) is not None

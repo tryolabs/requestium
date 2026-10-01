@@ -14,7 +14,7 @@ from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 import requestium.requestium
 from requestium.requestium_mixin import DriverMixin
 
-from .conftest import LocalServer, assert_first_cookie_matches, chrome_options, cookies_sent_by_driver
+from .conftest import LocalServer, assert_first_cookie_matches, chrome_options, cookies_sent_by_driver, own_chrome_session
 
 
 def test_ensure_add_cookie(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
@@ -63,12 +63,10 @@ def chrome(server: LocalServer) -> Generator[DriverMixin, None, None]:
 def secure_chrome(https_server: LocalServer) -> Generator[DriverMixin, None, None]:
     """Start Chrome with *.secure.com mapped to the TLS listener (a forward proxy can't tunnel to it) and its certificate trusted."""
     arguments = [
-        "--no-sandbox",
-        "--disable-dev-shm-usage",
         f"--host-resolver-rules=MAP *.secure.com 127.0.0.1:{https_server.port}",
         "--ignore-certificate-errors",
     ]
-    session = requestium.Session(headless=True, webdriver_options={"arguments": arguments})
+    session = own_chrome_session(headless=True, arguments=arguments)
     yield session.driver
     session.close()
 

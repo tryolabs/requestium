@@ -13,7 +13,7 @@ import requestium.requestium
 from requestium.requestium import DriverMixin, RequestiumResponse
 from requestium.requestium_session import _mixin_class
 
-from .conftest import LocalServer, chrome_options, validate_session
+from .conftest import LocalServer, chrome_options, own_chrome_session, validate_session
 
 SessionFactory = Callable[..., requestium.Session]
 
@@ -24,7 +24,7 @@ def make_session() -> Generator[SessionFactory, None, None]:
     sessions: list[requestium.Session] = []
 
     def _make_session(**kwargs: Any) -> requestium.Session:  # noqa: ANN401
-        session = requestium.Session(**kwargs)
+        session = own_chrome_session(**kwargs)
         sessions.append(session)
         return session
 
@@ -90,7 +90,7 @@ def driver_is_dead(driver: WebDriver) -> bool:
 
 
 def test_close_quits_lazily_started_chrome() -> None:
-    session = requestium.Session(headless=True)
+    session = own_chrome_session(headless=True)
     driver = session.driver
     assert not driver_is_dead(driver)
     session.close()
@@ -99,7 +99,7 @@ def test_close_quits_lazily_started_chrome() -> None:
 
 
 def test_close_then_driver_access_starts_fresh_chrome() -> None:
-    session = requestium.Session(headless=True)
+    session = own_chrome_session(headless=True)
     first = session.driver
     session.close()
     second = session.driver
@@ -111,20 +111,20 @@ def test_close_then_driver_access_starts_fresh_chrome() -> None:
 
 
 def test_context_manager_quits_driver() -> None:
-    with requestium.Session(headless=True) as session:
+    with own_chrome_session(headless=True) as session:
         driver = session.driver
         assert not driver_is_dead(driver)
     assert driver_is_dead(driver)
 
 
 def test_close_without_driver_does_not_start_one() -> None:
-    session = requestium.Session(headless=True)
+    session = own_chrome_session(headless=True)
     session.close()
     assert session._driver is None
 
 
 def test_close_twice_is_harmless() -> None:
-    session = requestium.Session(headless=True)
+    session = own_chrome_session(headless=True)
     driver = session.driver
     driver.quit()
     session.close()

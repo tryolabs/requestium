@@ -7,7 +7,7 @@ import threading
 from collections.abc import Generator, Sequence
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -44,6 +44,11 @@ EXAMPLE_HTML = """
 # when that fails depends on the version: with balanced HTTPS-First mode auto-enabled (e.g. Chrome 152) it doesn't,
 # leaving a blank page. Pass this to any Chrome that browses through the proxy (Chrome honors only one --disable-features).
 DISABLE_HTTPS_UPGRADES = "--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable"
+
+
+# Chrome for Testing with its sandbox enabled silently dropped navigations on GitHub's Windows runners (driver.get returned but
+# the page stayed on data:, in 9 of 30 launches). The library must not disable the sandbox itself, so tests pass these.
+CHROME_CI_ARGUMENTS = ("--no-sandbox", "--disable-dev-shm-usage")
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -206,11 +211,18 @@ def chrome_options(server: LocalServer, *, headless: bool, arguments: Sequence[s
     options.add_argument(DISABLE_HTTPS_UPGRADES)
     for argument in arguments:
         options.add_argument(argument)
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
+    for argument in CHROME_CI_ARGUMENTS:
+        options.add_argument(argument)
     if headless:
         options.add_argument("--headless=new")
     return options
+
+
+def own_chrome_session(*, arguments: Sequence[str] = (), **kwargs: Any) -> requestium.Session:  # noqa: ANN401
+    """Create a Session that starts its own Chrome with the CI-safe arguments, followed by any in webdriver_options and then arguments."""
+    webdriver_options = dict(kwargs.pop("webdriver_options", None) or {})
+    webdriver_options["arguments"] = [*CHROME_CI_ARGUMENTS, *webdriver_options.get("arguments", ()), *arguments]
+    return requestium.Session(webdriver_options=webdriver_options, **kwargs)
 
 
 def _create_chrome_driver(server: LocalServer, *, headless: bool) -> webdriver.Chrome:

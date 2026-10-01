@@ -6,13 +6,13 @@ import pytest
 
 import requestium
 
-from .conftest import DISABLE_HTTPS_UPGRADES, LocalServer
+from .conftest import DISABLE_HTTPS_UPGRADES, LocalServer, own_chrome_session
 
 PROXIED_HOST = "requestium-proxy-test.invalid"
 
 
 def test_proxy_flag_reaches_chrome(server: LocalServer) -> None:
-    session = requestium.Session(headless=True, webdriver_options={"arguments": [DISABLE_HTTPS_UPGRADES]})
+    session = own_chrome_session(headless=True, arguments=[DISABLE_HTTPS_UPGRADES])
     try:
         # Set after construction but before the first driver access
         session.proxies = {"http": server.url}
@@ -35,7 +35,7 @@ def test_proxy_flag_format() -> None:
 
 
 def test_credentialed_proxy_warns_and_is_skipped() -> None:
-    session = requestium.Session(headless=True)
+    session = own_chrome_session(headless=True)
     session.proxies = {"http": "http://user:secret@proxy.example:8080"}
     try:
         with pytest.warns(UserWarning, match="credentials") as record:
@@ -46,7 +46,7 @@ def test_credentialed_proxy_warns_and_is_skipped() -> None:
 
 
 def test_no_warnings_without_credentials() -> None:
-    session = requestium.Session(headless=True)
+    session = own_chrome_session(headless=True)
     session.proxies = {"http": "http://proxy.example:8080"}
     with warnings.catch_warnings():
         warnings.simplefilter("error")

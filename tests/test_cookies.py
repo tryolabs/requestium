@@ -6,7 +6,7 @@ from selenium.common import InvalidCookieDomainException
 
 import requestium.requestium
 
-from .conftest import LocalServer, assert_first_cookie_matches, cookies_sent_by_driver
+from .conftest import LocalServer, assert_first_cookie_matches, cookies_sent_by_driver, own_chrome_session
 
 # Cookie domains in these tests are fake public hostnames such as example.com. The browsers and requests are pointed at
 # the local server as an HTTP proxy (see LocalServer), so nothing leaves the machine, yet cookie and domain rules are
@@ -107,7 +107,7 @@ def test_transfer_session_cookies_to_driver_no_domain_error(clean_session: reque
 def localhost_session(server: LocalServer) -> Generator[requestium.Session, None, None]:
     """Start a Chrome session where http://localhost:<port> reaches the test server and counts as a secure context for Secure cookies."""
     arguments = ["--host-resolver-rules=MAP localhost 127.0.0.1", f"--unsafely-treat-insecure-origin-as-secure=http://localhost:{server.port}"]
-    session = requestium.Session(headless=True, webdriver_options={"arguments": ["--no-sandbox", "--disable-dev-shm-usage", *arguments]})
+    session = own_chrome_session(headless=True, arguments=arguments)
     yield session
     session.close()
 
