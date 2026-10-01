@@ -20,7 +20,7 @@ uv run pre-commit run --all-files      # check-*, ssort, ruff, bandit
 
 `ssort` runs in pre-commit and reorders statements in modules/classes by dependency, so don't fight its ordering by hand.
 
-Releases use `publish.bash` (untracked), which pulls the PyPI token from the local keyring and runs `uv build` / `uv publish`. Bump `version` in `pyproject.toml` first.
+Releases: bump `version` in `pyproject.toml`, merge, then push a `vX.Y.Z` tag. `.github/workflows/publish.yml` checks the tag matches the version, builds and smoke-tests the wheel and sdist, and publishes with PyPI Trusted Publishing (OIDC, `pypi` environment; no token stored anywhere).
 
 ## Tests need real browsers
 
