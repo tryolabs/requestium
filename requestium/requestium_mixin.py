@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+import contextlib
 import functools
 import time
 import warnings
 from typing import TYPE_CHECKING, Any
+from urllib.parse import urlparse
 
 import tldextract
 from parsel.selector import Selector, SelectorList
-from selenium.common.exceptions import NoSuchWindowException, WebDriverException
+from selenium.common.exceptions import InvalidCookieDomainException, NoSuchWindowException, UnableToSetCookieException, WebDriverException
 from selenium.webdriver.common.by import By, ByType
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from selenium.webdriver.support import expected_conditions
@@ -70,13 +72,11 @@ class DriverMixin(RemoteWebDriver):
         """
         Attempt to add the cookie.
 
-        Suppress any errors, and simply detect success or failure.
+        Errors that mean the browser rejected the cookie for its current domain are suppressed,
+        and success or failure is detected instead. Any other error propagates unchanged.
         """
-        try:
+        with contextlib.suppress(InvalidCookieDomainException, UnableToSetCookieException):
             self.add_cookie(cookie)
-        except WebDriverException as e:
-            if e.msg and not e.msg.__contains__("Couldn't add the following cookie to the webdriver"):
-                raise WebDriverException from e
         return self.is_cookie_in_driver(cookie)
 
     def ensure_add_cookie(self, cookie: dict[str, Any], override_domain: str | None = None) -> None:
@@ -104,21 +104,21 @@ class DriverMixin(RemoteWebDriver):
         try, and raises an exception if that fails. The standard selenium behaviour in this case
         was to not do anything, which was very hard to debug.
         """
+        cookie = dict(cookie)
         if override_domain:
             cookie["domain"] = override_domain
 
-        cookie_domain = cookie["domain"] if cookie["domain"][0] != "." else cookie["domain"][1:]
+        cookie_domain = cookie["domain"].removeprefix(".")
         try:
-            browser_domain = tldextract.extract(self.current_url).fqdn
+            browser_domain = urlparse(self.current_url).hostname or ""
         except (AttributeError, NoSuchWindowException):
             browser_domain = ""
-        if cookie_domain not in browser_domain:
-            # TODO @joaqo: Check if hardcoding 'http' causes trouble.
-            # https://github.com/tryolabs/requestium/issues/97
+        if browser_domain != cookie_domain and not browser_domain.endswith("." + cookie_domain):
+            # Secure cookies can only be set from an https page.
             # Consider using a new proxy for this next request to not cause an anomalous
             # request. This way their server sees our ip address as continuously having the
             # same cookies and not have a request mid-session with no cookies
-            self.get("http://" + cookie_domain)
+            self.get(("https://" if cookie.get("secure") else "http://") + cookie_domain)
 
         cookie_added = self.try_add_cookie(cookie)
 
@@ -209,7 +209,7 @@ class DriverMixin(RemoteWebDriver):
             )
             locator = locators_compatibility[locator]
 
-        if not timeout:
+        if timeout is None:
             timeout = self.default_timeout or DEFAULT_TIMEOUT
 
         if state == "visible":

@@ -10,7 +10,7 @@ class RequestiumResponse(requests.Response):
 
     def __init__(self, response: Response) -> None:
         super().__init__()
-        self.__class__ = type(response.__class__.__name__, (self.__class__, response.__class__), response.__dict__)
+        self.__dict__.update(response.__dict__)
 
     @property
     def selector(self) -> Selector:
