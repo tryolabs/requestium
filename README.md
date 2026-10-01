@@ -35,8 +35,8 @@ First create a session as you would do on Requests, and optionally add arguments
 ```python
 from requestium import Session, Keys
 
-options = {'arguments': ['headless']}
-s = Session(webdriver_path='./chromedriver', default_timeout=15, webdriver_options=options)
+options = {"arguments": ["headless"]}
+s = Session(webdriver_path="./chromedriver", default_timeout=15, webdriver_options=options)
 ```
 
 Since headless mode is common, there's a shortcut for it by specifying `headless=True`.
@@ -44,7 +44,7 @@ Since headless mode is common, there's a shortcut for it by specifying `headless
 ```python
 from requestium import Session, Keys
 
-s = Session(webdriver_path='./chromedriver', headless=True)
+s = Session(webdriver_path="./chromedriver", headless=True)
 ```
 
 You can also create a Selenium webdriver outside Requestium and have it use that instead:
@@ -65,7 +65,7 @@ from selenium import webdriver
 from requestium import Session
 
 options = webdriver.ChromeOptions()
-remote_driver = webdriver.Remote(command_executor='http://localhost:4444/wd/hub', options=options)
+remote_driver = webdriver.Remote(command_executor="http://localhost:4444/wd/hub", options=options)
 
 s = Session(driver=remote_driver)
 ```
@@ -79,40 +79,39 @@ from requestium import Session, Keys
 seleniumwire_driver = webdriver.Chrome()
 
 s = Session(driver=seleniumwire_driver)
-
 ```
 
 You don't need to parse the response, it is done automatically when calling xpath, css or re.
 ```python
-title = s.get('http://samplesite.com').xpath('//title/text()').extract_first(default='Default Title')
+title = s.get("http://samplesite.com").xpath("//title/text()").extract_first(default="Default Title")
 ```
 
 Regex require less boilerplate when compared to Python's standard `re` module.
 ```python
-response = s.get('http://samplesite.com/sample_path')
+response = s.get("http://samplesite.com/sample_path")
 
 # Extracts the first match
-identifier = response.re_first(r'ID_\d\w\d', default='ID_1A1')
+identifier = response.re_first(r"ID_\d\w\d", default="ID_1A1")
 
 # Extracts all matches as a list
-users = response.re(r'user_\d\d\d')
+users = response.re(r"user_\d\d\d")
 ```
 
 The Session object is just a regular Requests's session object, so you can use all of its methods. Responses from all HTTP verbs (get, post, put, patch, delete, head, options) have the xpath, css, and re helpers.
 ```python
-s.post('http://www.samplesite.com/sample', data={'field1': 'data1'})
-s.proxies.update({'http': 'http://10.11.4.254:3128', 'https': 'https://10.11.4.252:3128'})
+s.post("http://www.samplesite.com/sample", data={"field1": "data1"})
+s.proxies.update({"http": "http://10.11.4.254:3128", "https": "https://10.11.4.252:3128"})
 ```
 
 And you can switch to using the Selenium webdriver to run any js code.
 ```python
 s.transfer_session_cookies_to_driver()  # You can maintain the session if needed
-s.driver.get('http://www.samplesite.com/sample/process')
+s.driver.get("http://www.samplesite.com/sample/process")
 ```
 
 The driver object is a Selenium webdriver object, so you can use any of the normal selenium methods plus new methods added by Requestium.
 ```python
-s.driver.find_element("xpath", "//input[@class='user_name']").send_keys('James Bond', Keys.ENTER)
+s.driver.find_element("xpath", "//input[@class='user_name']").send_keys("James Bond", Keys.ENTER)
 
 # New methods which wait for element to load instead of failing, useful for single page web apps
 s.driver.ensure_element("xpath", "//div[@attribute='button']").click()
@@ -121,14 +120,14 @@ s.driver.ensure_element_by_xpath("//div[@attribute='button']").click()
 
 Requestium also adds xpath, css, and re methods to the Selenium driver object.
 ```python
-if s.driver.re(r'ID_\d\w\d some_pattern'):
-    print('Found it!')
+if s.driver.re(r"ID_\d\w\d some_pattern"):
+    print("Found it!")
 ```
 
 And finally you can switch back to using Requests.
 ```python
 s.transfer_driver_cookies_to_session()
-s.post('http://www.samplesite.com/sample2', data={'key1': 'value1'})
+s.post("http://www.samplesite.com/sample2", data={"key1": "value1"})
 ```
 
 When you are done, close the session. This quits the webdriver if one was started, including a driver you passed in. It also works as a context manager.
@@ -136,7 +135,7 @@ When you are done, close the session. This quits the webdriver if one was starte
 s.close()
 
 with Session(headless=True) as s:
-    s.driver.get('http://www.samplesite.com')
+    s.driver.get("http://www.samplesite.com")
 ```
 
 ## Selenium workarounds
@@ -156,7 +155,7 @@ These methods are very useful for single page web apps where the site is dynamic
 Elements you get using these methods have the new `ensure_click` method which makes the click less prone to failure. This helps with getting through a lot of the problems with Selenium clicking.
 
 ```python
-s.driver.ensure_element("xpath", "//li[@class='b1']", state='clickable', timeout=5).ensure_click()
+s.driver.ensure_element("xpath", "//li[@class='b1']", state="clickable", timeout=5).ensure_click()
 
 # === We also added these methods named in accordance to Selenium's api design ===
 # ensure_element_by_id
@@ -175,14 +174,8 @@ The `ensure_add_cookie` method makes adding cookies much more robust. Selenium n
 If it can't add the cookie it tries to add it with a less restrictive domain (Eg.: home.site.com -> site.com) before failing.
 
 ```python
-cookie = {"domain": "www.site.com",
-          "secure": False,
-          "value": "sd2451dgd13",
-          "expiry": 1516824855.759154,
-          "path": "/",
-          "httpOnly": True,
-          "name": "sessionid"}
-s.driver.ensure_add_cookie(cookie, override_domain='')
+cookie = {"domain": "www.site.com", "secure": False, "value": "sd2451dgd13", "expiry": 1516824855.759154, "path": "/", "httpOnly": True, "name": "sessionid"}
+s.driver.ensure_add_cookie(cookie, override_domain="")
 ```
 
 ## Considerations
@@ -208,23 +201,22 @@ A silly working example of a script that runs on Reddit. We'll then show how it 
 from requestium import Session, Keys
 
 # If you want requestium to type your username in the browser for you, write it in here:
-reddit_user_name = ''
+reddit_user_name = ""
 
 s = Session(default_timeout=15)
-s.driver.get('http://reddit.com')
+s.driver.get("http://reddit.com")
 s.driver.find_element("xpath", "//a[@href='https://www.reddit.com/login']").click()
 
-print('Waiting for elements to load...')
-s.driver.ensure_element("class name", "desktop-onboarding-sign-up__form-toggler",
-				      state='visible').click()
+print("Waiting for elements to load...")
+s.driver.ensure_element("class name", "desktop-onboarding-sign-up__form-toggler", state="visible").click()
 
 if reddit_user_name:
-    s.driver.ensure_element('id', 'user_login').send_keys(reddit_user_name)
-    s.driver.ensure_element('id', 'passwd_login').send_keys(Keys.BACKSPACE)
-print('Please log-in in the chrome browser')
+    s.driver.ensure_element("id", "user_login").send_keys(reddit_user_name)
+    s.driver.ensure_element("id", "passwd_login").send_keys(Keys.BACKSPACE)
+print("Please log-in in the chrome browser")
 
-s.driver.ensure_element("class name", "desktop-onboarding__title", timeout=60, state='invisible')
-print('Thanks!')
+s.driver.ensure_element("class name", "desktop-onboarding__title", timeout=60, state="invisible")
+print("Thanks!")
 
 if not reddit_user_name:
     reddit_user_name = s.driver.xpath("//span[@class='user']//text()").extract_first()
@@ -254,34 +246,26 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 # If you want requestium to type your username in the browser for you, write it in here:
-reddit_user_name = ''
+reddit_user_name = ""
 
 driver = webdriver.Chrome()
-driver.get('http://reddit.com')
+driver.get("http://reddit.com")
 driver.find_element("xpath", "//a[@href='https://www.reddit.com/login']").click()
 
-print('Waiting for elements to load...')
-WebDriverWait(driver, 15).until(
-    EC.visibility_of_element_located((By.CLASS_NAME, "desktop-onboarding-sign-up__form-toggler"))
-).click()
+print("Waiting for elements to load...")
+WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CLASS_NAME, "desktop-onboarding-sign-up__form-toggler"))).click()
 
 if reddit_user_name:
-    WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located((By.ID, 'user_login'))
-    ).send_keys(reddit_user_name)
-    driver.find_element('id', 'passwd_login').send_keys(Keys.BACKSPACE)
-print('Please log-in in the chrome browser')
+    WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "user_login"))).send_keys(reddit_user_name)
+    driver.find_element("id", "passwd_login").send_keys(Keys.BACKSPACE)
+print("Please log-in in the chrome browser")
 
 try:
-    WebDriverWait(driver, 3).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "desktop-onboarding__title"))
-    )
+    WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, "desktop-onboarding__title")))
 except TimeoutException:
     pass
-WebDriverWait(driver, 60).until(
-    EC.invisibility_of_element_located((By.CLASS_NAME, "desktop-onboarding__title"))
-)
-print('Thanks!')
+WebDriverWait(driver, 60).until(EC.invisibility_of_element_located((By.CLASS_NAME, "desktop-onboarding__title")))
+print("Thanks!")
 
 if not reddit_user_name:
     tree = etree.HTML(driver.page_source)
@@ -296,11 +280,10 @@ if reddit_user_name:
     selenium_user_agent = driver.execute_script("return navigator.userAgent;")
     s.headers.update({"user-agent": selenium_user_agent})
     for cookie in driver.get_cookies():
-        s.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
+        s.cookies.set(cookie["name"], cookie["value"], domain=cookie["domain"])
     response = s.get("https://www.reddit.com/user/{}/".format(reddit_user_name))
     try:
-        cmnt_karma = etree.HTML(response.content).xpath(
-            "//span[@class='karma comment-karma']//text()")[0]
+        cmnt_karma = etree.HTML(response.content).xpath("//span[@class='karma comment-karma']//text()")[0]
     except IndexError:
         cmnt_karma = None
     match = re.search(r"(\d+) gildings given out", str(response.content))
