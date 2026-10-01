@@ -16,6 +16,7 @@ Requestium adds independent improvements to both Requests and Selenium, and ever
 Read more about the motivation behind creating this library in this [blog post](https://tryolabs.com/blog/2017/11/22/requestium-integration-layer-requests-selenium-web-automation/).
 
 ## Features
+
 - Enables switching between a Requests' Session and a Selenium webdriver while maintaining the current web session.
 - Integrates Parsel's parser into the library, making xpath, css, and regex much cleaner to write.
 - Improves Selenium's handling of dynamically loading elements.
@@ -155,6 +156,7 @@ Requestium adds several 'ensure' methods to the driver object, as Selenium is kn
 The `ensure_element` and `ensure_element_by_` methods wait for the element to be loaded in the browser and returns it as soon as it loads. They're named after Selenium's `find_element` and `find_element_by_` methods (which immediately raise an exception if they can't find the element).
 
 Requestium can wait for an element to be in any of the following states:
+
 - present (default)
 - clickable
 - visible
@@ -190,6 +192,7 @@ s.driver.ensure_add_cookie(cookie, override_domain="")
 
 ## Considerations
 New features are lazily evaluated, meaning:
+
 - The Selenium webdriver process is only started if you call the driver object. So if you don't need to use the webdriver, you could use the library with no overhead. Very useful if you just want to use the library for its integration with Parsel.
 - Parsing of the responses is only done if you call the `xpath`, `css`, or `re` methods of the response. So again there is no overhead if you don't need to use this feature.
 
