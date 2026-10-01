@@ -55,7 +55,7 @@ jobs:
       - run: uv pip install --system pytest-xvfb
         if: ${{ matrix.os == 'ubuntu-latest' }}
 
-      - run: uv pip install --system --resolution ${{ matrix.resolution }} -e .[dev]
+      - run: uv pip install --system --resolution ${{ matrix.resolution }} -e . --group dev
 
       - id: cache-pytest
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -98,7 +98,7 @@ jobs:
 
       - uses: install-pinned/uv@328447c2b7cf42c44dc4ff03658ba3e086fdb035
 
-      - run: uv pip install --system -e .[dev]
+      - run: uv pip install --system -e . --group dev
 
       - id: cache-ruff
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -137,7 +137,7 @@ jobs:
 
       - uses: install-pinned/uv@328447c2b7cf42c44dc4ff03658ba3e086fdb035
 
-      - run: uv pip install --system -e .[dev]
+      - run: uv pip install --system -e . --group dev
 
       - id: cache-ruff
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -182,7 +182,7 @@ jobs:
 
       - uses: install-pinned/uv@328447c2b7cf42c44dc4ff03658ba3e086fdb035
 
-      - run: uv pip install --system -e .[dev]
+      - run: uv pip install --system -e . --group dev
 
       - id: cache-mypy
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
@@ -221,7 +221,7 @@ jobs:
 
       - uses: install-pinned/uv@328447c2b7cf42c44dc4ff03658ba3e086fdb035
 
-      - run: uv pip install --system -e .[dev]
+      - run: uv pip install --system -e . --group dev
 
       - id: run-bandit-sarif
         run: |
@@ -302,7 +302,7 @@ jobs:
 
       - uses: install-pinned/uv@328447c2b7cf42c44dc4ff03658ba3e086fdb035
 
-      - run: uv pip install --system -e .[dev]
+      - run: uv pip install --system -e . --group dev
 
       - id: cache-pre-commit
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9

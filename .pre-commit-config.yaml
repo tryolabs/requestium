@@ -14,18 +14,18 @@ repos:
           - id: debug-statements
           - id: mixed-line-ending
     - repo: https://github.com/bwhmather/ssort
-      rev: 0.16.0
+      rev: 0.17.0
       hooks:
           - id: ssort
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: 'v0.14.11'
+      rev: 'v0.16.10'
       hooks:
           - id: ruff-check
             args: ['--fix']
           - id: ruff-format
     - repo: https://github.com/PyCQA/bandit
-      rev: '1.9.2'
+      rev: '1.9.4'
       hooks:
           - id: bandit
             args: ['--confidence-level', 'medium']
-            files: '^src'
+            files: '^requestium/'
