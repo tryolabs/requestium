@@ -7,13 +7,13 @@
 [![Coverage](https://raw.githubusercontent.com/tryolabs/requestium/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://github.com/tryolabs/requestium/blob/python-coverage-comment-action-data/htmlcov/index.html)
 [![Python checks](https://github.com/tryolabs/requestium/actions/workflows/python.yml/badge.svg)](https://github.com/tryolabs/requestium/actions/workflows/python.yml)
 
-Requestium is a Python library that merges the power of [Requests](https://github.com/requests/requests), [Selenium](https://github.com/SeleniumHQ/selenium), and [Parsel](https://github.com/scrapy/parsel) into a single integrated tool for automatizing web actions.
+Requestium is a Python library that merges the power of [Requests](https://github.com/requests/requests), [Selenium](https://github.com/SeleniumHQ/selenium), and [Parsel](https://github.com/scrapy/parsel) into a single integrated tool for automating web actions.
 
 The library was created for writing web automation scripts that are written using mostly Requests but that are able to seamlessly switch to Selenium for the JavaScript heavy parts of the website, while maintaining the session.
 
 Requestium adds independent improvements to both Requests and Selenium, and every new feature is lazily evaluated, so its useful even if writing scripts that use only Requests or Selenium.
 
-Read more about the motivation behind creating this library in this [blopost](https://tryolabs.com/blog/2017/11/22/requestium-integration-layer-requests-selenium-web-automation/).
+Read more about the motivation behind creating this library in this [blog post](https://tryolabs.com/blog/2017/11/22/requestium-integration-layer-requests-selenium-web-automation/).
 
 ## Features
 - Enables switching between a Requests' Session and a Selenium webdriver while maintaining the current web session.
@@ -28,7 +28,7 @@ Read more about the motivation behind creating this library in this [blopost](ht
 pip install requestium
 ```
 
-You should then download your preferred Selenium webdriver if you plan to use the Selenium part of Requestium, such as [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/).
+Selenium 4.6+ includes Selenium Manager, which downloads the matching driver (such as Chromedriver) automatically, so you don't need to install one yourself. If you prefer to manage the driver yourself, download it and pass its location with the `webdriver_path` argument.
 
 ## Usage
 First create a session as you would do on Requests, and optionally add arguments for the web-driver if you plan to use one.
@@ -44,7 +44,7 @@ Since headless mode is common, there's a shortcut for it by specifying `headless
 ```python
 from requestium import Session, Keys
 
-s = Session(webdriver_path='./chromedriver' headless=True)
+s = Session(webdriver_path='./chromedriver', headless=True)
 ```
 
 You can also create a Selenium webdriver outside Requestium and have it use that instead:
@@ -58,7 +58,19 @@ firefox_driver = webdriver.Firefox()
 s = Session(driver=firefox_driver)
 ```
 
-You can also specify a 3rd party Chrome webdriver class and use it by specifying the `browser` argument as well. This will allow, for example, to use [Selenium-Wire](https://github.com/wkeeling/selenium-wire) to get XHR requests of a web page:
+A remote webdriver works too, with all the `ensure_*` and xpath/css/re helpers:
+
+```python
+from selenium import webdriver
+from requestium import Session
+
+options = webdriver.ChromeOptions()
+remote_driver = webdriver.Remote(command_executor='http://localhost:4444/wd/hub', options=options)
+
+s = Session(driver=remote_driver)
+```
+
+You can also pass an instance of a 3rd party webdriver class, such as Chrome from [Selenium-Wire](https://github.com/wkeeling/selenium-wire), which lets you get the XHR requests of a web page. When `driver` is given, `webdriver_path` is ignored:
 
 ```python
 from seleniumwire import webdriver
@@ -66,7 +78,7 @@ from requestium import Session, Keys
 
 seleniumwire_driver = webdriver.Chrome()
 
-s = Session(webdriver_path='./chromedriver', driver=seleniumwire_driver)
+s = Session(driver=seleniumwire_driver)
 
 ```
 
@@ -86,7 +98,7 @@ identifier = response.re_first(r'ID_\d\w\d', default='ID_1A1')
 users = response.re(r'user_\d\d\d')
 ```
 
-The Session object is just a regular Requests's session object, so you can use all of its methods.
+The Session object is just a regular Requests's session object, so you can use all of its methods. Responses from all HTTP verbs (get, post, put, patch, delete, head, options) have the xpath, css, and re helpers.
 ```python
 s.post('http://www.samplesite.com/sample', data={'field1': 'data1'})
 s.proxies.update({'http': 'http://10.11.4.254:3128', 'https': 'https://10.11.4.252:3128'})
@@ -117,6 +129,14 @@ And finally you can switch back to using Requests.
 ```python
 s.transfer_driver_cookies_to_session()
 s.post('http://www.samplesite.com/sample2', data={'key1': 'value1'})
+```
+
+When you are done, close the session. This quits the webdriver if one was started, including a driver you passed in. It also works as a context manager.
+```python
+s.close()
+
+with Session(headless=True) as s:
+    s.driver.get('http://www.samplesite.com')
 ```
 
 ## Selenium workarounds
@@ -150,17 +170,17 @@ s.driver.ensure_element("xpath", "//li[@class='b1']", state='clickable', timeout
 ```
 
 ### Add cookie
-The `ensure_add_cookie` method makes adding cookies much more robust. Selenium needs the browser to be at the cookie's domain before being able to add the cookie, this method offers several workarounds for this. If the browser is not in the cookies domain, it GETs the domain before adding the cookie. It also allows you to override the domain before adding it, and avoid making this GET. The domain can be overridden to `''`, this sets the cookie's domain to whatever domain the driver is currently in.
+The `ensure_add_cookie` method makes adding cookies much more robust. Selenium needs the browser to be at the cookie's domain before being able to add the cookie, this method offers several workarounds for this. If the browser is not in the cookies domain, it GETs the domain before adding the cookie, over https if the cookie is `secure` and over http otherwise. It also allows you to override the domain before adding it, and avoid making this GET. The domain can be overridden to `''`, this sets the cookie's domain to whatever domain the driver is currently in.
 
 If it can't add the cookie it tries to add it with a less restrictive domain (Eg.: home.site.com -> site.com) before failing.
 
 ```python
 cookie = {"domain": "www.site.com",
-          "secure": false,
+          "secure": False,
           "value": "sd2451dgd13",
           "expiry": 1516824855.759154,
           "path": "/",
-          "httpOnly": true,
+          "httpOnly": True,
           "name": "sessionid"}
 s.driver.ensure_add_cookie(cookie, override_domain='')
 ```
@@ -178,7 +198,7 @@ s.copy_user_agent_from_driver()
 ```
 Take into account that doing this will launch a browser process.
 
-Note: The Selenium Chrome webdriver doesn't support automatic transfer of proxies from the Session to the Webdriver at the moment.
+When Requestium launches its own Chrome, it carries over the session's `proxies` (as `--proxy-server`) and a custom `User-Agent` header, as long as they are set before the driver is first used. Proxies with credentials aren't supported by Chrome flags and are skipped with a warning. Other headers are not synced. This doesn't apply to a driver you pass in yourself.
 
 ## Comparison with Requests + Selenium + lxml
 A silly working example of a script that runs on Reddit. We'll then show how it compares to using Requests + Selenium + lxml instead of Requestium.
@@ -190,7 +210,7 @@ from requestium import Session, Keys
 # If you want requestium to type your username in the browser for you, write it in here:
 reddit_user_name = ''
 
-s = Session('./chromedriver', default_timeout=15)
+s = Session(default_timeout=15)
 s.driver.get('http://reddit.com')
 s.driver.find_element("xpath", "//a[@href='https://www.reddit.com/login']").click()
 
@@ -236,7 +256,7 @@ from selenium.webdriver.support import expected_conditions as EC
 # If you want requestium to type your username in the browser for you, write it in here:
 reddit_user_name = ''
 
-driver = webdriver.Chrome('./chromedriver')
+driver = webdriver.Chrome()
 driver.get('http://reddit.com')
 driver.find_element("xpath", "//a[@href='https://www.reddit.com/login']").click()
 
