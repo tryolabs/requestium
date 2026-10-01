@@ -1,12 +1,12 @@
+import time
 from collections.abc import Generator
 
 import pytest
-from _pytest.fixtures import FixtureRequest
 from selenium.common import InvalidCookieDomainException
 
 import requestium.requestium
 
-from .conftest import LocalServer
+from .conftest import LocalServer, assert_first_cookie_matches, cookies_sent_by_driver
 
 # Cookie domains in these tests are fake public hostnames such as example.com. The browsers and requests are pointed at
 # the local server as an HTTP proxy (see LocalServer), so nothing leaves the machine, yet cookie and domain rules are
@@ -19,84 +19,9 @@ from .conftest import LocalServer
 # Plain http is required, as an https page would need a CONNECT tunnel to the proxy.
 
 
-@pytest.fixture(
-    params=[
-        {"name": "session_id", "value": "abc123", "domain": "example.com", "path": "/"},
-        {"name": "user_token", "value": "xyz789", "domain": "example.com", "path": "/"},
-    ],
-    ids=["session_id", "user_token"],
-    scope="module",
-)
-def cookie_data(request: FixtureRequest) -> dict[str, str]:
-    return request.param
-
-
-@pytest.fixture
-def clean_session(session: requestium.Session, server: LocalServer) -> Generator[requestium.Session, None, None]:
-    """Ensure cookies are cleared before each test, and let requests reach fake public hosts through the local server."""
-    session.cookies.clear()
-    for host in ("example.com", "example.net"):
-        session.driver.get(f"http://{host}")  # the driver only deletes cookies of the current page's domain
-        session.driver.delete_all_cookies()
-    session._last_requests_url = None
-    session.proxies.update(server.proxies)
-    yield session
-    session.proxies.clear()
-
-
-def assert_first_cookie_matches(driver_cookies: list[dict], expected: dict[str, str]) -> None:
-    """Verify the first cookie in a list matches expected values."""
-    assert len(driver_cookies) == 1
-
-    cookie = driver_cookies[0]
-    assert cookie["name"] == expected["name"]
-    assert cookie["value"] == expected["value"]
-    assert cookie["domain"] in {expected["domain"], f".{expected['domain']}"}
-    assert cookie["path"] == expected["path"]
-
-
 def echoed_cookies(session: requestium.Session, host: str) -> str:
     """Return the Cookie header the server received when the session fetched the host."""
     return session.get(f"http://{host}/echo").json()["cookies"]
-
-
-def cookies_sent_by_driver(session: requestium.Session) -> str:
-    """Return the Cookie header the server received when the browser fetched http://example.com/echo."""
-    session.driver.get("http://example.com")
-    echo = session.driver.execute_async_script("fetch('/echo').then((r) => r.json()).then(arguments[0]);")
-    return echo["cookies"]
-
-
-def test_ensure_add_cookie(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
-    clean_session.driver.ensure_add_cookie(cookie_data)
-
-    assert_first_cookie_matches(clean_session.driver.get_cookies(), cookie_data)
-
-
-def test_ensure_add_cookie_is_sent_to_server(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
-    clean_session.driver.ensure_add_cookie(cookie_data)
-
-    sent = cookies_sent_by_driver(clean_session)
-    assert sent == f"{cookie_data['name']}={cookie_data['value']}"
-
-
-def test_ensure_add_cookie_domain_override(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
-    override_domain = "example.net"
-
-    clean_session.driver.ensure_add_cookie(cookie_data, override_domain=override_domain)
-
-    expected = {**cookie_data, "domain": override_domain}
-    assert_first_cookie_matches(clean_session.driver.get_cookies(), expected)
-
-
-def test_ensure_add_cookie_falls_back_to_parent_domain(clean_session: requestium.Session) -> None:
-    """www.example.com redirects to example.com, so the cookie for www is rejected until retried with the parent domain."""
-    cookie = {"name": "fallback", "value": "1", "domain": "www.example.com", "path": "/"}
-
-    clean_session.driver.ensure_add_cookie(cookie)
-
-    assert clean_session.driver.current_url == "http://example.com/"
-    assert_first_cookie_matches(clean_session.driver.get_cookies(), {**cookie, "domain": "example.com"})
 
 
 def test_transfer_driver_cookies_to_session(clean_session: requestium.Session, cookie_data: dict[str, str]) -> None:
@@ -176,3 +101,44 @@ def test_transfer_session_cookies_to_driver_no_domain_error(clean_session: reque
         match="Trying to transfer cookies to selenium without specifying a domain and without having visited any page in the current session",
     ):
         clean_session.transfer_session_cookies_to_driver()
+
+
+@pytest.fixture(scope="module")
+def localhost_session(server: LocalServer) -> Generator[requestium.Session, None, None]:
+    """Start a Chrome session where http://localhost:<port> reaches the test server and counts as a secure context for Secure cookies."""
+    arguments = ["--host-resolver-rules=MAP localhost 127.0.0.1", f"--unsafely-treat-insecure-origin-as-secure=http://localhost:{server.port}"]
+    session = requestium.Session(headless=True, webdriver_options={"arguments": ["--no-sandbox", "--disable-dev-shm-usage", *arguments]})
+    yield session
+    session.close()
+
+
+def test_secure_and_path_attributes_reach_driver(localhost_session: requestium.Session, server: LocalServer) -> None:
+    session = localhost_session
+    session.cookies.clear()
+    session.cookies.set("sec", "1", domain="localhost", path="/sub", secure=True)
+    session.cookies.set("plain", "2", domain="localhost", path="/")
+
+    # Already being on the cookie's domain (and path) keeps the transfer from navigating to its default port
+    session.driver.get(f"http://localhost:{server.port}/sub")
+    session.transfer_session_cookies_to_driver(domain="localhost")
+
+    cookies = {c["name"]: c for c in session.driver.get_cookies()}
+    assert cookies["sec"]["secure"] is True
+    assert cookies["sec"]["path"] == "/sub"
+    assert cookies["plain"]["secure"] is False
+    assert cookies["plain"]["path"] == "/"
+
+
+def test_path_secure_and_expiry_reach_session(localhost_session: requestium.Session, server: LocalServer) -> None:
+    session = localhost_session
+    session.cookies.clear()
+    session.driver.get(f"http://localhost:{server.port}/deep")
+    expiry = int(time.time()) + 3600
+
+    session.driver.add_cookie({"name": "c", "value": "v", "path": "/deep", "secure": True, "expiry": expiry})
+    session.transfer_driver_cookies_to_session(copy_user_agent=False)
+
+    cookie = next(c for c in session.cookies if c.name == "c")
+    assert cookie.path == "/deep"
+    assert cookie.secure is True
+    assert cookie.expires == expiry

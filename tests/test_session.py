@@ -4,12 +4,16 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from selenium import webdriver
 from selenium.common import WebDriverException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webdriver import WebDriver
 
 import requestium.requestium
+from requestium.requestium import DriverMixin, RequestiumResponse
+from requestium.requestium_session import _mixin_class
 
-from .conftest import validate_session
+from .conftest import LocalServer, chrome_options, validate_session
 
 SessionFactory = Callable[..., requestium.Session]
 
@@ -79,3 +83,91 @@ def test__start_chrome_driver_webdriver_options_typeerror() -> None:
         ),
     ):
         session._start_chrome_browser()
+
+
+def driver_is_dead(driver: WebDriver) -> bool:
+    return not driver.service.is_connectable()  # type: ignore[attr-defined]
+
+
+def test_close_quits_lazily_started_chrome() -> None:
+    session = requestium.Session(headless=True)
+    driver = session.driver
+    assert not driver_is_dead(driver)
+    session.close()
+    assert driver_is_dead(driver)
+    assert session._driver is None
+
+
+def test_close_then_driver_access_starts_fresh_chrome() -> None:
+    session = requestium.Session(headless=True)
+    first = session.driver
+    session.close()
+    second = session.driver
+    try:
+        assert second is not first
+        assert second.execute_script("return 1 + 1;") == 2
+    finally:
+        session.close()
+
+
+def test_context_manager_quits_driver() -> None:
+    with requestium.Session(headless=True) as session:
+        driver = session.driver
+        assert not driver_is_dead(driver)
+    assert driver_is_dead(driver)
+
+
+def test_close_without_driver_does_not_start_one() -> None:
+    session = requestium.Session(headless=True)
+    session.close()
+    assert session._driver is None
+
+
+def test_close_twice_is_harmless() -> None:
+    session = requestium.Session(headless=True)
+    driver = session.driver
+    driver.quit()
+    session.close()
+    session.close()
+
+
+def test_close_quits_injected_driver_and_blocks_reuse(server: LocalServer) -> None:
+    driver = webdriver.Chrome(options=chrome_options(server, headless=True))
+    session = requestium.Session(driver=driver)
+    assert session.driver is driver
+    session.close()
+    assert driver_is_dead(driver)
+    with pytest.raises(RuntimeError, match="closed"):
+        session.driver  # noqa: B018
+
+
+def test_injected_class_is_cached_across_sessions(server: LocalServer) -> None:
+    drivers = [webdriver.Chrome(options=chrome_options(server, headless=True)) for _ in range(2)]
+    try:
+        sessions = [requestium.Session(driver=d) for d in drivers]
+        assert type(drivers[0]) is type(drivers[1])
+        assert DriverMixin in type(drivers[0]).__mro__
+        assert sessions[0].driver is drivers[0]
+    finally:
+        for d in drivers:
+            d.quit()
+
+
+def test_injected_remote_class_has_mixin_in_mro() -> None:
+    cls = _mixin_class(webdriver.Remote)
+    assert cls.__mro__[1] is DriverMixin
+    assert issubclass(cls, webdriver.Remote)
+    assert "selector" in dir(cls)
+
+
+@pytest.mark.parametrize("verb", ["get", "head", "post", "put", "patch", "delete", "options"])
+def test_every_verb_is_wrapped_and_tracks_last_url(server: LocalServer, verb: str) -> None:
+    session = requestium.Session()
+    url = f"{server.url}/?verb={verb}"
+    resp = getattr(session, verb)(url)
+    assert isinstance(resp, RequestiumResponse)
+    assert resp.status_code == 200
+    assert session._last_requests_url == url
+    assert server.requests()[-1] == (verb.upper(), f"127.0.0.1:{server.port}", f"/?verb={verb}")
+    if verb != "head":
+        assert resp.xpath("//h1/text()").get() == "Test Header 1"

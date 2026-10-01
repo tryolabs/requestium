@@ -52,3 +52,30 @@ def test_transfer_driver_cookies_to_session_can_skip_user_agent(reset_session_he
 
     session.transfer_driver_cookies_to_session(copy_user_agent=False)
     assert session.headers["user-agent"] == before
+
+
+def test_custom_user_agent_reaches_chrome() -> None:
+    session = requestium.Session(headless=True)
+    session.headers["User-Agent"] = "RequestiumTest/1.0"
+    try:
+        assert session.driver.execute_script("return navigator.userAgent;") == "RequestiumTest/1.0"
+    finally:
+        session.close()
+
+
+def test_default_user_agent_is_not_forced() -> None:
+    session = requestium.Session(headless=True)
+    try:
+        user_agent = session.driver.execute_script("return navigator.userAgent;")
+        assert "python-requests" not in user_agent
+    finally:
+        session.close()
+
+
+def test_user_supplied_user_agent_argument_wins() -> None:
+    session = requestium.Session(headless=True, webdriver_options={"arguments": ["--user-agent=FromOptions/2.0"]})
+    session.headers["User-Agent"] = "FromHeaders/1.0"
+    try:
+        assert session.driver.execute_script("return navigator.userAgent;") == "FromOptions/2.0"
+    finally:
+        session.close()

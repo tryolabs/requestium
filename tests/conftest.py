@@ -1,8 +1,12 @@
 import contextlib
 import json
+import shutil
+import ssl
+import subprocess
 import threading
-from collections.abc import Generator
+from collections.abc import Generator, Sequence
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import TYPE_CHECKING, cast
 from urllib.parse import parse_qs, urlsplit
 
@@ -50,19 +54,21 @@ class _Handler(BaseHTTPRequestHandler):
         /set-cookie           sets a cookie from the query string: name, value and optionally domain
         /redirect             302 to /
         anything added with LocalServer.add_page
+    Every request is recorded in LocalServer.requests.
     """
 
     server: "_Server"
 
-    def _send(self, status: int, body: str, content_type: str = "text/html", headers: dict[str, str] | None = None) -> None:
-        payload = body.encode()
+    def _send(self, status: int, body: str | bytes, content_type: str = "text/html; charset=utf-8", headers: dict[str, str] | None = None) -> None:
+        payload = body.encode() if isinstance(body, str) else body
         self.send_response(status)
-        self.send_header("Content-Type", f"{content_type}; charset=utf-8")
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(payload)))
         for name, value in (headers or {}).items():
             self.send_header(name, value)
         self.end_headers()
-        self.wfile.write(payload)
+        if self.command != "HEAD":
+            self.wfile.write(payload)
 
     def _handle(self) -> None:
         url = urlsplit(self.path)
@@ -70,9 +76,10 @@ class _Handler(BaseHTTPRequestHandler):
         host = self.headers.get("Host", "")
         length = int(self.headers.get("Content-Length") or 0)
         body = self.rfile.read(length).decode() if length else ""
+        self.server.requests.append((self.command, host, url._replace(scheme="", netloc="").geturl()))
 
         if url.path == "/" and host.startswith("www."):
-            self._send(302, "", headers={"Location": f"http://{host.removeprefix('www.')}/"})
+            self._send(302, "", headers={"Location": f"{self.server.scheme}://{host.removeprefix('www.')}/"})
         elif url.path == "/redirect":
             self._send(302, "", headers={"Location": "/"})
         elif url.path == "/set-cookie":
@@ -91,11 +98,12 @@ class _Handler(BaseHTTPRequestHandler):
         elif url.path == "/":
             self._send(200, EXAMPLE_HTML)
         elif url.path in self.server.pages:
-            self._send(200, self.server.pages[url.path])
+            status, page, content_type, headers = self.server.pages[url.path]
+            self._send(status, page, content_type, headers)
         else:
             self._send(404, "not found")
 
-    do_GET = do_POST = do_PUT = _handle  # noqa: N815
+    do_GET = do_HEAD = do_POST = do_PUT = do_PATCH = do_DELETE = do_OPTIONS = _handle  # noqa: N815
 
     def log_message(self, format: str, *args) -> None:  # noqa: A002
         """Keep test output quiet."""
@@ -104,28 +112,46 @@ class _Handler(BaseHTTPRequestHandler):
 class _Server(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self) -> None:
+    def __init__(self, certfile: Path | None) -> None:
         super().__init__(("127.0.0.1", 0), _Handler)
-        self.pages: dict[str, str] = {}
+        self.scheme = "https" if certfile else "http"
+        self.pages: dict[str, tuple[int, str | bytes, str, dict[str, str]]] = {}
+        self.requests: list[tuple[str, str, str]] = []
+        if certfile:
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.load_cert_chain(certfile)
+            self.socket = context.wrap_socket(self.socket, server_side=True)
 
 
 class LocalServer:
-    """A real HTTP server on 127.0.0.1 running in a background thread."""
+    """A real HTTP (or, given a certificate, HTTPS) server on 127.0.0.1 running in a background thread."""
 
-    def __init__(self) -> None:
-        self._server = _Server()
+    def __init__(self, certfile: Path | None = None) -> None:
+        self._server = _Server(certfile)
         self.port: int = self._server.server_address[1]
-        self.url = f"http://127.0.0.1:{self.port}"
+        self.url = f"{self._server.scheme}://127.0.0.1:{self.port}"
         # Lets requests reach fake public hostnames (http only) through this server
         self.proxy_url = self.url
         self.proxies = {"http": self.proxy_url}
         self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
         self._thread.start()
 
-    def add_page(self, path: str, html: str) -> str:
-        """Serve html at path (leading slash) and return its full URL."""
-        self._server.pages[path] = html
+    def add_page(
+        self,
+        path: str,
+        body: str | bytes,
+        *,
+        content_type: str = "text/html; charset=utf-8",
+        status: int = 200,
+        headers: dict[str, str] | None = None,
+    ) -> str:
+        """Serve body at path (leading slash) and return its full URL."""
+        self._server.pages[path] = (status, body, content_type, headers or {})
         return f"{self.url}{path}"
+
+    def requests(self, host: str | None = None) -> list[tuple[str, str, str]]:
+        """Return (method, Host header, path and query) of every request so far, optionally only those for host, ignoring favicons."""
+        return [r for r in self._server.requests if r[2] != "/favicon.ico" and (host is None or r[1] == host)]
 
     def close(self) -> None:
         self._server.shutdown()
@@ -140,6 +166,22 @@ def server() -> Generator[LocalServer, None, None]:
     local_server.close()
 
 
+@pytest.fixture(scope="session")
+def https_server(tmp_path_factory: pytest.TempPathFactory) -> Generator[LocalServer, None, None]:
+    """Start a TLS listener with a throwaway self-signed certificate; browsers need --ignore-certificate-errors to trust it."""
+    if shutil.which("openssl") is None:
+        pytest.skip("openssl is needed to generate a throwaway TLS certificate")
+    pem = tmp_path_factory.mktemp("tls") / "cert.pem"
+    subprocess.run(
+        ["openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1", "-subj", "/CN=localhost", "-keyout", str(pem), "-out", str(pem)],
+        check=True,
+        capture_output=True,
+    )
+    local_server = LocalServer(pem)
+    yield local_server
+    local_server.close()
+
+
 @pytest.fixture(scope="module")
 def example_html() -> str:
     return EXAMPLE_HTML
@@ -150,10 +192,12 @@ def example_url(server: LocalServer) -> str:
     return server.add_page("/example", EXAMPLE_HTML)
 
 
-def chrome_options(server: LocalServer, *, headless: bool) -> webdriver.ChromeOptions:
+def chrome_options(server: LocalServer, *, headless: bool, arguments: Sequence[str] = ()) -> webdriver.ChromeOptions:
     """Chrome options that route non-loopback http traffic (e.g. http://example.com) to the local server."""
     options = webdriver.ChromeOptions()
     options.add_argument(f"--proxy-server={server.proxy_url}")
+    for argument in arguments:
+        options.add_argument(argument)
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     if headless:
@@ -190,6 +234,35 @@ def _create_firefox_driver(server: LocalServer, *, headless: bool) -> webdriver.
     except (urllib3.exceptions.ReadTimeoutError, TimeoutError, WebDriverException) as e:
         error_msg = f"Firefox driver initialization failed: {e}"
         raise RuntimeError(error_msg) from e
+
+
+COOKIES = [
+    {"name": "session_id", "value": "abc123", "domain": "example.com", "path": "/"},
+    {"name": "user_token", "value": "xyz789", "domain": "example.com", "path": "/"},
+]
+
+
+@pytest.fixture(params=COOKIES, ids=[c["name"] for c in COOKIES], scope="module")
+def cookie_data(request: FixtureRequest) -> dict[str, str]:
+    return request.param
+
+
+def assert_first_cookie_matches(driver_cookies: list[dict], expected: dict[str, str]) -> None:
+    """Verify the only cookie in a list matches expected values."""
+    assert len(driver_cookies) == 1
+
+    cookie = driver_cookies[0]
+    assert cookie["name"] == expected["name"]
+    assert cookie["value"] == expected["value"]
+    assert cookie["domain"] in {expected["domain"], f".{expected['domain']}"}
+    assert cookie["path"] == expected["path"]
+
+
+def cookies_sent_by_driver(session: requestium.Session) -> str:
+    """Return the Cookie header the server received when the browser fetched http://example.com/echo."""
+    session.driver.get("http://example.com")
+    echo = session.driver.execute_async_script("fetch('/echo').then((r) => r.json()).then(arguments[0]);")
+    return echo["cookies"]
 
 
 def validate_session(session: requestium.Session) -> None:
@@ -248,3 +321,16 @@ def session(request: FixtureRequest, server: LocalServer) -> Generator[requestiu
         if driver:
             with contextlib.suppress(WebDriverException, OSError, Exception):
                 driver.quit()
+
+
+@pytest.fixture
+def clean_session(session: requestium.Session, server: LocalServer) -> Generator[requestium.Session, None, None]:
+    """Ensure cookies are cleared before each test, and let requests reach fake public hosts through the local server."""
+    session.cookies.clear()
+    for host in ("example.com", "example.net"):
+        session.driver.get(f"http://{host}")  # the driver only deletes cookies of the current page's domain
+        session.driver.delete_all_cookies()
+    session._last_requests_url = None
+    session.proxies.update(server.proxies)
+    yield session
+    session.proxies.clear()

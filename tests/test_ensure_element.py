@@ -181,3 +181,15 @@ def test_ensure_click_gives_up_on_unclickable_element(state_page: requestium.Ses
         covered.ensure_click()  # type: ignore[attr-defined]
 
     assert driver.find_element(By.ID, "result").text == "not clicked"
+
+
+def test_timeout_zero_is_honored(state_page: requestium.Session) -> None:
+    original_timeout = state_page.driver.default_timeout
+    state_page.driver.default_timeout = 30
+    try:
+        start = time.monotonic()
+        with pytest.raises(TimeoutException):
+            state_page.driver.ensure_element(By.ID, "missing", timeout=0)
+        assert time.monotonic() - start < 5
+    finally:
+        state_page.driver.default_timeout = original_timeout
