@@ -24,6 +24,7 @@ Read more about the motivation behind creating this library in this [blog post](
 - Supports Chromedriver natively plus adding a custom webdriver.
 
 ## Installation
+
 ```bash
 pip install requestium
 ```
@@ -32,6 +33,7 @@ Selenium 4.6+ includes Selenium Manager, which downloads the matching driver (su
 
 ## Usage
 First create a session as you would do on Requests, and optionally add arguments for the web-driver if you plan to use one.
+
 ```python
 from requestium import Session, Keys
 
@@ -82,11 +84,13 @@ s = Session(driver=seleniumwire_driver)
 ```
 
 You don't need to parse the response, it is done automatically when calling xpath, css or re.
+
 ```python
 title = s.get("http://samplesite.com").xpath("//title/text()").extract_first(default="Default Title")
 ```
 
 Regex require less boilerplate when compared to Python's standard `re` module.
+
 ```python
 response = s.get("http://samplesite.com/sample_path")
 
@@ -98,18 +102,21 @@ users = response.re(r"user_\d\d\d")
 ```
 
 The Session object is just a regular Requests's session object, so you can use all of its methods. Responses from all HTTP verbs (get, post, put, patch, delete, head, options) have the xpath, css, and re helpers.
+
 ```python
 s.post("http://www.samplesite.com/sample", data={"field1": "data1"})
 s.proxies.update({"http": "http://10.11.4.254:3128", "https": "https://10.11.4.252:3128"})
 ```
 
 And you can switch to using the Selenium webdriver to run any js code.
+
 ```python
 s.transfer_session_cookies_to_driver()  # You can maintain the session if needed
 s.driver.get("http://www.samplesite.com/sample/process")
 ```
 
 The driver object is a Selenium webdriver object, so you can use any of the normal selenium methods plus new methods added by Requestium.
+
 ```python
 s.driver.find_element("xpath", "//input[@class='user_name']").send_keys("James Bond", Keys.ENTER)
 
@@ -119,18 +126,21 @@ s.driver.ensure_element_by_xpath("//div[@attribute='button']").click()
 ```
 
 Requestium also adds xpath, css, and re methods to the Selenium driver object.
+
 ```python
 if s.driver.re(r"ID_\d\w\d some_pattern"):
     print("Found it!")
 ```
 
 And finally you can switch back to using Requests.
+
 ```python
 s.transfer_driver_cookies_to_session()
 s.post("http://www.samplesite.com/sample2", data={"key1": "value1"})
 ```
 
 When you are done, close the session. This quits the webdriver if one was started, including a driver you passed in. It also works as a context manager.
+
 ```python
 s.close()
 
@@ -186,6 +196,7 @@ New features are lazily evaluated, meaning:
 A byproduct of this is that the Selenium webdriver could be used just as a tool to ease in the development of regular Requests code: You can start writing your script using just the Requests' session, and at the last step of the script (the one you are currently working on) transfer the session to the Chrome webdriver. This way, a Chrome process starts in your machine, and acts as a real time "visor" for the last step of your code. You can see in what state your session is currently in, inspect it with Chrome's excellent inspect tools, and decide what's the next step your session object should take. Very useful to try code in an IPython interpreter and see how the site reacts in real time.
 
 When `transfer_driver_cookies_to_session` is called, Requestium automatically updates your Requests session user-agent to match that of the browser used in Selenium. This doesn't happen when running Requests without having switched from a Selenium session first though. So if you just want to run Requests but want it to use your browser's user agent instead of the default one (which sites love to block), just run:
+
 ```python
 s.copy_user_agent_from_driver()
 ```
@@ -197,6 +208,7 @@ When Requestium launches its own Chrome, it carries over the session's `proxies`
 A silly working example of a script that runs on Reddit. We'll then show how it compares to using Requests + Selenium + lxml instead of Requestium.
 
 ### Using Requestium
+
 ```python
 from requestium import Session, Keys
 
