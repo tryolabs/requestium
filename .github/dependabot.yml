@@ -4,6 +4,7 @@
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
+
 updates:
   - package-ecosystem: pip
     directory: /
@@ -18,3 +19,7 @@ updates:
     directory: /
     schedule:
       interval: quarterly
+    groups:
+      codeql-action:
+        patterns:
+          - 'github/codeql-action/*'
