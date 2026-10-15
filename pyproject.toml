@@ -48,7 +48,7 @@ issues = "https://github.com/tryolabs/requestium/issues"
 [dependency-groups]
 dev = [
     "bandit[sarif]==1.9.4",
-    "mypy==2.3.1",
+    "mypy==2.4.0",
     "pre-commit>=4.5,<4.8",
     "pytest-cov>=7.0,<7.2",
     "pytest-xdist~=3.8.0",
