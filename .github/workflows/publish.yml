@@ -53,7 +53,7 @@ jobs:
           uv run --isolated --no-project --with dist/*.whl python -c "import requestium; requestium.Session().close()"
           uv run --isolated --no-project --with dist/*.tar.gz python -c "import requestium; requestium.Session().close()"
 
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: dist
           path: dist/
