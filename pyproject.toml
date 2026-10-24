@@ -41,9 +41,9 @@ dependencies = [
 ]
 
 [project.urls]
-source = "https://github.com/tryolabs/requestium"
+source = "https://github.com/lordjabez/requestium"
 download = "https://pypi.org/project/requestium/#files"
-issues = "https://github.com/tryolabs/requestium/issues"
+issues = "https://github.com/lordjabez/requestium/issues"
 
 [dependency-groups]
 dev = [

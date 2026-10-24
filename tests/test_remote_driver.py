@@ -2,7 +2,7 @@
 A requestium Session driving a webdriver.Remote, as used with a Selenium Grid.
 
 No grid is needed: chromedriver is itself a W3C WebDriver server, so a locally started ChromeService is a
-perfectly good remote endpoint (https://github.com/tryolabs/requestium/issues/31).
+perfectly good remote endpoint (https://github.com/lordjabez/requestium/issues/31).
 """
 
 from collections.abc import Generator
