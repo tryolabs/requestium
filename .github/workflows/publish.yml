@@ -36,7 +36,7 @@ jobs:
         with:
           python-version: '3.13'
 
-      - uses: install-pinned/uv@dd913dd463d91b016b71467bc12b0d3754cfee61
+      - uses: install-pinned/uv@975f98046e8fd4831331eaf7119be4738be7b741
 
       - name: Check tag matches project version
         run: |
@@ -82,7 +82,7 @@ jobs:
         with:
           python-version: '3.13'
 
-      - uses: install-pinned/uv@dd913dd463d91b016b71467bc12b0d3754cfee61
+      - uses: install-pinned/uv@975f98046e8fd4831331eaf7119be4738be7b741
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
